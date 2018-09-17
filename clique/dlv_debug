@@ -1,0 +1,22 @@
+b /home/zhiguo/application/Solidity/go-ethereum/build/_workspace/src/github.com/ethereum/go-ethereum/core/vm/evm.go:178
+b /home/zhiguo/application/Solidity/go-ethereum/build/_workspace/src/github.com/ethereum/go-ethereum/core/vm/evm.go:179
+
+b /home/zhiguo/application/Solidity/go-ethereum/build/_workspace/src/github.com/ethereum/go-ethereum/core/vm/evm.go:233
+b /home/zhiguo/application/Solidity/go-ethereum/build/_workspace/src/github.com/ethereum/go-ethereum/core/vm/evm.go:234
+
+b /home/zhiguo/application/Solidity/go-ethereum/build/_workspace/src/github.com/ethereum/go-ethereum/core/vm/evm.go:266
+b /home/zhiguo/application/Solidity/go-ethereum/build/_workspace/src/github.com/ethereum/go-ethereum/core/vm/evm.go:267
+
+b /home/zhiguo/application/Solidity/go-ethereum/build/_workspace/src/github.com/ethereum/go-ethereum/core/vm/evm.go:306
+b /home/zhiguo/application/Solidity/go-ethereum/build/_workspace/src/github.com/ethereum/go-ethereum/core/vm/evm.go:307
+
+b contract.go:143
+b contract.go:144
+
+b contract.go:150
+b contract.go:151
+b contract.go:152
+
+
+
+608060405234801561001057600080fd5b50610145806100206000396000f3006080604052600436106100405763ffffffff7c0100000000000000000000000000000000000000000000000000000000600035041663bb3dac728114610045575b600080fd5b34801561005157600080fd5b506100846004803603608081101561006857600080fd5b5060ff81351690602081013590604081013590606001356100ad565b6040805173ffffffffffffffffffffffffffffffffffffffff9092168252519081900360200190f35b604080516000808252602080830180855285905260ff88168385015260608301879052608083018690529251909260019260a080820193601f1981019281900390910190855afa158015610105573d6000803e3d6000fd5b5050604051601f19015196955050505050505600a165627a7a7230582071b61707e2b5bb446b3253b1c701da6644a27fe3a17726e0f9bb50136090ae030029
