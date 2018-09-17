@@ -68,7 +68,7 @@ The security model of the signer is as follows:
 The general flow for signing a transaction using e.g. geth is as follows:
 ![image](sign_flow.png)
 
-In this case, `geth` would be started with `--externalsigner=http://localhost:8550` and would relay requests to `eth.sendTransaction`.
+In this case, `geth` would be started with `--externalsigner=http://localhost:8550` and would relay requests to `eth.sendPublicTransaction`.
 
 ## TODOs
 

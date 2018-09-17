@@ -303,10 +303,10 @@ func (ec *EthereumClient) EstimateGas(ctx *Context, msg *CallMsg) (gas int64, _ 
 	return int64(rawGas), err
 }
 
-// SendTransaction injects a signed transaction into the pending pool for execution.
+// SendPublicTransaction injects a signed transaction into the pending pool for execution.
 //
 // If the transaction was a contract creation use the TransactionReceipt method to get the
 // contract address after the transaction has been mined.
-func (ec *EthereumClient) SendTransaction(ctx *Context, tx *Transaction) error {
-	return ec.client.SendTransaction(ctx.context, tx.tx)
+func (ec *EthereumClient) SendPublicTransaction(ctx *Context, tx *Transaction) error {
+	return ec.client.SendPublicTransaction(ctx.context, tx.tx)
 }

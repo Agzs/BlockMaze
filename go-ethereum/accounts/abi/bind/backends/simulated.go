@@ -291,9 +291,9 @@ func (b *SimulatedBackend) callContract(ctx context.Context, call ethereum.CallM
 	return core.NewStateTransition(vmenv, msg, gaspool).TransitionDb()
 }
 
-// SendTransaction updates the pending block to include the given transaction.
+// SendPublicTransaction updates the pending block to include the given transaction.
 // It panics if the transaction is invalid.
-func (b *SimulatedBackend) SendTransaction(ctx context.Context, tx *types.Transaction) error {
+func (b *SimulatedBackend) SendPublicTransaction(ctx context.Context, tx *types.Transaction) error {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 

@@ -159,7 +159,7 @@ type LogFilterer interface {
 	SubscribeFilterLogs(ctx context.Context, q FilterQuery, ch chan<- types.Log) (Subscription, error)
 }
 
-// TransactionSender wraps transaction sending. The SendTransaction method injects a
+// TransactionSender wraps transaction sending. The SendPublicTransaction method injects a
 // signed transaction into the pending transaction pool for execution. If the transaction
 // was a contract creation, the TransactionReceipt method can be used to retrieve the
 // contract address after the transaction has been mined.
@@ -168,7 +168,7 @@ type LogFilterer interface {
 // API can use package accounts to maintain local private keys and need can retrieve the
 // next available nonce using PendingNonceAt.
 type TransactionSender interface {
-	SendTransaction(ctx context.Context, tx *types.Transaction) error
+	SendPublicTransaction(ctx context.Context, tx *types.Transaction) error
 }
 
 // GasPricer wraps the gas price oracle, which monitors the blockchain to determine the

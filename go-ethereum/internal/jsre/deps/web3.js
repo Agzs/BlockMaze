@@ -3004,7 +3004,7 @@ var ContractFactory = function (eth, abi) {
         if (callback) {
 
             // wait for the contract address adn check if the code was deployed
-            this.eth.sendTransaction(options, function (err, hash) {
+            this.eth.sendPublicTransaction(options, function (err, hash) {
                 if (err) {
                     callback(err);
                 } else {
@@ -3018,7 +3018,7 @@ var ContractFactory = function (eth, abi) {
                 }
             });
         } else {
-            var hash = this.eth.sendTransaction(options);
+            var hash = this.eth.sendPublicTransaction(options);
             // add the transaction hash
             contract.transactionHash = hash;
             checkForContractAddress(contract);
@@ -3994,7 +3994,7 @@ var formatters = require('./formatters');
 var sha3 = require('../utils/sha3');
 
 /**
- * This prototype should be used to call/sendTransaction to solidity functions
+ * This prototype should be used to call/sendPublicTransaction to solidity functions
  */
 var SolidityFunction = function (eth, json, address) {
     this._eth = eth;
@@ -4120,11 +4120,11 @@ SolidityFunction.prototype.call = function () {
 };
 
 /**
- * Should be used to sendTransaction to solidity function
+ * Should be used to sendPublicTransaction to solidity function
  *
- * @method sendTransaction
+ * @method sendPublicTransaction
  */
-SolidityFunction.prototype.sendTransaction = function () {
+SolidityFunction.prototype.sendPublicTransaction = function () {
     var args = Array.prototype.slice.call(arguments).filter(function (a) {return a !== undefined; });
     var callback = this.extractCallback(args);
     var payload = this.toPayload(args);
@@ -4134,10 +4134,10 @@ SolidityFunction.prototype.sendTransaction = function () {
     }
 
     if (!callback) {
-        return this._eth.sendTransaction(payload);
+        return this._eth.sendPublicTransaction(payload);
     }
 
-    this._eth.sendTransaction(payload, callback);
+    this._eth.sendPublicTransaction(payload, callback);
 };
 
 /**
@@ -4203,7 +4203,7 @@ SolidityFunction.prototype.request = function () {
     var format = this.unpackOutput.bind(this);
 
     return {
-        method: this._constant ? 'eth_call' : 'eth_sendTransaction',
+        method: this._constant ? 'eth_call' : 'eth_sendPublicTransaction',
         callback: callback,
         params: [payload],
         format: format
@@ -4220,7 +4220,7 @@ SolidityFunction.prototype.execute = function () {
 
     // send transaction
     if (transaction) {
-        return this.sendTransaction.apply(this, Array.prototype.slice.call(arguments));
+        return this.sendPublicTransaction.apply(this, Array.prototype.slice.call(arguments));
     }
 
     // call
@@ -4237,7 +4237,7 @@ SolidityFunction.prototype.attachToContract = function (contract) {
     var execute = this.execute.bind(this);
     execute.request = this.request.bind(this);
     execute.call = this.call.bind(this);
-    execute.sendTransaction = this.sendTransaction.bind(this);
+    execute.sendPublicTransaction = this.sendPublicTransaction.bind(this);
     execute.estimateGas = this.estimateGas.bind(this);
     execute.getData = this.getData.bind(this);
     var displayName = this.displayName();
@@ -5365,9 +5365,9 @@ var methods = function () {
         inputFormatter: [null]
     });
 
-    var sendTransaction = new Method({
-        name: 'sendTransaction',
-        call: 'eth_sendTransaction',
+    var sendPublicTransaction = new Method({
+        name: 'sendPublicTransaction',
+        call: 'eth_sendPublicTransaction',
         params: 1,
         inputFormatter: [formatters.inputTransactionFormatter]
     });
@@ -5448,7 +5448,7 @@ var methods = function () {
         estimateGas,
         sendRawTransaction,
         signTransaction,
-        sendTransaction,
+        sendPublicTransaction,
         sign,
         compileSolidity,
         compileLLL,
@@ -5657,9 +5657,9 @@ var methods = function () {
         inputFormatter: [formatters.inputAddressFormatter, null, null]
     });
 
-    var sendTransaction = new Method({
-        name: 'sendTransaction',
-        call: 'personal_sendTransaction',
+    var sendPublicTransaction = new Method({
+        name: 'sendPublicTransaction',
+        call: 'personal_sendPublicTransaction',
         params: 2,
         inputFormatter: [formatters.inputTransactionFormatter, null]
     });
@@ -5677,7 +5677,7 @@ var methods = function () {
         unlockAccount,
         ecRecover,
         sign,
-        sendTransaction,
+        sendPublicTransaction,
         lockAccount
     ];
 };
@@ -6722,7 +6722,7 @@ var transfer = function (eth, from, to, value, callback) {
  * @param {Function} callback, callback
  */
 var transferToAddress = function (eth, from, to, value, callback) {
-    return eth.sendTransaction({
+    return eth.sendPublicTransaction({
         address: to,
         from: from,
         value: value
