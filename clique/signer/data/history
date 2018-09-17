@@ -2296,3 +2296,14 @@ samplecontract.verifyProof.call(proof, hashData, premium, coeff)
 eth.accounts
 eth.getBalance(eth.accounts[1])
 eth.getBalance(eth.accounts[0])
+sha3Msg = web3.sha3("blockchain")
+signedData = eth.sign(eth.accounts[0], sha3Msg)
+eth.sendTransaction({from:eth.accounts[0],to:eth.accounts[1],value:web3.toWei(0.05, "ether"), data:sha3Msg})
+txpool.status
+miner.start()
+miner.stop()
+eth.getBalance(eth.accounts[0])
+eth.getBalance(eth.accounts[1])
+eth.getBlock(1
+)
+eth.getTransaction("0xec82f8a2b65415a413ddb82965455277d9839dec1f055bfdbe20438404f2d310")
