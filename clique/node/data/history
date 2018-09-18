@@ -1,0 +1,2 @@
+admin.addPeer("enode://58f638e1c71988ba04327c5ba4537e01dbd0aa37851499ff110e96222a947415d96e1c84c7f28f23ee5cee10d8c6033c058b92f1c0eae4f56d4cf552a5e0fe85@[::]:2002")
+eth.getTransactionFromBlock(1,1)

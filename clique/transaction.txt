@@ -1,0 +1,68 @@
+../go-ethereum/build/bin/geth --datadir node/data account new
+
+
+../go-ethereum/build/bin/geth --datadir node/data init clique.json
+
+
+../go-ethereum/build/bin/geth --datadir node/data --networkid 55661 --port 2008 --unlock 29eec49600049eb192b860121447bfc72fe7ebac --password node/passwd.txt console
+
+admin.addPeer("enode://58f638e1c71988ba04327c5ba4537e01dbd0aa37851499ff110e96222a947415d96e1c84c7f28f23ee5cee10d8c6033c058b92f1c0eae4f56d4cf552a5e0fe85@[::]:2002")
+
+======================================================================================================
+
+../go-ethereum/build/bin/geth --datadir signer/data account new
+
+
+../go-ethereum/build/bin/geth --datadir signer/data init clique.json
+
+
+../go-ethereum/build/bin/geth --datadir signer/data --networkid 55661 --port 2002 --unlock 492f3232b3e2affb484ddebd3bc84c091b68626f --password signer/passwd.txt console
+
+
+eth.getBalance(eth.accounts[0])
+
+
+eth.getBalance(eth.accounts[1])
+
+
+sha3Msg = web3.sha3("blockchain")
+
+signedData = eth.sign(eth.accounts[0], sha3Msg)
+
+
+eth.sendPublicTransaction({from:eth.accounts[0],to:eth.accounts[1],value:web3.toWei(0.05, "ether")})
+
+eth.sendMintTransaction({from:eth.accounts[0],to:eth.accounts[1],value:web3.toWei(0.05, "ether"), data:sha3Msg})
+
+eth.sendDepositTransaction({from:eth.accounts[0],to:eth.accounts[1],value:web3.toWei(0.05, "ether"), data:signedData})
+
+eth.sendUpdateTransaction({from:eth.accounts[0],to:eth.accounts[1],value:web3.toWei(0.05, "ether")})
+
+eth.sendRedeemTransaction({from:eth.accounts[0],to:eth.accounts[1],value:web3.toWei(0.05, "ether"), data:signedData})
+
+
+txpool.status
+
+
+miner.start()
+
+
+miner.stop()
+
+
+eth.getBalance(eth.accounts[0])
+
+
+eth.getBalance(eth.accounts[1])
+
+
+eth.getBlock()
+
+
+eth.getTransaction("")
+
+
+
+
+
+

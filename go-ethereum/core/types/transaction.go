@@ -35,6 +35,22 @@ var (
 	ErrInvalidSig = errors.New("invalid transaction v, r, s values")
 )
 
+// Type of transaction using code --Agzs 09.17
+const (
+	PublicTx  uint8 = 0x00
+	MintTx    uint8 = 0x01
+	DepositTx uint8 = 0x02
+	UpdateTx  uint8 = 0x03
+	RedeemTx  uint8 = 0x04
+)
+
+// Type of transaction using string --Agzs 09.17
+var PublicTxStr string = "Public Transaction"
+var MintTxStr string = "Mint Transaction"
+var DepositTxStr string = "Deposit Transaction"
+var UpdateTxStr string = "Update Transaction"
+var RedeemTxStr string = "Redeem Transaction"
+
 type Transaction struct {
 	data txdata
 	// caches
@@ -44,6 +60,7 @@ type Transaction struct {
 }
 
 type txdata struct {
+	Code         uint8           `json:"code"     gencodec:"required"` // differ txs --Agzs 09.17
 	AccountNonce uint64          `json:"nonce"    gencodec:"required"`
 	Price        *big.Int        `json:"gasPrice" gencodec:"required"`
 	GasLimit     uint64          `json:"gas"      gencodec:"required"`
@@ -61,6 +78,7 @@ type txdata struct {
 }
 
 type txdataMarshaling struct {
+	Code         uint8 // differ txs --Agzs 09.18
 	AccountNonce hexutil.Uint64
 	Price        *hexutil.Big
 	GasLimit     hexutil.Uint64
@@ -84,6 +102,7 @@ func newTransaction(nonce uint64, to *common.Address, amount *big.Int, gasLimit 
 		data = common.CopyBytes(data)
 	}
 	d := txdata{
+		Code:         PublicTx, // default for public transaction --Agzs 09.17
 		AccountNonce: nonce,
 		Recipient:    to,
 		Payload:      data,
@@ -167,12 +186,35 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
+func (tx *Transaction) Code() uint8        { return tx.data.Code }
 func (tx *Transaction) Data() []byte       { return common.CopyBytes(tx.data.Payload) }
 func (tx *Transaction) Gas() uint64        { return tx.data.GasLimit }
 func (tx *Transaction) GasPrice() *big.Int { return new(big.Int).Set(tx.data.Price) }
 func (tx *Transaction) Value() *big.Int    { return new(big.Int).Set(tx.data.Amount) }
 func (tx *Transaction) Nonce() uint64      { return tx.data.AccountNonce }
 func (tx *Transaction) CheckNonce() bool   { return true }
+
+// SetDefaultCode sets the transactoion's type code. --Agzs 09.18
+func (tx *Transaction) SetTxCode(code uint8) {
+	tx.data.Code = code
+}
+
+// GetTxCode returns the transactoion's type code. --Agzs 09.18
+func (tx *Transaction) GetTxCodeStr() string {
+	if tx.Code() == PublicTx {
+		return PublicTxStr
+	} else if tx.Code() == MintTx {
+		return MintTxStr
+	} else if tx.Code() == DepositTx {
+		return DepositTxStr
+	} else if tx.Code() == UpdateTx {
+		return UpdateTxStr
+	} else if tx.Code() == RedeemTx {
+		return RedeemTxStr
+	} else {
+		return "invaild transaction"
+	}
+}
 
 // To returns the recipient address of the transaction.
 // It returns nil if the transaction is a contract creation.
@@ -381,6 +423,7 @@ func (t *TransactionsByPriceAndNonce) Pop() {
 type Message struct {
 	to         *common.Address
 	from       common.Address
+	code       uint8
 	nonce      uint64
 	amount     *big.Int
 	gasLimit   uint64
@@ -389,10 +432,11 @@ type Message struct {
 	checkNonce bool
 }
 
-func NewMessage(from common.Address, to *common.Address, nonce uint64, amount *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte, checkNonce bool) Message {
+func NewMessage(from common.Address, to *common.Address, code uint8, nonce uint64, amount *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte, checkNonce bool) Message {
 	return Message{
 		from:       from,
 		to:         to,
+		code:       code, // differ txs --Agzs 09.18
 		nonce:      nonce,
 		amount:     amount,
 		gasLimit:   gasLimit,
@@ -410,3 +454,4 @@ func (m Message) Gas() uint64          { return m.gasLimit }
 func (m Message) Nonce() uint64        { return m.nonce }
 func (m Message) Data() []byte         { return m.data }
 func (m Message) CheckNonce() bool     { return m.checkNonce }
+func (m Message) Code() uint8          { return m.code }

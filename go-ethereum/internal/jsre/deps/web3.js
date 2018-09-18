@@ -5364,6 +5364,41 @@ var methods = function () {
         params: 1,
         inputFormatter: [null]
     });
+    
+    /** --Agzs 09.17
+     * zero-knowledge for VNT using four types transaction as follows:
+     * MintTransaction: A converts plaintext balance into zero-knowledge balance;
+     * DepositTransaction: A transfers t zero-knowledge coin to a random address;
+     * UpdateTransaction: A updates his own zero-knowledge balance;
+     * RedeemTransaction: B redeems t zero-knowledge coin and updates his own zero-knowledge balance;
+     */
+    var sendMintTransaction = new Method({
+        name: 'sendMintTransaction',
+        call: 'eth_sendMintTransaction',
+        params: 1,
+        inputFormatter: [formatters.inputTransactionFormatter]
+    });
+
+    var sendDepositTransaction = new Method({
+        name: 'sendDepositTransaction',
+        call: 'eth_sendDepositTransaction',
+        params: 1,
+        inputFormatter: [formatters.inputTransactionFormatter]
+    });
+
+    var sendUpdateTransaction = new Method({
+        name: 'sendUpdateTransaction',
+        call: 'eth_sendUpdateTransaction',
+        params: 1,
+        inputFormatter: [formatters.inputTransactionFormatter]
+    });
+
+    var sendRedeemTransaction = new Method({
+        name: 'sendRedeemTransaction',
+        call: 'eth_sendRedeemTransaction',
+        params: 1,
+        inputFormatter: [formatters.inputTransactionFormatter]
+    });
 
     var sendPublicTransaction = new Method({
         name: 'sendPublicTransaction',
@@ -5448,6 +5483,10 @@ var methods = function () {
         estimateGas,
         sendRawTransaction,
         signTransaction,
+        sendMintTransaction,
+        sendDepositTransaction, // --Agzs 09.17
+        sendUpdateTransaction,
+        sendRedeemTransaction,
         sendPublicTransaction,
         sign,
         compileSolidity,
