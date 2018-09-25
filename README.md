@@ -1,4 +1,7 @@
 # VNT
+官方网址：http://www.vntchain.io/
+
+官方项目汇报：https://www.jinse.com/search/VNT
 
 * clique can run geth using clique consensus algorithm
 * go-ethereum can build and compile geth
