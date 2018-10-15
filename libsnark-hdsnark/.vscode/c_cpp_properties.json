@@ -37,7 +37,9 @@
                 "/usr/local/include",
                 "/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed",
                 "/usr/include/x86_64-linux-gnu",
-                "/usr/include"
+                "/usr/include",
+                "${workspaceFolder}/src",
+                "/usr/local/include/"
             ],
             "defines": [],
             "intelliSenseMode": "clang-x64",

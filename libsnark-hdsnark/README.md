@@ -320,7 +320,7 @@ To run the application, use the following command from the `build` directory:
 * [libsnark](http://github.com/SCIPR-Lab/libsnark) - C++ library for zkSNARK proofs
 * [libfqfft](https://github.com/scipr-lab/libfqfft) - C++ library for FFTs in Finite Fields
 * [libff](https://github.com/scipr-lab/libff) - C++ library for Finite Fields and Elliptic Curves
-* [Zcash](https://github.com/zcash/zcash) - Internet Money, an implementation of the Zerocash protocol
+* [Zcash](https://github.com/zkAccount/zkAccount) - Internet Money, an implementation of the Zerocash protocol
 * [ZSL on Quorum](https://github.com/jpmorganchase/zsl-q) - Zero-knowledge security layer in JP Morgan Quorum
 * [ZoKrates](https://github.com/JacobEberhardt/ZoKrates) - A toolbox for zkSNARKs on Ethereum
 
