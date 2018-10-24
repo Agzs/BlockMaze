@@ -300,6 +300,7 @@ void test_disjunction_gadget(const size_t n)
     libff::print_time("disjunction tests successful");
 }
 
+// how to add constraint --Agzs
 template<typename FieldT>
 void conjunction_gadget<FieldT>::generate_r1cs_constraints()
 {

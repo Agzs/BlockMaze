@@ -20,7 +20,7 @@ std::vector<unsigned char> convertIntToVectorLE(const uint64_t val_int) {
     return bytes;
 }
 
-namespace libvnt {
+namespace libzerocash {
 
 void printChar(const unsigned char c) {
     for(int j = 8; j >= 0; j--) {

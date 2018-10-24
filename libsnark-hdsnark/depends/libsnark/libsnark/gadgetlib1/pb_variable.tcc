@@ -284,7 +284,28 @@ linear_combination<FieldT> pb_sum(const pb_linear_combination_array<FieldT> &v)
     linear_combination<FieldT> result;
     for (auto &term  : v)
     {
-        result = result + term;
+        result = result + term; // 对应下标和系数，各自相加
+    }
+
+    return result;
+}
+
+/***************************************
+ * 将二进制对应的有限域线性组合 转换为 十进制所对应的有限域元素 --Agzs
+ * *************************************/
+template<typename FieldT>
+FieldT pb_packing_filedT_sum(const pb_linear_combination_array<FieldT> &v)
+{
+    FieldT twoi = FieldT::one();    // will hold 2^i entering each iteration
+    FieldT result = FieldT::zero(); // use for accumulating fieldT
+
+    for (auto &lc : v)
+    {
+        for (auto &term : lc.terms)
+        {
+            result += (twoi * term.coeff);
+        }
+        twoi += twoi;
     }
 
     return result;
@@ -299,7 +320,7 @@ linear_combination<FieldT> pb_packing_sum(const pb_linear_combination_array<Fiel
     {
         for (auto &term : lc.terms)
         {
-            all_terms.emplace_back(twoi * term);
+            all_terms.emplace_back(twoi * term); // 调用libsnark/relations/variable.hpp的linear_term<FieldT> operator*(const FieldT &field_coeff) const;
         }
         twoi += twoi;
     }

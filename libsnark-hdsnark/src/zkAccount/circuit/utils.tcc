@@ -52,7 +52,7 @@ void insert_uint64(std::vector<bool>& into, uint64_t from) {
     into.insert(into.end(), num.begin(), num.end());
 }
 
-// 64位逆序转换
+// 以32为对称线，每8位进行逆序转换
 template<typename T>
 T swap_endianness_u64(T v) {
     if (v.size() != 64) {
@@ -68,12 +68,22 @@ T swap_endianness_u64(T v) {
     return v;
 }
 
-// bit形式转换为十进制形式
+// bit形式转换为十进制形式，但是仍然是线性组合的形式
 template<typename FieldT>
 linear_combination<FieldT> packed_addition(pb_variable_array<FieldT> input) {
     auto input_swapped = swap_endianness_u64(input);
 
     return pb_packing_sum<FieldT>(pb_variable_array<FieldT>( 
+        input_swapped.rbegin(), input_swapped.rend() // 逆序的reverse_iterator
+    ));
+}
+
+// bit形式转换为十进制形式，域的形式
+template<typename FieldT>
+FieldT packed_addition_fieldT(pb_variable_array<FieldT> input) {
+    auto input_swapped = swap_endianness_u64(input);
+
+    return pb_packing_filedT_sum<FieldT>(pb_variable_array<FieldT>( 
         input_swapped.rbegin(), input_swapped.rend() // 逆序的reverse_iterator
     ));
 }
