@@ -25,14 +25,13 @@ def bytes_to_words(arr):
 
 def cpp_val(s, log_radix=32):
     if log_radix == 8:
-        hexfmt = '%d'
-        #hexfmt = '0x%02x'
+        hexfmt = '0x%02x'
     elif log_radix == 32:
         hexfmt = '0x%08x'
         s = bytes_to_words(s)
     else:
         raise
-    return 'int_list_to_bits({%s}, %d)' % (', '.join(hexfmt % x for x in s), log_radix)
+    return 'libff::int_list_to_bits({%s}, %d)' % (', '.join(hexfmt % x for x in s), log_radix)
 
 def H_bytes(x):
     assert len(x) == BLOCK_BYTES
@@ -46,13 +45,9 @@ def generate_sha256_gadget_tests():
     right = gen_random_bytes(HASH_BYTES)
     hash = H_bytes(left + right)
 
-    print "h_data_bv = %s;" % cpp_val(left, 8)
-    print "tuple_data_bv = %s;" % cpp_val(right, 8)
-    print "tuple_data_bv2 = %s;" % cpp_val(right, 8)
-
-    # print "const libff::bit_vector left_bv = %s;" % cpp_val(left, 8)
-    # print "const libff::bit_vector right_bv = %s;" % cpp_val(right, 8)
-    # print "const libff::bit_vector hash_bv = %s;" % cpp_val(hash, 8)
+    print "const libff::bit_vector left_bv = %s;" % cpp_val(left)
+    print "const libff::bit_vector right_bv = %s;" % cpp_val(right)
+    print "const libff::bit_vector hash_bv = %s;" % cpp_val(hash)
 
 if __name__ == '__main__':
     random.seed(0) # for reproducibility

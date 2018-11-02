@@ -125,7 +125,6 @@ linear_term<FieldT> linear_term<FieldT>::operator*(const integer_coeff_t int_coe
     return (this->operator*(FieldT(int_coeff)));
 }
 
-// linear_term * FieldT --Agzs
 template<typename FieldT>
 linear_term<FieldT> linear_term<FieldT>::operator*(const FieldT &field_coeff) const
 {

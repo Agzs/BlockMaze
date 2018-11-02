@@ -5,7 +5,8 @@ if(${CURVE} STREQUAL "BN128")
   include_directories(xbyak)
   add_library(
     zm
-    STATIC
+    SHARED
+  #  STATIC
 
     ate-pairing/src/zm.cpp
     ate-pairing/src/zm2.cpp

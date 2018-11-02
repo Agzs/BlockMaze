@@ -340,7 +340,6 @@ public:
 
     size_t size_in_bits() const
     {
-        std::cout<<libff::G1<ppT>::size_in_bits()<<"        "<<libff::G2<ppT>::size_in_bits()<<std::endl;
         return G1_size() * libff::G1<ppT>::size_in_bits() + G2_size() * libff::G2<ppT>::size_in_bits();
     }
 

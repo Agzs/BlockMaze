@@ -29,9 +29,9 @@ r1cs_example<FieldT> generate_r1cs_example_with_field_input(const size_t num_con
 
     assert(num_inputs <= num_constraints + 2);
 
-    r1cs_constraint_system<FieldT> cs; // initialize R1CS constraint system
+    r1cs_constraint_system<FieldT> cs;
     cs.primary_input_size = num_inputs;
-    cs.auxiliary_input_size = 2 + num_constraints - num_inputs; // TODO: explain this, Why? --Agzs
+    cs.auxiliary_input_size = 2 + num_constraints - num_inputs; // TODO: explain this
 
     r1cs_variable_assignment<FieldT> full_variable_assignment;
     FieldT a = FieldT::random_element();
@@ -57,7 +57,7 @@ r1cs_example<FieldT> generate_r1cs_example_with_field_input(const size_t num_con
         {
             // a + b = c
             B.add_term(0, 1);
-            A.add_term(i+1, 1); 
+            A.add_term(i+1, 1);
             A.add_term(i+2, 1);
             C.add_term(i+3, 1);
             FieldT tmp = a+b;

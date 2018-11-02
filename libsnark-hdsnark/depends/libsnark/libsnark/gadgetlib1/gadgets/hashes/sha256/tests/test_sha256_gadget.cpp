@@ -30,7 +30,7 @@ void test_two_to_one()
     const libff::bit_vector right_bv = libff::int_list_to_bits({0x038cce42, 0xabd366b8, 0x3ede7e00, 0x9130de53, 0x72cdf73d, 0xee825114, 0x8cb48d1b, 0x9af68ad0}, 32);
     const libff::bit_vector hash_bv = libff::int_list_to_bits({0xeffd0b7f, 0x1ccba116, 0x2ee816f7, 0x31c62b48, 0x59305141, 0x990e5c0a, 0xce40d33d, 0x0b1167d1}, 32);
 
-    left.generate_r1cs_witness(left_bv); // hash_io.tcc
+    left.generate_r1cs_witness(left_bv);
     right.generate_r1cs_witness(right_bv);
 
     f.generate_r1cs_witness();
