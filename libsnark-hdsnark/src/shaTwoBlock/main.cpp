@@ -40,6 +40,8 @@ int main()
     } else {
         // verification should not fail if the proof is generated!
         assert(verify_proof(keypair.vk, *proof, hash_bv));
+        // verify_proof(keypair.vk, *proof, hash_bv);
+        cout << "Verifying proof successfully!!!" << endl;
         return true;
     }
 }

@@ -47,6 +47,8 @@ int main()
         
         assert(!verify_proof(keypair.vk, *proof, hash_test_bv)); // should return false
 
+        cout << "Verifying proof successfully!!!" << endl;
+        
         return true;
     }
 }

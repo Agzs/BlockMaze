@@ -38,7 +38,7 @@ computed by:
 
         unsigned long long bitlen = 256;
 
-        unsigned char padding[32] = {0x80, 0x00, 0x00, 0x00, // 24 bytes of padding(192位的bit填充，填充的最高位是1，sha256算法要求)
+        unsigned char padding[32] = {0x80, 0x00, 0x00, 0x00, // 24 bytes (192位的bit填充，填充的最高位是1，sha256算法要求)
                                      0x00, 0x00, 0x00, 0x00,
                                      0x00, 0x00, 0x00, 0x00,
                                      0x00, 0x00, 0x00, 0x00,
@@ -89,19 +89,6 @@ public:
 
     // ======= Sha256 hash gadget for tuple data ======== 
     std::shared_ptr<digest_variable<FieldT>> hash_tuple_data_var; /* Hash(tuple_data) */
-
-    // Heartbeat, BloodPressure, Height, Weight, LungCapacity, ID, Time, RandomNumer
-
-    // std::shared_ptr<digest_variable<FieldT>> HB_var; /* Heartbeat         8 bits */
-    // std::shared_ptr<digest_variable<FieldT>> BP_var; /* Blood Pressure(diastolic and systolic)  8+8 bits */
-    // std::shared_ptr<digest_variable<FieldT>> H_var;  /* Height            8 bits */
-    // std::shared_ptr<digest_variable<FieldT>> W_var;  /* Weight            8 bits */
-    // std::shared_ptr<digest_variable<FieldT>> LC_var; /* Lung Capacity     16 bits */
-    // std::shared_ptr<digest_variable<FieldT>> ID_var; /* ID                16 bits */
-    // std::shared_ptr<digest_variable<FieldT>> T_var;  /* Time(yyyy/mm/dd)  12+4+8 bits */
-    // std::shared_ptr<digest_variable<FieldT>> R_var;  /* RandomNumer       20*8 bits */
-
-    // std::vector<digest_variable<FieldT>> tuple_data(256); 
     
     std::shared_ptr<digest_variable<FieldT>> tuple_data_var; /* tuple_data */
 
@@ -109,14 +96,6 @@ public:
     
     std::shared_ptr<sha256_compression_function_gadget<FieldT>> h_gadget_tuple_data; /* hashing gadget for tuple_data */
 
-    // ======= sha256 hash gadget for premium computation coefficient ========
-    // std::shared_ptr<digest_variable<FieldT>> hash_coeff_var; /* Hash(coeff_var) */
-
-    // std::shared_ptr<digest_variable<FieldT>> coeff_var; /* coefficient_var */
-
-    // std::shared_ptr<block_variable<FieldT>> h_coeff_block; /* 512 bit block that contains coeff_var + padding 分组处理，填充比特*/
-    
-    // std::shared_ptr<sha256_compression_function_gadget<FieldT>> h_gadget_coeff; /* hashing gadget for coeff_var */
 
     pb_variable<FieldT> zero;
     pb_variable_array<FieldT> padding_var; /* SHA256 length padding 填充*/
@@ -130,7 +109,7 @@ public:
 
     //// pb_variable<FieldT> result;
     
-    //=> TODO. 这里应该添加一个premium_computation_gadget，暂时命名为premium_gadget，用于验证保费确实是由hash原象计算而来。--Agzs
+    //=> 命名为premium_gadget，用于验证保费确实是由hash原象计算而来。--Agzs
     std::shared_ptr<premium_computation_gadget<FieldT>> premium_gadget; /* premium gadget for multi-attribute value */
 
     //类hdsnark_gadget的构造函数
@@ -168,14 +147,12 @@ public:
 
         // Verifier (and prover) inputs (Hash, Premium):
         hash_tuple_data_var.reset(new digest_variable<FieldT>(pb, sha256_digest_len, "hash_tuple_data"));// reset重置一个新的shared_ptr对象"hash_tuple_data"
-        // hash_coeff_var.reset(new digest_variable<FieldT>(pb, sha256_digest_len, "hash_coeff"));// reset重置一个新的shared_ptr对象"hash_coeff"
+        
         result_var.reset(new digest_variable<FieldT>(pb, premium_len, "result_var"));
         coeff_var.reset(new digest_variable<FieldT>(pb, coeff_len, "coeff_var")); 
 
         A_var.allocate(pb, coeff_num, "A_var");
         B_var.allocate(pb, coeff_num, "B_var");
-    
-        //// result.allocate(pb, "result");
 
         // 在指定位置input_as_bits.end()前“插入”区间 [ *_var->bits.begin(), *_var->bits.end() ) 的所有元素.
         input_as_bits.insert(input_as_bits.end(), hash_tuple_data_var->bits.begin(), hash_tuple_data_var->bits.end());
@@ -187,22 +164,8 @@ public:
         unpack_inputs.reset(new multipacking_gadget<FieldT>(this->pb, input_as_bits, input_as_field_elements, FieldT::capacity(), FMT(this->annotation_prefix, " unpack_inputs")));
 
 
-        // // Prover inputs one tuple:
-        // tuple_data_var.reset(new digest_variable<FieldT>(pb, sha256_digest_len, "tuple_data"));
-
-        // Prover inputs multi-attribute:
-        // HB_var.reset(new digest_variable<FieldT>(pb, heartbeat_len, "HB"));
-        // BP_var.reset(new digest_variable<FieldT>(pb, blood_pressure_len, "BP"));
-        // H_var.reset(new digest_variable<FieldT>(pb, height_len, "H"));
-        // W_var.reset(new digest_variable<FieldT>(pb, weight_len, "W"));
-        // LC_var.reset(new digest_variable<FieldT>(pb, lung_capacity_len, "LC"));
-        // ID_var.reset(new digest_variable<FieldT>(pb, ID_len, "ID"));
-        // T_var.reset(new digest_variable<FieldT>(pb, time_len, "T"));
-        // R_var.reset(new digest_variable<FieldT>(pb, random_number_len, "R"));
-        
-        // Convert multi-attribute into one tuple
+        // // Prover inputs one tuple and converts multi-attribute into one tuple
         tuple_data_var.reset(new digest_variable<FieldT>(pb, tuple_data_len, "tuple_data")); 
-        
 
         // IV for SHA256 初始化SHA256缓存
         pb_linear_combination_array<FieldT> IV = SHA256_default_IV(pb);
@@ -219,19 +182,6 @@ public:
                                                                   h_tuple_data_block->bits,
                                                                   *hash_tuple_data_var,
                                                                   "h_gadget_tuple_data"));
-
-        // Initialize the block gadget for coeff's hash
-        // h_coeff_block.reset(new block_variable<FieldT>(pb, {
-        //     coeff_var->bits,
-        //     padding_var
-        // }, "h_coeff_block"));
-
-        // Initialize the hash gadget for tuple_data's hash
-        // h_gadget_coeff.reset(new sha256_compression_function_gadget<FieldT>(pb,
-        //                                                           IV,
-        //                                                           h_coeff_block->bits,
-        //                                                           *hash_coeff_var,
-        //                                                           "h_gadget_coeff"));
 
         //=> TODO. 这里应该初始化premium_computation_gadget，可参考basic_gadget。--Agzs
         //=> How to change result_var->bits to result
@@ -250,19 +200,11 @@ public:
         // Multipacking constraints (for input validation)
         unpack_inputs->generate_r1cs_constraints(true);
 
-        // Ensure bitness of the digests. Bitness of the inputs
-        // is established by `unpack_inputs->generate_r1cs_constraints(true)`
+        // Ensure bitness of the digests. Bitness of the inputs is established by `unpack_inputs->generate_r1cs_constraints(true)`
         tuple_data_var->generate_r1cs_constraints();
         coeff_var->generate_r1cs_constraints();
 
-        // adding constraint 1 * zero = FieldT::zero() --Agzs*/
-        // printf("\n======== field content =====\n");
-        // printf("zero = %zu\n", FieldT::zero());
-        // printf("\none = %zu", FieldT::one());
-        // printf("\n============================\n"); 
-        // FieldT::zero() is 0, while FieldT::one() is big number such as 140736227926016
         generate_r1cs_equals_const_constraint<FieldT>(this->pb, zero, FieldT::zero(), "zero");
-
 
         for (size_t i = 0; i < A_var.size(); ++i)
         {
@@ -281,10 +223,9 @@ public:
                 FMT(this->annotation_prefix, " S_%zu", i));
         }
 
-
         // These are the constraints to ensure the hashes validate.
         h_gadget_tuple_data->generate_r1cs_constraints();
-        // h_gadget_coeff->generate_r1cs_constraints();
+
         //=> TODO. 这里应该为premium_computation_gadget生成约束，可参考basic_gadget。--Agzs
         premium_gadget->generate_r1cs_constraints();
     }
@@ -296,19 +237,7 @@ public:
                                 const bit_vector &data_coeff,
                                 const bit_vector &premium
                                 )
-    {
-        // Fill our digests with our witnessed data, 0,1 => zero,one
-        // This contains the step equaled to assert().
-        // HB_var->bits.fill_with_bits(this->pb, HB_data);
-        // BP_var->bits.fill_with_bits(this->pb, BP_data);
-        // H_var->bits.fill_with_bits(this->pb, H_data);
-        // W_var->bits.fill_with_bits(this->pb, W_data);
-        // LC_var->bits.fill_with_bits(this->pb, LC_data);
-        // ID_var->bits.fill_with_bits(this->pb, ID_data);hash_coeff
-        // T_var->bits.fill_with_bits(this->pb, T_data);
-        // R_var->bits.fill_with_bits(this->pb, R_data);
-
-        
+    {   
         // Prase multi-attribute from one tuple, transfer into size_t
         std::vector<size_t> a;
         std::vector<size_t> b;
@@ -333,66 +262,6 @@ public:
             }
         }
 
-        // // first attribute (8 bits), such as heartbeat.
-        // unsigned int j = 0;
-        // while (j < heartbeat_len && coeff_cnt < coeff_num){
-        //     attr_to_size_t += (tuple_data[j] ? 1 : 0) * pow(2, heartbeat_len-1-j);
-        //     coeff_to_size_t += (data_coeff[j] ? 1 : 0) * pow(2, heartbeat_len-1-j);
-        //     j ++;
-        //     coeff_cnt ++;
-        // }
-        // a.push_back(attr_to_size_t);
-        // b.push_back(coeff_to_size_t);
-                
-        // // sencond attribute (16 bits), such as blood_pressure
-        // attr_to_size_t = 0;
-        // coeff_to_size_t = 0;
-        // while(j < heartbeat_len + blood_pressure_len){
-        //     attr_to_size_t += (tuple_data[j] ? 1 : 0) * pow(2, (heartbeat_len+blood_pressure_len-j-1)%8);
-        //     coeff_to_size_t += (data_coeff[j] ? 1 : 0) * pow(2, (heartbeat_len+blood_pressure_len-j-1)%8);
-        //     if ((j+1) % 8 == 0){
-        //         a.push_back(attr_to_size_t);
-        //         attr_to_size_t = 0;
-        //         b.push_back(coeff_to_size_t);
-        //         coeff_to_size_t = 0;
-        //     }
-        //     j ++;
-        // }
-
-        // // third attribute (8 bits), such as height
-        // attr_to_size_t = 0;
-        // coeff_to_size_t = 0;
-        // while(j < heartbeat_len + blood_pressure_len + height_len){
-        //     attr_to_size_t += (tuple_data[j] ? 1 : 0) * pow(2, heartbeat_len+blood_pressure_len+height_len-j-1);
-        //     coeff_to_size_t += (data_coeff[j] ? 1 : 0) * pow(2, heartbeat_len+blood_pressure_len+height_len-j-1);
-        //     j ++;
-        // }
-        // a.push_back(attr_to_size_t);
-        // b.push_back(coeff_to_size_t);
-                
-        // // fourth attribute (8 bits), such as weight
-        // attr_to_size_t = 0;
-        // coeff_to_size_t = 0;
-        // while(j < heartbeat_len + blood_pressure_len + height_len + weight_len){
-        //     attr_to_size_t += (tuple_data[j] ? 1 : 0) * pow(2, heartbeat_len+blood_pressure_len+height_len+weight_len-j-1);
-        //     coeff_to_size_t += (data_coeff[j] ? 1 : 0) * pow(2, heartbeat_len+blood_pressure_len+height_len+weight_len-j-1);
-        //     j ++;
-        // }
-        // a.push_back(attr_to_size_t);
-        // b.push_back(coeff_to_size_t);
-                
-        // // fifth attribute (8 bits), such as lung_capacity
-        // attr_to_size_t = 0;
-        // coeff_to_size_t = 0;
-        // while(j < heartbeat_len + blood_pressure_len + height_len + weight_len + lung_capacity_len){
-        //     attr_to_size_t += (tuple_data[j] ? 1 : 0) * pow(2, heartbeat_len+blood_pressure_len+height_len+weight_len+lung_capacity_len-j-1);
-        //     if(j < coeff_len)
-        //         coeff_to_size_t += (data_coeff[j] ? 1 : 0) * pow(2, heartbeat_len+blood_pressure_len+height_len+weight_len+8-j-1);
-        //     j ++;
-        // }
-        // a.push_back(attr_to_size_t);
-        // b.push_back(coeff_to_size_t);
-
         tuple_data_var->bits.fill_with_bits(this->pb, tuple_data);
 
         coeff_var->bits.fill_with_bits(this->pb, data_coeff);
@@ -404,7 +273,6 @@ public:
 
         // Generate witnesses as necessary in our other gadgets
         h_gadget_tuple_data->generate_r1cs_witness();
-        // h_gadget_coeff->generate_r1cs_witness();
         
         //=> TODO. 这里应该为premium_computation_gadget生成witness，可参考basic_gadget。--Agzs
         assert(a.size() == b.size());
@@ -432,7 +300,6 @@ public:
         unpack_inputs->generate_r1cs_witness_from_bits();
 
         hash_tuple_data_var->bits.fill_with_bits(this->pb, h_data);
-        // hash_coeff_var->bits.fill_with_bits(this->pb, hash_coeff);
 
         //// result_var->bits.fill_with_bits(this->pb, premium);
         

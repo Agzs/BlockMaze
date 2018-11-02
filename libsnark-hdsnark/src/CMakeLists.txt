@@ -24,46 +24,65 @@ target_include_directories(
   ${DEPENDS_DIR}/libsnark/depends/libfqfft
 )
 
-# # test default_r1cs_ppzksnark_pp with hdsnark
-# add_executable(
-#   hdsnark
+# test default_r1cs_ppzksnark_pp with hdsnark
+add_executable(
+  shaOneBlock
 
-#   shaOneBlock/main.cpp
-# )
-# target_link_libraries(
-#   hdsnark
+  hdsnark/main.cpp
+)
+target_link_libraries(
+  shaOneBlock
 
-#   snark
-#   boost_system
-# )
+  snark
+)
 
-# target_include_directories(
-#   hdsnark
+target_include_directories(
+  shaOneBlock
 
-#   PUBLIC
-#   ${DEPENDS_DIR}/libsnark
-#   ${DEPENDS_DIR}/libsnark/depends/libfqfft
-# )
+  PUBLIC
+  ${DEPENDS_DIR}/libsnark
+  ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
 
-# # test default_r1cs_ppzksnark_pp with hdsnark
-# add_executable(
-#   singlehdsnark
+# test default_r1cs_ppzksnark_pp with shaTwoBlock
+add_executable(
+  shaTwoBlock
 
-#   shaOneBlock/test_notcp.cpp
-# )
-# target_link_libraries(
-#   singlehdsnark
+  shaTwoBlock/main.cpp
+)
+target_link_libraries(
+  shaTwoBlock
 
-#   snark
-# )
+  snark
+)
 
-# target_include_directories(
-#   singlehdsnark
+target_include_directories(
+  shaTwoBlock
 
-#   PUBLIC
-#   ${DEPENDS_DIR}/libsnark
-#   ${DEPENDS_DIR}/libsnark/depends/libfqfft
-# )
+  PUBLIC
+  ${DEPENDS_DIR}/libsnark
+  ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+
+# test default_r1cs_ppzksnark_pp with shaThreeBlock
+add_executable(
+  shaThreeBlock
+
+  shaThreeBlock/main.cpp
+)
+target_link_libraries(
+  shaThreeBlock
+
+  snark
+)
+
+target_include_directories(
+  shaThreeBlock
+
+  PUBLIC
+  ${DEPENDS_DIR}/libsnark
+  ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
 
 #set(SRC_LISTS ./hdsnark/test.cpp)
 

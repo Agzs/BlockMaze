@@ -156,8 +156,8 @@ int main () {
     
     // uint256 r = uint256S("0x000000000000059f452a5f7340de6682a977387c17010ff6e6c3bd83ca8b1317");
     uint64_t value = uint64_t(251); 
-    uint64_t value_old = uint64_t(252); 
-    uint64_t value_s = uint64_t(-1);
+    uint64_t value_old = uint64_t(250); 
+    uint64_t value_s = uint64_t(1);
 
     test_add_gadget_with_instance<default_r1cs_ppzksnark_pp>(value, value_old, value_s);
 
