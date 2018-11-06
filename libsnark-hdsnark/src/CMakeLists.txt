@@ -24,6 +24,26 @@ target_include_directories(
   ${DEPENDS_DIR}/libsnark/depends/libfqfft
 )
 
+# test default_r1cs_ppzksnark_pp with cmp
+add_executable(
+  cmp
+
+  comparison/cmp_test.cpp
+)
+target_link_libraries(
+  cmp
+
+  snark
+)
+
+target_include_directories(
+  cmp
+
+  PUBLIC
+  ${DEPENDS_DIR}/libsnark
+  ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+
 # test default_r1cs_ppzksnark_pp with hdsnark
 add_executable(
   shaOneBlock
