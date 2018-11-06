@@ -183,8 +183,8 @@ int main () {
     // 9223372036854775807
     // 18446744073709551615
     // test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(40, 45);
-
-    test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(40, -1);
+    // 前提 B > 0, 否则 (2, -18446744073709551610)会验证正确，因为补码：2 < 6
+    test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(2, -18446744073709551610);
 
     // assert(test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(6, 45, 40)); 
     // Note. cmake can not compile the assert()  --Agzs
