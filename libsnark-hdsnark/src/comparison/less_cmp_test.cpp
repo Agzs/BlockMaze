@@ -43,12 +43,11 @@ private:
     std::shared_ptr<disjunction_gadget<FieldT> > all_zeros_test;
     pb_variable<FieldT> not_all_zeros;
 public:
-    const size_t n;
+    const size_t n = 63;
     const pb_linear_combination<FieldT> A;
     const pb_linear_combination<FieldT> B;
 
     less_cmp_gadget(protoboard<FieldT>& pb,
-                      const size_t n,
                       const pb_linear_combination<FieldT> &A,
                       const pb_linear_combination<FieldT> &B,
                       const std::string &annotation_prefix="") :
@@ -204,7 +203,7 @@ bool test_comparison_gadget_with_instance(const size_t a, const size_t b)
     // printf("****************\n A = %zu\n ****************\n", A);
     // printf("****************\n B = %zu\n ****************\n", B);
 
-    less_cmp_gadget<FieldT> comparison(pb, n, A, B, "cmp");
+    less_cmp_gadget<FieldT> comparison(pb, A, B, "cmp");
     comparison.generate_r1cs_constraints();// 生成约束
 
     // check conatraints
@@ -292,7 +291,7 @@ int main () {
     // test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(40, 45);
     // 前提 B > 0, 否则 (2, -18446744073709551610)会验证正确，因为补码：2 < 6
     // test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(-18446744073709551610, 9223372036854775807);
-    test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(60, 9223372036854775807);
+    test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(80, 9223372036854775807);
 
     // assert(test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(6, 45, 40)); 
     // Note. cmake can not compile the assert()  --Agzs
