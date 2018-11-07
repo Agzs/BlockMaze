@@ -108,6 +108,9 @@ bool test_comparison_gadget_with_instance(const size_t a, const size_t b)
     A.allocate(pb, "A");
     B.allocate(pb, "B");
 
+    printf("****************\n A = %zu\n ****************\n", A);
+    printf("****************\n B = %zu\n ****************\n", B);
+
     less_cmp_gadget<FieldT> comparison(pb, n, A, B, "cmp");
     comparison.generate_r1cs_constraints();// 生成约束
 
@@ -124,8 +127,18 @@ bool test_comparison_gadget_with_instance(const size_t a, const size_t b)
      * *****************************************************************/
     if (a < 1ul<<n && b < 1ul<<n) // 
     {
+        
         pb.val(A) = FieldT(a);
         pb.val(B) = FieldT(b);
+
+        /*
+          A = 140731837292432
+          B = 140731837292480
+        */
+        std::cout << "****************\n FieldT(a) = " << FieldT(a) << "\n ****************\n";
+        std::cout << "****************\n FieldT(b) = " << FieldT(b) << "\n ****************\n";
+        printf("****************\n A = %zu\n ****************\n", A);
+        printf("****************\n B = %zu\n ****************\n", B);
 
         comparison.generate_r1cs_witness(); // 为新模型的参数生成证明
         
@@ -156,7 +169,8 @@ bool test_comparison_gadget_with_instance(const size_t a, const size_t b)
         } else {
             // const r1cs_primary_input<FieldT> input();
             // std::cout<<"NULL input: "<<input<<endl;
-            PrintProof(*proof);
+            
+            // PrintProof(*proof);
 
             assert(verify_proof(keypair.vk, *proof));
         }
@@ -184,25 +198,12 @@ int main () {
     // 18446744073709551615
     // test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(40, 45);
     // 前提 B > 0, 否则 (2, -18446744073709551610)会验证正确，因为补码：2 < 6
-    test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(2, -18446744073709551610);
+    // test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(-18446744073709551610, 9223372036854775807);
+    test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(60, 9223372036854775807);
 
     // assert(test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(6, 45, 40)); 
     // Note. cmake can not compile the assert()  --Agzs
     
-    // libff::print_header("#             test comparison gadget with bool");
-    // printf("cmp == %d\n",test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(2, 45, 40));
-
-    // test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(6, 45, 40);
-    // test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(6, 40, 40);
-    // test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(6, 40, 45);
-    // test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(2, 0, 0);
-    // test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(2, 0, 1);
-    // test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(2, 1, 0);
-    // test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(2, 45, 40);
-    // test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(255, 45, 40);
-    // //test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(255, 40, 45); //有问题
-    // test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(8, 40, 245);
-    // my_test_comparison_gadget<default_r1cs_gg_ppzksnark_pp>(4);
     return 0;
 }
 

@@ -19,10 +19,6 @@ void less_cmp_gadget<FieldT>::generate_r1cs_constraints()
           so alpha_n = 0
 
       therefore alpha_n = less_or_eq and alpha_n * not_all_zeros = 1
-      or A < B <=> not_all_zero = 1
-
-      changes less into FieldT::one()
-      changes less_or_eq into 1
      */
 
     /* not_all_zeros to be Boolean, alpha_i are Boolean by packing gadget */
@@ -39,8 +35,27 @@ void less_cmp_gadget<FieldT>::generate_r1cs_constraints()
     // this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(less_or_eq, not_all_zeros, less),
     //                              FMT(this->annotation_prefix, " less"));
     
-    //初始化时，我们预设 less_or_eq = 0, 即 alpha_n = 0, 所以 not_all_zeros = 1 即表示 A < B 
-    this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(this->pb.val(1), not_all_zeros, this->pb.val(1)),
+    /*********************************************************************************
+     * 初始化时，我们预设 less_or_eq = 0, 即 alpha_n = 0,
+     * less_or_eq * not_all_zeros = less
+     * 0 * not_all_zeros = 0 => less => A < B
+     * 0 * not_all_zeros = 1 => eq => A = B   
+     * 1 * not_all_zeros = 1 => less_or_eq => A <= B
+     * 1 * not_all_zeros = 0 => nothing
+     * 1 * not_all_zeros = not_all_zeros => less_or_eq => A <= B
+     * 0 * not_all_zeros = not_all_zeros => eq => A = B  
+     * this->pb.val(0)== this->pb.val(1), 所以 not_all_zeros=1 时成立
+     * ********************************************************************************
+     * 初始化时，我们预设 less_or_eq = 1, 即 alpha_n = 1,
+     * less_or_eq * not_all_zeros = less
+     * 0 * not_all_zeros = 0 => nothing
+     * 0 * not_all_zeros = 1 => nothing
+     * 1 * not_all_zeros = 1 => nothing
+     * 1 * not_all_zeros = 0 => nothing
+     * 1 * not_all_zeros = not_all_zeros => nothing
+     * 0 * not_all_zeros = not_all_zeros => nothing
+     * ********************************************************************************/
+    this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(this->pb.val(0), not_all_zeros, this->pb.val(0)),
                                  FMT(this->annotation_prefix, " less"));
 }
 
@@ -57,7 +72,16 @@ void less_cmp_gadget<FieldT>::generate_r1cs_witness()
     /* compute result */
     all_zeros_test->generate_r1cs_witness();
 
-    printf("****************\n not_all_zeros = %zu\n ****************\n", not_all_zeros);
+    // printf("****************\n FieldT(2)^n) = %zu\n ****************\n", FieldT(2)^n);
+    // printf("****************\n A = %zu\n ****************\n", A);
+    // printf("****************\n B = %zu\n ****************\n", B);
+    // printf("****************\n not_all_zeros = %zu\n ****************\n", not_all_zeros);
+    // printf("****************\n alpha = %zu\n ****************\n", alpha);
+    // printf("****************\n (FieldT(2)^n) + B - A = %zu\n ****************\n", (FieldT(2)^n) + B - A);
+    // printf("****************\n alpha_packed = %zu\n ****************\n", alpha_packed);
+    
+    // printf("****************\n this->pb.val(0) = %zu\n ****************\n", this->pb.val(0));
+    // printf("****************\n this->pb.val(1) = %zu\n ****************\n", this->pb.val(1));
 
     // this->pb.val(less) = this->pb.val(less_or_eq) * this->pb.val(not_all_zeros);
 }
