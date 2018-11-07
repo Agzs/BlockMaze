@@ -28,7 +28,7 @@ target_include_directories(
 add_executable(
   cmp
 
-  comparison/main.cpp
+  comparison/less_cmp_test.cpp
 )
 target_link_libraries(
   cmp
