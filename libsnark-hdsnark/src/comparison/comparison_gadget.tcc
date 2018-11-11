@@ -55,8 +55,10 @@ void less_cmp_gadget<FieldT>::generate_r1cs_constraints()
      * 1 * not_all_zeros = not_all_zeros => nothing
      * 0 * not_all_zeros = not_all_zeros => nothing
      * ********************************************************************************/
-    this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(this->pb.val(0), not_all_zeros, this->pb.val(0)),
-                                 FMT(this->annotation_prefix, " less"));
+    // this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(this->pb.val(0), not_all_zeros, this->pb.val(0)),
+    //                             FMT(this->annotation_prefix, " less"));
+    this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(FieldT::one(), not_all_zeros, FieldT::one()),
+                                FMT(this->annotation_prefix, " less"));
 }
 
 template<typename FieldT>

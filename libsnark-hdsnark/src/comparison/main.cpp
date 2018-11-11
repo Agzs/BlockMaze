@@ -187,7 +187,7 @@ bool test_comparison_gadget_with_instance(const size_t a, const size_t b)
 }
 
 int main () {
-    default_r1cs_gg_ppzksnark_pp::init_public_params();
+    default_r1cs_ppzksnark_pp::init_public_params();
     //test_r1cs_gg_ppzksnark<default_r1cs_gg_ppzksnark_pp>(1000, 100);
 
     libff::print_header("#             test comparison gadget with assert()");
@@ -199,7 +199,7 @@ int main () {
     // test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(40, 45);
     // 前提 B > 0, 否则 (2, -18446744073709551610)会验证正确，因为补码：2 < 6
     // test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(-18446744073709551610, 9223372036854775807);
-    test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(60, 9223372036854775807);
+    test_comparison_gadget_with_instance<default_r1cs_ppzksnark_pp>(60, 9223372036854775807);
 
     // assert(test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(6, 45, 40)); 
     // Note. cmake can not compile the assert()  --Agzs

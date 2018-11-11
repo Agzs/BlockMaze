@@ -43,7 +43,7 @@ private:
     std::shared_ptr<disjunction_gadget<FieldT> > all_zeros_test;
     pb_variable<FieldT> not_all_zeros;
 public:
-    const size_t n = 63;
+    const size_t n = 64;
     const pb_linear_combination<FieldT> A;
     const pb_linear_combination<FieldT> B;
 
@@ -51,7 +51,7 @@ public:
                       const pb_linear_combination<FieldT> &A,
                       const pb_linear_combination<FieldT> &B,
                       const std::string &annotation_prefix="") :
-        gadget<FieldT>(pb, annotation_prefix), n(n), A(A), B(B)
+        gadget<FieldT>(pb, annotation_prefix), A(A), B(B)
     {
         alpha.allocate(pb, n, FMT(this->annotation_prefix, " alpha"));
         alpha.emplace_back(0); // alpha[n] is less_or_eq, set alpha[n] = 0, just proof A <= B
@@ -110,7 +110,9 @@ public:
          * 0 * not_all_zeros = not_all_zeros => eq => A = B  
          * this->pb.val(0)== this->pb.val(1), 所以 not_all_zeros=1 时成立
          * ********************************************************************************/
-        this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(this->pb.val(0), not_all_zeros, this->pb.val(0)),
+        // this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(this->pb.val(0), not_all_zeros, this->pb.val(0)),
+        //                             FMT(this->annotation_prefix, " less"));
+        this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(FieldT::one(), not_all_zeros, FieldT::one()),
                                     FMT(this->annotation_prefix, " less"));
     }
     void generate_r1cs_witness(){
@@ -279,7 +281,7 @@ bool test_comparison_gadget_with_instance(const size_t a, const size_t b)
 }
 
 int main () {
-    default_r1cs_gg_ppzksnark_pp::init_public_params();
+    default_r1cs_ppzksnark_pp::init_public_params();
     //test_r1cs_gg_ppzksnark<default_r1cs_gg_ppzksnark_pp>(1000, 100);
 
     libff::print_header("#             test comparison gadget with assert()");
@@ -291,7 +293,7 @@ int main () {
     // test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(40, 45);
     // 前提 B > 0, 否则 (2, -18446744073709551610)会验证正确，因为补码：2 < 6
     // test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(-18446744073709551610, 9223372036854775807);
-    test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(80, 9223372036854775807);
+    test_comparison_gadget_with_instance<default_r1cs_ppzksnark_pp>(14, 9223372036854775807);
 
     // assert(test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(6, 45, 40)); 
     // Note. cmake can not compile the assert()  --Agzs
