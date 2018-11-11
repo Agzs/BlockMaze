@@ -10,7 +10,7 @@ include_directories(
 add_executable(
   addition
 
-  addition/main.cpp
+  addition/addPack.cpp
 )
 target_link_libraries(
   addition

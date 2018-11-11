@@ -100,7 +100,7 @@ void convertBytesToVector(const unsigned char* bytes, std::vector<bool>& v) {
         c = bytes[i];
 
         for(int j = 0; j < 8; j++) {
-            v.at((i*8)+j) = ((c >> (7-j)) & 1);
+            v.at((i*8)+(7-j)) = ((c >> (7-j)) & 1); //Agzs 11.9
         }
     }
 }

@@ -155,8 +155,10 @@ int main () {
     libff::print_header("#             test addition gadget with assert()");
     
     // uint256 r = uint256S("0x000000000000059f452a5f7340de6682a977387c17010ff6e6c3bd83ca8b1317");
-    uint64_t value = uint64_t(251); 
-    uint64_t value_old = uint64_t(250); 
+
+    // 没有考虑二进制进位，所以测试1+3=4失败
+    uint64_t value = uint64_t(4); 
+    uint64_t value_old = uint64_t(3); 
     uint64_t value_s = uint64_t(1);
 
     test_add_gadget_with_instance<default_r1cs_ppzksnark_pp>(value, value_old, value_s);

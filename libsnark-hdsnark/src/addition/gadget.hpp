@@ -120,6 +120,7 @@ FieldT packed_addition_fieldT(pb_variable_array<FieldT> input) {
     ));
 }
 //=============================================================
+// 仿照linear_combination的加法重载，重写linear_combination加法操作，实现二进制的进位,失败
 
 
 /**********************************************
@@ -167,8 +168,9 @@ public:
         // There may exist error !!!!
 
         this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(
-            1,
-            (packed_addition(this->value_old) + packed_addition(this->value_s)),
+            FieldT::one(), //1,
+            //linear_combination_ADD(this->pb, packed_addition(this->value_old), packed_addition(this->value_s)),
+            pb_variable_array_ADD(this->value_old, this->value_s),
             packed_addition(this->value)
         ), "1 * (value_old + value_s) = this->value");
 
@@ -223,6 +225,11 @@ public:
             printf("%d, ", bit);
         }
         std::cout << "]\n*******************************************\n";
+
+        auto lcADD = packed_addition(this->value_old) + packed_addition(this->value_s);
+        BOOST_FOREACH(linear_term<FieldT> lt, lcADD.terms) {
+            printf("%d, %zu\n", lt.index, lt.coeff);
+        }
     }
 };
 
