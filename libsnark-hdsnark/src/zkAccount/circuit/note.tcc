@@ -34,18 +34,240 @@ public:
  * note_gadget and add_gadget
  * ********************************************/
 template<typename FieldT>
-class note_gadget_with_add : public gadget<FieldT> { // 基类，基本的note_gadget,仅含value和随机数r
+class note_gadget_with_add : public gadget<FieldT> { // 基类和加法类组合，基本的note_gadget和加法的约束(value = value_old + value_s)
+public:
+    pb_variable_array<FieldT> value_old; // 64位的value
+    pb_variable<FieldT> value_old_packed;
+    std::shared_ptr<packing_gadget<FieldT> > pack_value_old;
+
+    pb_variable_array<FieldT> value_s; // 64位的value
+    pb_variable<FieldT> value_s_packed;
+    std::shared_ptr<packing_gadget<FieldT> > pack_value_s;
+
+    pb_variable_array<FieldT> value; // 64位的value
+    pb_variable<FieldT> value_packed;
+    std::shared_ptr<packing_gadget<FieldT> > pack_value;
+
+    std::shared_ptr<digest_variable<FieldT>> r; // 256位的随机数r
+
+    note_gadget(protoboard<FieldT> &pb) : gadget<FieldT>(pb) {
+        value_old.allocate(pb, 64);
+        value_old_packed.allocate(pb);
+        pack_value_old.reset(new packing_gadget<FieldT>(pb, value_old, value_old_packed,
+                                                    FMT(this->annotation_prefix, " pack_value_old")));
+
+        value_s.allocate(pb, 64);
+        value_s_packed.allocate(pb);
+        pack_value_s.reset(new packing_gadget<FieldT>(pb, value_s, value_s_packed,
+                                                    FMT(this->annotation_prefix, " pack_value_s")));
+
+        value.allocate(pb, 64);
+        value_packed.allocate(pb);
+        pack_value.reset(new packing_gadget<FieldT>(pb, value, value_packed,
+                                                    FMT(this->annotation_prefix, " pack_value")));
+
+        r.reset(new digest_variable<FieldT>(pb, 256, "random number"));
+    }
+
+    void generate_r1cs_constraints() { // const Note& note
+        /*
+        for (size_t i = 0; i < 64; i++) {
+            generate_boolean_r1cs_constraint<FieldT>( // 64位的bool约束
+                this->pb,
+                value[i],
+                "boolean_value"
+            );
+        }
+        for (size_t i = 0; i < 64; i++) {
+            generate_boolean_r1cs_constraint<FieldT>( // 64位的bool约束
+                this->pb,
+                value_old[i],
+                "boolean_value_old"
+            );
+        }
+        for (size_t i = 0; i < 64; i++) {
+            generate_boolean_r1cs_constraint<FieldT>( // 64位的bool约束
+                this->pb,
+                value_s[i],
+                "boolean_value_s"
+            );
+        }
+
+        // Addition constraint
+        // 1 * (value_old + value_s) = this->value, there exists error
+        this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(
+            1,
+            (packed_addition(this->value_old) + packed_addition(this->value_s)),
+            packed_addition(this->value)
+        ), "1 * (value_old + value_s) = this->value");
+        */
+
+        pack_value_old->generate_r1cs_constraints(true);
+
+        pack_value_s->generate_r1cs_constraints(true);
+
+        pack_value->generate_r1cs_constraints(true);
+        
+        // 1 * (value_old + value_s) = this->value 
+        this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(1, (value_old_packed + value_s_packed), value_packed),
+                                 FMT(this->annotation_prefix, " equal"));
+
+        r->generate_r1cs_constraints(); // 随机数的约束
+    }
+
+    void generate_r1cs_witness(uint256 rr, uint64_t v, uint64_t v_old, uint64_t v_s) { // 为变量生成约束
+        r->bits.fill_with_bits(this->pb, uint256_to_bool_vector(rr));
+
+        value_old.fill_with_bits(this->pb, uint64_to_bool_vector(v_old));
+        pack_value_old->generate_r1cs_witness_from_bits();
+
+        value_s.fill_with_bits(this->pb, uint64_to_bool_vector(v_s));
+        pack_value_s->generate_r1cs_witness_from_bits();
+
+        value.fill_with_bits(this->pb, uint64_to_bool_vector(v));
+        pack_value->generate_r1cs_witness_from_bits();
+    }
+};
+
+/**********************************************
+ * less_cmp_gadget for judging A < B
+ * ********************************************/
+template<typename FieldT>
+class less_comparison_gadget : public gadget<FieldT> {
+private:
+    pb_variable_array<FieldT> alpha;
+    pb_variable<FieldT> alpha_packed;
+    std::shared_ptr<packing_gadget<FieldT> > pack_alpha;
+
+    std::shared_ptr<disjunction_gadget<FieldT> > all_zeros_test;
+    pb_variable<FieldT> not_all_zeros;
+public:
+    const size_t n = 64;
+    const pb_linear_combination<FieldT> A;
+    const pb_linear_combination<FieldT> B;
+
+    less_cmp_gadget(protoboard<FieldT>& pb,
+                      const pb_linear_combination<FieldT> &A,
+                      const pb_linear_combination<FieldT> &B,
+                      const std::string &annotation_prefix="") :
+        gadget<FieldT>(pb, annotation_prefix), A(A), B(B)
+    {
+        alpha.allocate(pb, n, FMT(this->annotation_prefix, " alpha"));
+        alpha.emplace_back(0); // alpha[n] is less_or_eq, set alpha[n] = 0, just proof A <= B
+
+        // this->pb.val(alpha) = this->pb.val(1);
+
+        alpha_packed.allocate(pb, FMT(this->annotation_prefix, " alpha_packed"));
+        not_all_zeros.allocate(pb, FMT(this->annotation_prefix, " not_all_zeros"));
+
+        pack_alpha.reset(new packing_gadget<FieldT>(pb, alpha, alpha_packed,
+                                                    FMT(this->annotation_prefix, " pack_alpha")));
+
+        all_zeros_test.reset(new disjunction_gadget<FieldT>(pb,
+                                                            pb_variable_array<FieldT>(alpha.begin(), alpha.begin() + n),
+                                                            not_all_zeros,
+                                                            FMT(this->annotation_prefix, " all_zeros_test")));
+    };
+
+    void generate_r1cs_constraints()
+    {
+        /*
+        packed(alpha) = 2^n + B - A
+
+        not_all_zeros = \bigvee_{i=0}^{n-1} alpha_i 或取
+
+        if B - A > 0, then 2^n + B - A > 2^n,
+            so alpha_n = 1 and not_all_zeros = 1
+        if B - A = 0, then 2^n + B - A = 2^n,
+            so alpha_n = 1 and not_all_zeros = 0
+        if B - A < 0, then 2^n + B - A \in {0, 1, \ldots, 2^n-1},
+            so alpha_n = 0
+
+        therefore alpha_n = less_or_eq and alpha_n * not_all_zeros = 1
+        */
+
+        /* not_all_zeros to be Boolean, alpha_i are Boolean by packing gadget */
+        generate_boolean_r1cs_constraint<FieldT>(this->pb, not_all_zeros,
+                                        FMT(this->annotation_prefix, " not_all_zeros"));
+
+        /* constraints for packed(alpha) = 2^n + B - A */
+        pack_alpha->generate_r1cs_constraints(true);
+
+        this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(1, (FieldT(2)^n) + B - A, alpha_packed), FMT(this->annotation_prefix, " main_constraint"));
+
+        /* compute result */
+        all_zeros_test->generate_r1cs_constraints();
+        
+        /*********************************************************************************
+         * 初始化时，我们预设 less_or_eq = 0, 即 alpha_n = 0,
+         * less_or_eq * not_all_zeros = less
+         * 0 * not_all_zeros = 0 => less => A < B
+         * 0 * not_all_zeros = 1 => eq => A = B   
+         * 1 * not_all_zeros = 1 => less_or_eq => A <= B
+         * 1 * not_all_zeros = 0 => nothing
+         * 1 * not_all_zeros = not_all_zeros => less_or_eq => A <= B
+         * 0 * not_all_zeros = not_all_zeros => eq => A = B  
+         * this->pb.val(0)== this->pb.val(1), 所以 not_all_zeros=1 时成立
+         * ********************************************************************************/
+        // this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(this->pb.val(0), not_all_zeros, this->pb.val(0)),
+        //                             FMT(this->annotation_prefix, " less"));
+        this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(FieldT::one(), not_all_zeros, FieldT::one()),
+                                    FMT(this->annotation_prefix, " less"));
+    }
+    void generate_r1cs_witness(){
+        A.evaluate(this->pb);
+        B.evaluate(this->pb);
+
+        /* unpack 2^n + B - A into alpha_packed */
+        this->pb.val(alpha_packed) = (FieldT(2)^n) + this->pb.lc_val(B) - this->pb.lc_val(A);
+        pack_alpha->generate_r1cs_witness_from_packed();
+
+        /* compute result */
+        all_zeros_test->generate_r1cs_witness();
+    }
+};
+
+//=================== All above are successful ==================================================
+
+/**********************************************
+ * note_gadget and comparison_gadget
+ * value_s < balance for Mint, 
+ * value_s < value_old for Send, Update and Redeem
+ * ********************************************/
+template<typename FieldT>
+class note_gadget_with_comparison_for_balance : public gadget<FieldT> { // 基类和比较类组合，基本的note_gadget和comparison_gadget (value_s)
 public:
     pb_variable_array<FieldT> value; // 64位的value
     pb_variable_array<FieldT> value_old; // 64位的value
-    pb_variable_array<FieldT> value_s; // 64位的value
     std::shared_ptr<digest_variable<FieldT>> r; // 256位的随机数r
+
+    pb_variable_array<FieldT> value_s; // 64位的value
+    pb_variable<FieldT> value_s_packed;
+    std::shared_ptr<packing_gadget<FieldT> > pack_value_s;
+
+    pb_variable_array<FieldT> balance; // 64位的value
+    pb_variable<FieldT> balance_packed;
+    std::shared_ptr<packing_gadget<FieldT> > pack_balance;
+
+    std::shared_ptr<less_comparison_gadget<FieldT> > less_cmp;
 
     note_gadget(protoboard<FieldT> &pb) : gadget<FieldT>(pb) {
         value.allocate(pb, 64);
         value_old.allocate(pb, 64);
-        value_s.allocate(pb, 64);
         r.reset(new digest_variable<FieldT>(pb, 256, "random number"));
+
+        value_s.allocate(pb, 64);
+        value_s_packed.allocate(pb, FMT(this->annotation_prefix, " value_s_packed"));
+        pack_value_s.reset(new packing_gadget<FieldT>(pb, value_s, value_s_packed,
+                                                    FMT(this->annotation_prefix, " pack_value_s")));
+
+        balance.allocate(pb, 64);
+        balance_packed.allocate(pb, FMT(this->annotation_prefix, " balance_packed"));
+        pack_balance.reset(new packing_gadget<FieldT>(pb, balance, balance_packed,
+                                                    FMT(this->annotation_prefix, " pack_balance")));
+
+        less_cmp.reset(new less_comparison_gadget<FieldT>(pb, value_s_packed, balance_packed,
+                                                    FMT(this->annotation_prefix, " less_cmp")));
     }
 
     void generate_r1cs_constraints() { // const Note& note
@@ -70,36 +292,34 @@ public:
                 "boolean_value_s"
             );
         }
-
-        // Addition constraint
-        // 1 * (value_old + value_s) = this->value 
-        this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(
-            1,
-            (packed_addition(this->value_old) + packed_addition(this->value_s)),
-            packed_addition(this->value)
-        ), "1 * (value_old + value_s) = this->value");
-
-        // There may exist error !!!!
-        // this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(
-        //     1,
-        //     (packed_addition_fieldT(this->value_old) + packed_addition_fieldT(this->value_s)),
-        //     packed_addition_fieldT(this->value)
-        // ), "1 * (value_old + value_s) = this->value"));
-        
-        // this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(
-        //     packed_addition(this->value),
-        //     FieldT::one(),
-        //     FieldT::one() * (note.value_old + note.value_s)
-        // ), "");
+        for (size_t i = 0; i < 64; i++) {
+            generate_boolean_r1cs_constraint<FieldT>( // 64位的bool约束
+                this->pb,
+                balance[i],
+                "boolean_value"
+            );
+        }
 
         r->generate_r1cs_constraints(); // 随机数的约束
+
+        pack_value_s->generate_r1cs_constraints(true);
+        pack_balance->generate_r1cs_constraints(true);
+
+        less_cmp->generate_r1cs_constraints();
     }
 
     void generate_r1cs_witness(uint256 r, uint64_t value, uint64_t value_old, uint64_t value_s) { // 为变量生成约束
         r->bits.fill_with_bits(this->pb, uint256_to_bool_vector(note.r));
         value.fill_with_bits(this->pb, uint64_to_bool_vector(note.value));
         value_old.fill_with_bits(this->pb, uint64_to_bool_vector(note.value_old));
+
         value_s.fill_with_bits(this->pb, uint64_to_bool_vector(note.value_s));
+        balance.fill_with_bits(this->pb, uint64_to_bool_vector(note.balance));
+
+        pack_value_s->generate_r1cs_witness_from_packed();
+        pack_balance->generate_r1cs_witness_from_packed();
+
+        less_cmp->generate_r1cs_witness();
     }
 };
 

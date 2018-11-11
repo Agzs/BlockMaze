@@ -150,8 +150,6 @@ public:
     pb_variable<FieldT> value_packed;
     std::shared_ptr<packing_gadget<FieldT> > pack_value;
 
-    pb_variable<FieldT> balance; // 64位的value
-
     add_pack_gadget_test(protoboard<FieldT> &pb) : gadget<FieldT>(pb) {
         value_old.allocate(pb, 64);
         value_old_packed.allocate(pb);
