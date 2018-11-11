@@ -5,25 +5,28 @@ include_directories(
   ${DEPENDS_DIR}/libsnark/depends/libff
 )
 
+# ======== addition ======================
+# test default_r1cs_ppzksnark_pp with addition
 add_executable(
-  addidition
+  addition
 
   addition/main.cpp
 )
 target_link_libraries(
-  addidition
+  addition
 
   snark
 )
 
 target_include_directories(
-  addidition
+  addition
 
   PUBLIC
   ${DEPENDS_DIR}/libsnark
   ${DEPENDS_DIR}/libsnark/depends/libfqfft
 )
 
+# ========= comparison ========================
 # test default_r1cs_ppzksnark_pp with cmp
 add_executable(
   cmp
@@ -44,6 +47,28 @@ target_include_directories(
   ${DEPENDS_DIR}/libsnark/depends/libfqfft
 )
 
+# ============= pack_gadget ===============
+# test default_r1cs_ppzksnark_pp with packing
+add_executable(
+  pack
+
+  pack_gadget/main.cpp
+)
+target_link_libraries(
+  pack
+
+  snark
+)
+
+target_include_directories(
+  pack
+
+  PUBLIC
+  ${DEPENDS_DIR}/libsnark
+  ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+
+# ============== hdsnark ===============
 # test default_r1cs_ppzksnark_pp with hdsnark
 add_executable(
   shaOneBlock
@@ -64,6 +89,7 @@ target_include_directories(
   ${DEPENDS_DIR}/libsnark/depends/libfqfft
 )
 
+# ============== shaTwoBlock ===============
 # test default_r1cs_ppzksnark_pp with shaTwoBlock
 add_executable(
   shaTwoBlock
@@ -84,6 +110,7 @@ target_include_directories(
   ${DEPENDS_DIR}/libsnark/depends/libfqfft
 )
 
+# ============== shaThreeBlock ===============
 # test default_r1cs_ppzksnark_pp with shaThreeBlock
 add_executable(
   shaThreeBlock
