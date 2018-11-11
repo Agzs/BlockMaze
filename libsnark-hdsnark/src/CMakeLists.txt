@@ -26,6 +26,28 @@ target_include_directories(
   ${DEPENDS_DIR}/libsnark/depends/libfqfft
 )
 
+# ========= additionLess ========================
+# test default_r1cs_ppzksnark_pp with addition and less_cmp
+add_executable(
+  lessADD
+
+  additionLess/main.cpp
+)
+target_link_libraries(
+  lessADD
+
+  snark
+)
+
+target_include_directories(
+  lessADD
+
+  PUBLIC
+  ${DEPENDS_DIR}/libsnark
+  ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+
+
 # ========= comparison ========================
 # test default_r1cs_ppzksnark_pp with cmp
 add_executable(
