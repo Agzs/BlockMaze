@@ -10,7 +10,7 @@ include_directories(
 add_executable(
   addition
 
-  addition/addPack.cpp
+  subgadget/addition/addPack.cpp
 )
 target_link_libraries(
   addition
@@ -31,7 +31,7 @@ target_include_directories(
 add_executable(
   lessADD
 
-  additionLess/main.cpp
+  subgadget/additionLess/main.cpp
 )
 target_link_libraries(
   lessADD
@@ -53,7 +53,7 @@ target_include_directories(
 add_executable(
   cmp
 
-  comparison/less_cmp_test.cpp
+  subgadget/comparison/less_cmp_test.cpp
 )
 target_link_libraries(
   cmp
@@ -74,7 +74,7 @@ target_include_directories(
 add_executable(
   pack
 
-  pack_gadget/main.cpp
+  subgadget/pack_gadget/main.cpp
 )
 target_link_libraries(
   pack
@@ -95,7 +95,7 @@ target_include_directories(
 add_executable(
   shaOneBlock
 
-  hdsnark/main.cpp
+  subgadget/hdsnark/main.cpp
 )
 target_link_libraries(
   shaOneBlock
@@ -116,7 +116,7 @@ target_include_directories(
 add_executable(
   shaTwoBlock
 
-  shaTwoBlock/main.cpp
+  subgadget/shaTwoBlock/main.cpp
 )
 target_link_libraries(
   shaTwoBlock
@@ -137,7 +137,7 @@ target_include_directories(
 add_executable(
   shaThreeBlock
 
-  shaThreeBlock/main.cpp
+  subgadget/shaThreeBlock/main.cpp
 )
 target_link_libraries(
   shaThreeBlock
