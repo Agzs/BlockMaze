@@ -88,8 +88,17 @@ void run_test(r1cs_ppzksnark_keypair<default_r1cs_ppzksnark_pp>& keypair)
             return; 
         }
 
-        assert(verify_proof(keypair.vk, *proof, h_data_bv, data_coeff_bv, premium_bv)); 
-        cout << "Verifying proof successfully!!!" << endl;
+        //assert(verify_proof(keypair.vk, *proof, h_data_bv, data_coeff_bv, premium_bv)); 
+
+        bool result = verify_proof(keypair.vk, *proof, h_data_bv, data_coeff_bv, premium_bv);
+        printf("verify result = %d\n", result);
+
+        if (!result){
+            cout << "Verifying proof unsuccessfully!!!" << endl;
+        } else {
+            cout << "Verifying proof successfully!!!" << endl;
+        }
+
         return;
     }
 }

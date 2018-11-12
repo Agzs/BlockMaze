@@ -21,10 +21,16 @@ int main()
     // Initialize bit_vectors for all of the variables involved.
     std::vector<bool> hash_bv(256); 
     std::vector<bool> tuple_data_bv(256*3); // unknown --Agzs
+    std::vector<bool> test_hash_bv(256); 
 
     {
-        hash_bv = int_list_to_bits({117, 168, 218, 154, 81, 177, 31, 236, 177, 112, 34, 236, 238, 84, 38, 152, 27, 161, 236, 35, 127,156, 212, 161, 69, 210, 107, 160, 230, 81, 189, 250}, 8);
-        tuple_data_bv = int_list_to_bits({80, 75, 115, 178, 85, 17, 148, 178, 17, 126, 39, 9, 34, 14, 66, 65, 203, 6, 191, 16, 141, 210, 73, 136, 65, 136, 152, 60, 117, 24, 101, 18, 80, 75, 115, 178, 85, 17, 148, 178, 17, 126, 39, 9, 34, 14, 66, 65, 203, 6, 191, 16, 141, 210, 73, 136, 65, 136, 152, 60, 117, 24, 101, 18, 80, 75, 115, 178, 85, 17, 148, 178, 17, 126, 39, 9, 34, 14, 66,65, 203, 6, 191, 16, 141, 210, 73, 136, 65, 136, 152, 60, 117, 24, 101, 18}, 8);    }
+        hash_bv = int_list_to_bits({117, 168, 218, 154, 81, 177, 31, 236, 177, 112, 34, 236, 238, 84, 38, 152, 27, 161, 236, 35, 127, 156, 212, 161, 69, 210, 107, 160, 230, 81, 189, 250}, 8);
+        tuple_data_bv = int_list_to_bits({
+            80, 75, 115, 178, 85, 17, 148, 178, 17, 126, 39, 9, 34, 14, 66, 65, 203, 6, 191, 16, 141, 210, 73, 136, 65, 136, 152, 60, 117, 24, 101, 18, 
+            80, 75, 115, 178, 85, 17, 148, 178, 17, 126, 39, 9, 34, 14, 66, 65, 203, 6, 191, 16, 141, 210, 73, 136, 65, 136, 152, 60, 117, 24, 101, 18, 
+            80, 75, 115, 178, 85, 17, 148, 178, 17, 126, 39, 9, 34, 14, 66, 65, 203, 6, 191, 16, 141, 210, 73, 136, 65, 136, 152, 60, 117, 24, 101, 18
+        }, 8);    
+    }
 
     // 生成proof
     cout << "Trying to generate proof..." << endl;
@@ -38,10 +44,19 @@ int main()
     if (!proof) {
         return false;
     } else {
+        test_hash_bv = int_list_to_bits({117, 168, 218, 154, 81, 177, 31, 236, 177, 112, 34, 236, 238, 84, 38, 152, 27, 161, 236, 35, 127, 156, 212, 161, 69, 210, 107, 160, 230, 81, 189, 250}, 8);
+
         // verification should not fail if the proof is generated!
-        assert(verify_proof(keypair.vk, *proof, hash_bv));
+        bool result = verify_proof(keypair.vk, *proof, test_hash_bv);
+        printf("verify result = %d\n", result);
+        // assert(!verify_proof(keypair.vk, *proof, test_hash_bv));
         // verify_proof(keypair.vk, *proof, hash_bv);
-        cout << "Verifying proof successfully!!!" << endl;
-        return true;
+        if (!result){
+            cout << "Verifying proof unsuccessfully!!!" << endl;
+        } else {
+            cout << "Verifying proof successfully!!!" << endl;
+        }
+        
+        return result;
     }
 }
