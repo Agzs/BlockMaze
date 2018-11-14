@@ -10,13 +10,12 @@ namespace libvnt {
 
 class Note {
 public:
-    uint256 a_pk;
     uint64_t value;
-    uint256 rho;
+    uint256 sn;
     uint256 r;
 
-    Note(uint256 a_pk, uint64_t value, uint256 rho, uint256 r)
-        : a_pk(a_pk), value(value), rho(rho), r(r) {}
+    Note(uint64_t value, uint256 sn, uint256 r)
+        : value(value), sn(sn), r(r) {}
 
     Note();
 

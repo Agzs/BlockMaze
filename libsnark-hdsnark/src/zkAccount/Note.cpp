@@ -10,24 +10,24 @@
 namespace libvnt {
 
 Note::Note() {
-    a_pk = random_uint256();
-    rho = random_uint256();
+    //a_pk = random_uint256();
+    sn = random_uint256();
     r = random_uint256();
     value = 0;
 }
 
 // sprout commitment = sha256(leading_byte, a_pk, v, rho, r, padding) --protocol.pdf P62
 uint256 Note::cm() const {
-    unsigned char discriminant = 0xb0;
+    //unsigned char discriminant = 0xb0;
 
     CSHA256 hasher;
-    hasher.Write(&discriminant, 1);
-    hasher.Write(a_pk.begin(), 32);
+    //hasher.Write(&discriminant, 1);
+    //hasher.Write(a_pk.begin(), 32);
 
     auto value_vec = convertIntToVectorLE(value);
 
     hasher.Write(&value_vec[0], value_vec.size());
-    hasher.Write(rho.begin(), 32);
+    hasher.Write(sn.begin(), 32);
     hasher.Write(r.begin(), 32);
 
     uint256 result;

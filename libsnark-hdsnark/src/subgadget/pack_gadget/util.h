@@ -3,7 +3,7 @@
 #include <vector>
 #include <cstdint>
 
-#include "crypto/sha256.h"
+//#include "crypto/sha256.h"
 
 #include <iostream>
 #include <fstream>
