@@ -304,19 +304,25 @@ bool test_pack_gadget_with_instance(
 
     // verify proof
     if (!proof) {
+        printf("generate proof fail!!!\n");
         return false;
     } else {
-        // const r1cs_primary_input<FieldT> input();
-        // std::cout<<"NULL input: "<<input<<endl;
+        PrintProof(*proof);
+
+        //assert(verify_proof(keypair.vk, *proof));
         
-        // PrintProof(*proof);
+        bool result = verify_proof(keypair.vk, *proof);
 
-        assert(verify_proof(keypair.vk, *proof));
+        printf("verify result = %d\n", result);
+         
+        if (!result){
+            cout << "Verifying proof unsuccessfully!!!" << endl;
+        } else {
+            cout << "Verifying proof successfully!!!" << endl;
+        }
+        
+        return result;
     }
-
-    printf("packing gadget tests successful\n");
-
-    return true;
 }
 
 int main () {

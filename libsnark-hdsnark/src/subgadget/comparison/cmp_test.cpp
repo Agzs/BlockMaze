@@ -152,24 +152,31 @@ bool test_comparison_gadget_with_instance(const size_t a, const size_t b)
 
         // verify proof
         if (!proof) {
+            printf("generate comparison proof fail!!!\n");
             return false;
         } else {
-            // const r1cs_primary_input<FieldT> input();
-            // std::cout<<"NULL input: "<<input<<endl;
             PrintProof(*proof);
 
-            assert(verify_proof(keypair.vk, *proof));
+            //assert(verify_proof(keypair.vk, *proof));
+            
+            bool result = verify_proof(keypair.vk, *proof);
+
+            printf("verify result = %d\n", result);
+            printf("the %zu bit inputs, ", n);
+
+            if (!result){
+                cout << "Verifying comparison proof unsuccessfully!!!" << endl;
+            } else {
+                cout << "Verifying comparison proof successfully!!!" << endl;
+            }
+            
+            return result;
         }
 
     } else {
         printf("the size of a = %zu or b = %zu is larger than the %zu bit inputs\n", a, b, n);
         return false;
     }
-
-    printf("the %zu bit inputs, comparison tests successful", n);
-    // libff::print_time("the %zu bit inputs, comparison tests successful", n);
-    printf("\n");
-    return true;
 }
 
 int main () {

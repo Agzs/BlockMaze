@@ -135,17 +135,25 @@ bool test_add_gadget_with_instance(uint64_t value,
                                                             );
     // verify proof
     if (!proof) {
+        printf("generate addition proof fail!!!\n");
         return false;
     } else {
-        // const r1cs_primary_input<FieldT> input();
-        // std::cout<<"NULL input: "<<input<<endl;
         PrintProof(*proof);
 
-        return verify_proof(keypair.vk, *proof);
-        // return verify_proof(keypair.vk, *proof, value);
+        //assert(verify_proof(keypair.vk, *proof));
+        
+        bool result = verify_proof(keypair.vk, *proof);
+
+        printf("verify result = %d\n", result);
+         
+        if (!result){
+            cout << "Verifying addition proof unsuccessfully!!!" << endl;
+        } else {
+            cout << "Verifying addition proof successfully!!!" << endl;
+        }
+        
+        return result;
     }
-   
-    return true;
 }
 
 int main () {

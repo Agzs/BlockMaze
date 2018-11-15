@@ -453,19 +453,25 @@ bool test_note_gadget_with_comparison_for_balance_with_instance(uint64_t value,
 
     // verify proof
     if (!proof) {
+        printf("generate additionLess proof fail!!!\n");
         return false;
     } else {
-        // const r1cs_primary_input<FieldT> input();
-        // std::cout<<"NULL input: "<<input<<endl;
+        PrintProof(*proof);
+
+        //assert(verify_proof(keypair.vk, *proof));
         
-        // PrintProof(*proof);
+        bool result = verify_proof(keypair.vk, *proof);
 
-        assert(verify_proof(keypair.vk, *proof));
+        printf("verify result = %d\n", result);
+         
+        if (!result){
+            cout << "Verifying additionLess proof unsuccessfully!!!" << endl;
+        } else {
+            cout << "Verifying additionLess proof successfully!!!" << endl;
+        }
+        
+        return result;
     }
-
-    printf("comparison tests successful\n");
-
-    return true;
 }
 
 int main () {
