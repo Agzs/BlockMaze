@@ -194,15 +194,12 @@ class note_gadget_with_packing : public gadget<FieldT> { // 基类和比较类�
 public:
     pb_variable_array<FieldT> value; // 64位的value, 操作后的账户余额，也是当前最新的账户余额
     pb_variable<FieldT> value_packed;
-    std::shared_ptr<packing_gadget<FieldT> > pack_value;
     
     pb_variable_array<FieldT> value_old; // 64位的value，操作前的账户余额
     pb_variable<FieldT> value_old_packed;
-    std::shared_ptr<packing_gadget<FieldT> > pack_value_old;
 
     pb_variable_array<FieldT> value_s; // 64位的value，待操作的账户余额
     pb_variable<FieldT> value_s_packed;
-    std::shared_ptr<packing_gadget<FieldT> > pack_value_s;
 
     std::shared_ptr<digest_variable<FieldT>> r; // 256位的随机数r
     std::shared_ptr<digest_variable<FieldT>> r_old; // 256位的随机数r
@@ -213,19 +210,13 @@ public:
     note_gadget_with_packing(protoboard<FieldT> &pb) : gadget<FieldT>(pb) {
         value.allocate(pb, 64);
         value_packed.allocate(pb);
-        pack_value.reset(new packing_gadget<FieldT>(pb, value, value_packed,
-                                                    FMT(this->annotation_prefix, " pack_value")));
         
         value_old.allocate(pb, 64);
         value_old_packed.allocate(pb);
-        pack_value_old.reset(new packing_gadget<FieldT>(pb, value_old, value_old_packed,
-                                                    FMT(this->annotation_prefix, " pack_value_old")));
 
         value_s.allocate(pb, 64);
         value_s_packed.allocate(pb, "value_s_packed");
-        pack_value_s.reset(new packing_gadget<FieldT>(pb, value_s, value_s_packed,
-                                                    FMT(this->annotation_prefix, " pack_value_s")));
-        
+       
         r.reset(new digest_variable<FieldT>(pb, 256, "random number"));
         r_old.reset(new digest_variable<FieldT>(pb, 256, "old random number"));
         sn.reset(new digest_variable<FieldT>(pb, 256, "serial number"));
@@ -234,11 +225,27 @@ public:
 
     void generate_r1cs_constraints() { // const Note& note
 
-        pack_value_old->generate_r1cs_constraints(true);
-
-        pack_value_s->generate_r1cs_constraints(true);
-
-        pack_value->generate_r1cs_constraints(true);
+        for (size_t i = 0; i < 64; i++) {
+            generate_boolean_r1cs_constraint<FieldT>( // 64位的bool约束
+                this->pb,
+                value_old[i],
+                "boolean_value_old"
+            );
+        }
+        for (size_t i = 0; i < 64; i++) {
+            generate_boolean_r1cs_constraint<FieldT>( // 64位的bool约束
+                this->pb,
+                value_s[i],
+                "boolean_value_s"
+            );
+        }
+        for (size_t i = 0; i < 64; i++) {
+            generate_boolean_r1cs_constraint<FieldT>( // 64位的bool约束
+                this->pb,
+                value[i],
+                "boolean_value"
+            );
+        }
 
         r->generate_r1cs_constraints(); // 随机数的约束
         r_old->generate_r1cs_constraints(); // 随机数的约束
@@ -248,13 +255,13 @@ public:
 
     void generate_r1cs_witness(const Note& note_old, const Note& note, uint64_t v_s) { // 为变量生成约束
         value.fill_with_bits(this->pb, uint64_to_bool_vector(note.value));
-        pack_value->generate_r1cs_witness_from_bits();
+        this->pb.lc_val(value_packed) = value.get_field_element_from_bits_by_order(this->pb);
         
         value_old.fill_with_bits(this->pb, uint64_to_bool_vector(note_old.value));
-        pack_value_old->generate_r1cs_witness_from_bits();
+        this->pb.lc_val(value_old_packed) = value_old.get_field_element_from_bits_by_order(this->pb);
 
         value_s.fill_with_bits(this->pb, uint64_to_bool_vector(v_s));
-        pack_value_s->generate_r1cs_witness_from_bits();
+        this->pb.lc_val(value_s_packed) = value_s.get_field_element_from_bits_by_order(this->pb);
 
         r->bits.fill_with_bits(this->pb, uint256_to_bool_vector(note.r));
         r_old->bits.fill_with_bits(this->pb, uint256_to_bool_vector(note_old.r));
@@ -371,15 +378,12 @@ class note_gadget_with_comparison_and_addition_for_balance : public note_gadget_
 public:   
     pb_variable_array<FieldT> balance; // 64位的value
     pb_variable<FieldT> balance_packed;
-    std::shared_ptr<packing_gadget<FieldT> > pack_balance;
 
     std::shared_ptr<less_comparison_gadget<FieldT> > less_cmp;
 
     note_gadget_with_comparison_and_addition_for_balance(protoboard<FieldT> &pb) : note_gadget_with_packing<FieldT>(pb) {
         balance.allocate(pb, 64);
         balance_packed.allocate(pb, "balance_packed");
-        pack_balance.reset(new packing_gadget<FieldT>(pb, balance, balance_packed,
-                                                    FMT(this->annotation_prefix, " pack_balance")));
 
         less_cmp.reset(new less_comparison_gadget<FieldT>(pb, this->value_s_packed, balance_packed,
                                                     FMT(this->annotation_prefix, " less_cmp")));
@@ -392,7 +396,13 @@ public:
         this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(1, (this->value_old_packed + this->value_s_packed), this->value_packed),
                                  FMT(this->annotation_prefix, " equal"));
 
-        pack_balance->generate_r1cs_constraints(true);
+        for (size_t i = 0; i < 64; i++) {
+            generate_boolean_r1cs_constraint<FieldT>( // 64位的bool约束
+                this->pb,
+                balance[i],
+                "boolean_balance"
+            );
+        }
 
         less_cmp->generate_r1cs_constraints();
     }
@@ -401,7 +411,7 @@ public:
         note_gadget_with_packing<FieldT>::generate_r1cs_witness(note_old, note, v_s);
 
         balance.fill_with_bits(this->pb, uint64_to_bool_vector(b));
-        pack_balance->generate_r1cs_witness_from_bits();
+        this->pb.lc_val(balance_packed) = balance.get_field_element_from_bits_by_order(this->pb);
 
         less_cmp->generate_r1cs_witness();
     }
@@ -508,7 +518,10 @@ public:
     }
 };
 
-/**********************************************************
+
+/***********************************************************
+ * 模块整合，主要包括验证proof时所需要的publicData的输入
+ ***********************************************************
  * sha256_two_block_gadget, Add_gadget, Comparison_gadget
  ***************************************************************
  * sha256(data+padding), 512bits < data.size() < 1024-64-1bits
@@ -523,7 +536,21 @@ public:
  *            value_s < balance
  **********************************************************/
 template<typename FieldT>
-class commitment_with_add_and_less_gadget : public note_gadget_with_comparison_and_addition_for_balance<FieldT> {
+class mint_gadget : public note_gadget_with_comparison_and_addition_for_balance<FieldT> {
+private:
+    // Verifier inputs 验证者输入
+    pb_variable_array<FieldT> zk_packed_inputs; // 合并为十进制
+    pb_variable_array<FieldT> zk_unpacked_inputs; // 拆分为二进制
+    std::shared_ptr<multipacking_gadget<FieldT>> unpacker; // 二进制转十进制转换器
+
+    /************************************************************************
+     * std::shared_ptr<digest_variable<FieldT>> cmtA_old;  // this->cmtA_old
+     * std::shared_ptr<digest_variable<FieldT>> sn_old;    // this->sn_old
+     * std::shared_ptr<digest_variable<FieldT>> cmtA;      // this->cmtA
+     * pb_variable_array<FieldT> value_s;                  // this->value_s
+     * pb_variable_array<FieldT> balance_A;                // this->balance
+     * *********************************************************************/
+
 public:
     // old commitment with sha256_two_block_gadget
     std::shared_ptr<digest_variable<FieldT>> cmtA_old; // cm
@@ -537,13 +564,42 @@ public:
 
     pb_variable<FieldT> ZERO;
 
-    commitment_with_add_and_less_gadget(
+    mint_gadget(
         protoboard<FieldT>& pb
     ) : note_gadget_with_comparison_and_addition_for_balance<FieldT>(pb) {
+        // Verification
+        {
+            // The verification inputs are all bit-strings of various
+            // lengths (256-bit digests and 64-bit integers) and so we
+            // pack them into as few field elements as possible. (The
+            // more verification inputs you have, the more expensive
+            // verification is.)
+            zk_packed_inputs.allocate(pb, verifying_field_element_size()); 
+            this->pb.set_input_sizes(verifying_field_element_size());
+
+            alloc_uint256(zk_unpacked_inputs, cmtA_old);
+            //alloc_uint256(zk_unpacked_inputs, this->sn_old);
+            alloc_uint256(zk_unpacked_inputs, cmtA);
+
+            //alloc_uint64(zk_unpacked_inputs, this->value_s); 
+            //alloc_uint64(zk_unpacked_inputs, this->balance);
+
+            assert(zk_unpacked_inputs.size() == verifying_input_bit_size()); // 判定输入长度
+
+            // This gadget will ensure that all of the inputs we provide are
+            // boolean constrained. 布尔约束 <=> 比特位, 打包
+            unpacker.reset(new multipacking_gadget<FieldT>(
+                pb,
+                zk_unpacked_inputs,
+                zk_packed_inputs,
+                FieldT::capacity(),
+                "unpacker"
+            ));
+        }
 
         ZERO.allocate(pb);
 
-        cmtA_old.reset(new digest_variable<FieldT>(pb, 256, "cmtA_old"));
+        //cmtA_old.reset(new digest_variable<FieldT>(pb, 256, "cmtA_old"));
 
         commit_to_inputs_old.reset(new sha256_two_block_gadget<FieldT>( 
             pb,
@@ -554,7 +610,7 @@ public:
             cmtA_old
         ));
 
-        cmtA.reset(new digest_variable<FieldT>(pb, 256, "cmtA"));
+        //cmtA.reset(new digest_variable<FieldT>(pb, 256, "cmtA"));
 
         commit_to_inputs.reset(new sha256_two_block_gadget<FieldT>( 
             pb,
@@ -568,6 +624,9 @@ public:
 
     // 约束函数，为commitment_with_add_and_less_gadget的变量生成约束
     void generate_r1cs_constraints() { 
+        // The true passed here ensures all the inputs are boolean constrained.
+        unpacker->generate_r1cs_constraints(true);
+
         note_gadget_with_comparison_and_addition_for_balance<FieldT>::generate_r1cs_constraints();
 
         // Constrain `ZERO`
@@ -616,80 +675,20 @@ public:
             this->pb,
             uint256_to_bool_vector(note.cm())
         );
-    }
-};
 
-/***********************************************************
- * 模块整合，主要包括验证proof时所需要的publicData的输入
- * *********************************************************/
-template<typename FieldT>
-class mint_gadget : public commitment_with_add_and_less_gadget<FieldT> {
-private:
-    // Verifier inputs 验证者输入
-    pb_variable_array<FieldT> zk_packed_inputs; // 合并为十进制
-    pb_variable_array<FieldT> zk_unpacked_inputs; // 拆分为二进制
-    std::shared_ptr<multipacking_gadget<FieldT>> unpacker; // 二进制转十进制转换器
-
-    /************************************************************************
-     * std::shared_ptr<digest_variable<FieldT>> cmtA_old;  // this->cmtA_old
-     * std::shared_ptr<digest_variable<FieldT>> sn_old;    // this->sn_old
-     * std::shared_ptr<digest_variable<FieldT>> cmtA;      // this->cmtA
-     * pb_variable_array<FieldT> value_s;                  // this->value_s
-     * pb_variable_array<FieldT> balance_A;                // this->balance
-     * *********************************************************************/
-    //std::shared_ptr<commitment_with_add_and_less_gadget<FieldT>> cmt_add_less;
-
-public:
-    mint_gadget(protoboard<FieldT> &pb) : commitment_with_add_and_less_gadget<FieldT>(pb) {// 构造函数
-        // Verification
-        {
-            // The verification inputs are all bit-strings of various
-            // lengths (256-bit digests and 64-bit integers) and so we
-            // pack them into as few field elements as possible. (The
-            // more verification inputs you have, the more expensive
-            // verification is.)
-            zk_packed_inputs.allocate(pb, verifying_field_element_size()); 
-            this->pb.set_input_sizes(verifying_field_element_size());
-
-            alloc_uint256(zk_unpacked_inputs, this->cmtA_old);
-            alloc_uint256(zk_unpacked_inputs, this->sn_old);
-            alloc_uint256(zk_unpacked_inputs, this->cmtA);
-
-            alloc_uint64(zk_unpacked_inputs, this->value_s); 
-            alloc_uint64(zk_unpacked_inputs, this->balance);
-
-            assert(zk_unpacked_inputs.size() == verifying_input_bit_size()); // 判定输入长度
-
-            // This gadget will ensure that all of the inputs we provide are
-            // boolean constrained. 布尔约束 <=> 比特位, 打包
-            unpacker.reset(new multipacking_gadget<FieldT>(
-                pb,
-                zk_unpacked_inputs,
-                zk_packed_inputs,
-                FieldT::capacity(),
-                "unpacker"
-            ));
+        printf("============= generate_r1cs_witness() =================\n");
+        printf(" cmtA_old = [ ");
+        BOOST_FOREACH(bool vs, uint256_to_bool_vector(note_old.cm())) {
+            printf("%d, ", vs);
         }
-    }
 
-    void generate_r1cs_constraints() {
-        // The true passed here ensures all the inputs
-        // are boolean constrained.
-        unpacker->generate_r1cs_constraints(true);
-  
-        commitment_with_add_and_less_gadget<FieldT>::generate_r1cs_constraints();
-    }
+        printf("]\n cmtA = [ ");
+        BOOST_FOREACH(bool vs, uint256_to_bool_vector(note.cm())) {
+            printf("%d, ", vs);
+        }
+        printf("]\n");
 
-    void generate_r1cs_witness(
-        const Note& note_old, 
-        const Note& note, 
-        uint64_t v_s, 
-        uint64_t b
-    ) {
-        commitment_with_add_and_less_gadget<FieldT>::generate_r1cs_witness(note_old, note, v_s, b);
-
-        // This happens last, because only by now are all the
-        // verifier inputs resolved.
+        // This happens last, because only by now are all the verifier inputs resolved.
         unpacker->generate_r1cs_witness_from_bits();
     }
 
@@ -704,11 +703,24 @@ public:
         std::vector<bool> verify_inputs;
 
         insert_uint256(verify_inputs, cmtA_old);
-        insert_uint256(verify_inputs, sn_old);
+        //insert_uint256(verify_inputs, sn_old);
         insert_uint256(verify_inputs, cmtA);
 
-        insert_uint64(verify_inputs, value_s);
-        insert_uint64(verify_inputs, balance);
+        //insert_uint64(verify_inputs, value_s);
+        //insert_uint64(verify_inputs, balance);
+
+        printf("============= r1cs_primary_input::witness_map() =================\n");
+        printf(" cmtA_old = [ ");
+        BOOST_FOREACH(bool vs, uint256_to_bool_vector(cmtA_old)) {
+            printf("%d, ", vs);
+        }
+
+        printf("]\n cmtA = [ ");
+        BOOST_FOREACH(bool vs, uint256_to_bool_vector(cmtA)) {
+            printf("%d, ", vs);
+        }
+        printf("]\n");
+
 
         assert(verify_inputs.size() == verifying_input_bit_size());
         auto verify_field_elements = pack_bit_vector_into_field_element_vector<FieldT>(verify_inputs);
@@ -721,11 +733,11 @@ public:
         size_t acc = 0;
 
         acc += 256; // cmtA_old
-        acc += 256; // sn_old
+        //acc += 256; // sn_old
         acc += 256; // cmtA
         
-        acc += 64; // value_s
-        acc += 64; // balance
+        //acc += 64; // value_s
+        //acc += 64; // balance
 
         return acc;
     }
@@ -754,39 +766,16 @@ public:
     }
 };
 
-/****************************************
- * 全局变量，用于测试
- * **************************************/
-Note note_old_test, note_test;
-
 // 生成proof
 template<typename ppzksnark_ppT>
 boost::optional<r1cs_ppzksnark_proof<ppzksnark_ppT>> generate_proof(r1cs_ppzksnark_proving_key<ppzksnark_ppT> proving_key,
-                                                                    uint64_t value_old,
-                                                                    //uint256 sn_old,
-                                                                    //uint256 r_old,
-                                                                    uint64_t value,
-                                                                    //uint256 sn,
-                                                                    //uint256 r,
+                                                                    const Note& note_old,
+                                                                    const Note& note,
                                                                     uint64_t value_s,
                                                                     uint64_t balance
                                                                    )
 {
     typedef Fr<ppzksnark_ppT> FieldT;
-   
-    // Note note_old = Note(value_old, sn_old, r_old);
-    // Note note = Note(value, sn, r);
-
-    note_old_test.value = value_old;
-    note_old_test.sn = random_uint256();
-    note_old_test.r = random_uint256();
-
-    note_test.value = value;
-    note_test.sn = random_uint256();
-    note_test.r = random_uint256();
-
-    Note note_old = Note(note_old_test.value, note_old_test.sn, note_old_test.r);
-    Note note = Note(note_test.value, note_test.sn, note_test.r);
 
     protoboard<FieldT> pb;  // 定义原始模型，该模型包含constraint_system成员变量
     mint_gadget<FieldT> g(pb); // 构造新模型
@@ -866,12 +855,31 @@ void PrintProof(r1cs_ppzksnark_proof<ppzksnark_ppT> proof)
 // test_comparison_gadget_with_instance, v = v_old + v_s && v_s < b
 template<typename ppzksnark_ppT> //--Agzs
 bool test_mint_gadget_with_instance(
-                            uint64_t v_old, 
-                            uint64_t v,
-                            uint64_t v_s, 
-                            uint64_t b
+                            uint64_t value_old,
+                            //uint256 sn_old,
+                            //uint256 r_old,
+                            //uint256 sn,
+                            //uint256 r,
+                            uint64_t value_s,
+                            uint64_t balance
                         )
 {
+    // Note note_old = Note(value_old, sn_old, r_old);
+    // Note note = Note(value, sn, r);
+
+    // uint256 sn_test = random_uint256();
+    // uint256 r_test = random_uint256();
+   
+    uint256 sn_old = uint256S("123");//random_uint256();
+    uint256 r_old = uint256S("123");//random_uint256();
+    Note note_old = Note(value_old, sn_old, r_old);
+
+    uint256 sn = uint256S("123");//random_uint256();
+    uint256 r = uint256S("123");//random_uint256();
+    Note note = Note(value_old+value_s, sn, r);
+
+    printf("value_old+value_s = %zu\n", value_old+value_s);
+    
     typedef libff::Fr<ppzksnark_ppT> FieldT;
 
     protoboard<FieldT> pb;
@@ -889,35 +897,36 @@ bool test_mint_gadget_with_instance(
     cout << "Trying to generate proof..." << endl;
 
     auto proof = generate_proof<default_r1cs_ppzksnark_pp>(keypair.pk, 
-                                                            v_old,
-                                                            v,
-                                                            v_s,
-                                                            b
+                                                            note_old,
+                                                            note,
+                                                            value_s,
+                                                            balance
                                                             );
 
     // verify proof
     if (!proof) {
+        printf("generate mint proof fail!!!\n");
         return false;
     } else {
-        // PrintProof(*proof);
+        PrintProof(*proof);
 
         //assert(verify_proof(keypair.vk, *proof));
         
         bool result = verify_proof(keypair.vk, 
                                    *proof, 
-                                   note_old_test.cm(),
-                                   note_old_test.sn,
-                                   note_test.cm(),
-                                   v_s,
-                                   b
+                                   note_old.cm(),
+                                   note_old.sn,
+                                   note.cm(),
+                                   value_s,
+                                   balance
                                    );
 
         printf("verify result = %d\n", result);
          
         if (!result){
-            cout << "Verifying proof unsuccessfully!!!" << endl;
+            cout << "Verifying mint proof unsuccessfully!!!" << endl;
         } else {
-            cout << "Verifying proof successfully!!!" << endl;
+            cout << "Verifying mint proof successfully!!!" << endl;
         }
         
         return result;
@@ -930,14 +939,13 @@ int main () {
 
     libff::print_header("#             testing mint gadget");
 
-    uint64_t value = uint64_t(3); 
+    uint64_t value = uint64_t(2); 
     uint64_t value_old = uint64_t(2); 
-    uint64_t value_s = uint64_t(1);
-    uint64_t balance = uint64_t(300); // 由于balance是对外公开的，所以blance>0;此处balance设为负数也能验证通过
+    uint64_t value_s = uint64_t(0);
+    uint64_t balance = uint64_t(30); // 由于balance是对外公开的，所以blance>0;此处balance设为负数也能验证通过
 
-    test_mint_gadget_with_instance<default_r1cs_ppzksnark_pp>(value_old, value, value_s, balance);
+    test_mint_gadget_with_instance<default_r1cs_ppzksnark_pp>(value_old, value_s, balance);
 
-    // assert(test_comparison_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(6, 45, 40)); 
     // Note. cmake can not compile the assert()  --Agzs
     
     return 0;

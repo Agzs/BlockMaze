@@ -330,7 +330,7 @@ public:
 
         // TODO: These constraints may not be necessary if SHA256
         // already boolean constrains its outputs.
-        //cmtA->generate_r1cs_constraints();
+        cmtA->generate_r1cs_constraints();
 
         // TODO: This may not be necessary if SHA256 constrains
         // its output digests to be boolean anyway.
@@ -376,9 +376,9 @@ public:
         hasher1->generate_r1cs_witness();
         hasher2->generate_r1cs_witness();
 
-        // This happens last, because only by now are all the
-        // verifier inputs resolved.
-        unpacker->generate_r1cs_witness_from_bits();
+        // // This happens last, because only by now are all the
+        // // verifier inputs resolved.
+        // unpacker->generate_r1cs_witness_from_bits();
 
         // [SANITY CHECK] Ensure the commitment is
         // valid.
@@ -393,9 +393,9 @@ public:
         }
         printf("]\n");
 
-        // // This happens last, because only by now are all the
-        // // verifier inputs resolved.
-        // unpacker->generate_r1cs_witness_from_bits();
+        // This happens last, because only by now are all the
+        // verifier inputs resolved.
+        unpacker->generate_r1cs_witness_from_bits();
     }
 
     // 将bit形式的私密输入 打包转换为 域上的元素
@@ -606,7 +606,7 @@ bool test_sha256_two_block_gadget_with_instance(
         PrintProof(*proof);
 
         //assert(verify_proof(keypair.vk, *proof));
-        uint256 wrong_sn = uint256S("11");//random_uint256();
+        uint256 wrong_sn = uint256S("1");//random_uint256();
 
         bool result = verify_proof(keypair.vk, 
                                    *proof, 
