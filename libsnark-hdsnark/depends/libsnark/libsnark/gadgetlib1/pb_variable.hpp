@@ -68,6 +68,7 @@ public:
     libff::bit_vector get_bits(const protoboard<FieldT> &pb) const;
 
     FieldT get_field_element_from_bits(const protoboard<FieldT> &pb) const;
+    FieldT get_field_element_from_bits_by_order(const protoboard<FieldT> &pb) const; // 添加正序bit的取域值操作
 };
 
 /* index 0 corresponds to the constant term (used in legacy code) */
@@ -129,6 +130,7 @@ public:
     libff::bit_vector get_bits(const protoboard<FieldT> &pb) const;
 
     FieldT get_field_element_from_bits(const protoboard<FieldT> &pb) const;
+    FieldT get_field_element_from_bits_by_order(const protoboard<FieldT> &pb) const; // 添加正序bit的取域值操作
 };
 
 template<typename FieldT>

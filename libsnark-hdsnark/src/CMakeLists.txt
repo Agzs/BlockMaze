@@ -10,7 +10,7 @@ include_directories(
 add_executable(
   addition
 
-  subgadget/addition/addPack.cpp
+  subgadget/addition/addByOrder.cpp
 )
 target_link_libraries(
   addition
