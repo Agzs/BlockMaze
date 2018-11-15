@@ -197,6 +197,27 @@ target_include_directories(
   ${DEPENDS_DIR}/libsnark/depends/libfqfft
 )
 
+# =========== twoBlock =============
+add_executable(
+  twoBlock
+
+  subgadget/twoBlock/main.cpp
+)
+target_link_libraries(
+  twoBlock
+
+  snark
+  sodium 
+)
+
+target_include_directories(
+  twoBlock
+
+  PUBLIC
+  ${DEPENDS_DIR}/libsnark
+  ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+
 #set(SRC_LISTS ./hdsnark/test.cpp)
 
 
