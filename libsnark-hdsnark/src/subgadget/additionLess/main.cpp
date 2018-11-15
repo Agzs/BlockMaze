@@ -143,44 +143,51 @@ class note_gadget_with_packing : public gadget<FieldT> { // 基类和比较类�
 public:
     pb_variable_array<FieldT> value; // 64位的value, 操作后的账户余额，也是当前最新的账户余额
     pb_variable<FieldT> value_packed;
-    std::shared_ptr<packing_gadget<FieldT> > pack_value;
     
     pb_variable_array<FieldT> value_old; // 64位的value，操作前的账户余额
     pb_variable<FieldT> value_old_packed;
-    std::shared_ptr<packing_gadget<FieldT> > pack_value_old;
 
     pb_variable_array<FieldT> value_s; // 64位的value，待操作的账户余额
     pb_variable<FieldT> value_s_packed;
-    std::shared_ptr<packing_gadget<FieldT> > pack_value_s;
 
     //std::shared_ptr<digest_variable<FieldT>> r; // 256位的随机数r
 
     note_gadget_with_packing(protoboard<FieldT> &pb) : gadget<FieldT>(pb) {
         value.allocate(pb, 64);
         value_packed.allocate(pb);
-        pack_value.reset(new packing_gadget<FieldT>(pb, value, value_packed,
-                                                    FMT(this->annotation_prefix, " pack_value")));
-        
+      
         value_old.allocate(pb, 64);
         value_old_packed.allocate(pb);
-        pack_value_old.reset(new packing_gadget<FieldT>(pb, value_old, value_old_packed,
-                                                    FMT(this->annotation_prefix, " pack_value_old")));
 
         value_s.allocate(pb, 64);
         value_s_packed.allocate(pb, "value_s_packed");
-        pack_value_s.reset(new packing_gadget<FieldT>(pb, value_s, value_s_packed,
-                                                    FMT(this->annotation_prefix, " pack_value_s")));
-        
+      
         //r.reset(new digest_variable<FieldT>(pb, 256, "random number"));
     }
 
     void generate_r1cs_constraints() { // const Note& note
 
-        pack_value_old->generate_r1cs_constraints(true);
-
-        pack_value_s->generate_r1cs_constraints(true);
-
-        pack_value->generate_r1cs_constraints(true);
+        for (size_t i = 0; i < 64; i++) {
+            generate_boolean_r1cs_constraint<FieldT>( // 64位的bool约束
+                this->pb,
+                value_old[i],
+                "boolean_value_old"
+            );
+        }
+        for (size_t i = 0; i < 64; i++) {
+            generate_boolean_r1cs_constraint<FieldT>( // 64位的bool约束
+                this->pb,
+                value_s[i],
+                "boolean_value_s"
+            );
+        }
+        for (size_t i = 0; i < 64; i++) {
+            generate_boolean_r1cs_constraint<FieldT>( // 64位的bool约束
+                this->pb,
+                value[i],
+                "boolean_value"
+            );
+        }
 
         //r->generate_r1cs_constraints(); // 随机数的约束
     }
@@ -188,13 +195,13 @@ public:
     void generate_r1cs_witness(uint64_t v, uint64_t v_old, uint64_t v_s) { // 为变量生成约束
 
         value.fill_with_bits(this->pb, uint64_to_bool_vector(v));
-        pack_value->generate_r1cs_witness_from_bits();
+        this->pb.lc_val(value_packed) = value.get_field_element_from_bits_by_order(this->pb);
         
         value_old.fill_with_bits(this->pb, uint64_to_bool_vector(v_old));
-        pack_value_old->generate_r1cs_witness_from_bits();
+        this->pb.lc_val(value_old_packed) = value_old.get_field_element_from_bits_by_order(this->pb);
 
         value_s.fill_with_bits(this->pb, uint64_to_bool_vector(v_s));
-        pack_value_s->generate_r1cs_witness_from_bits();
+        this->pb.lc_val(value_s_packed) = value_s.get_field_element_from_bits_by_order(this->pb);
 
         //r->bits.fill_with_bits(this->pb, uint256_to_bool_vector(rr));
     }
@@ -308,7 +315,6 @@ public:
    
     pb_variable_array<FieldT> balance; // 64位的value
     pb_variable<FieldT> balance_packed;
-    std::shared_ptr<packing_gadget<FieldT> > pack_balance;
 
     std::shared_ptr<less_comparison_gadget<FieldT> > less_cmp;
 
@@ -317,8 +323,6 @@ public:
 
         balance.allocate(pb, 64);
         balance_packed.allocate(pb, "balance_packed");
-        pack_balance.reset(new packing_gadget<FieldT>(pb, balance, balance_packed,
-                                                    FMT(this->annotation_prefix, " pack_balance")));
 
         less_cmp.reset(new less_comparison_gadget<FieldT>(pb, this->value_s_packed, balance_packed,
                                                     FMT(this->annotation_prefix, " less_cmp")));
@@ -331,7 +335,13 @@ public:
         this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(1, (this->value_old_packed + this->value_s_packed), this->value_packed),
                                  FMT(this->annotation_prefix, " equal"));
 
-        pack_balance->generate_r1cs_constraints(true);
+        for (size_t i = 0; i < 64; i++) {
+            generate_boolean_r1cs_constraint<FieldT>( // 64位的bool约束
+                this->pb,
+                balance[i],
+                "boolean_balance"
+            );
+        }
 
         less_cmp->generate_r1cs_constraints();
     }
@@ -340,7 +350,7 @@ public:
         note_gadget_with_packing<FieldT>::generate_r1cs_witness(v, v_old, v_s);
 
         balance.fill_with_bits(this->pb, uint64_to_bool_vector(b));
-        pack_balance->generate_r1cs_witness_from_bits();
+        this->pb.lc_val(balance_packed) = balance.get_field_element_from_bits_by_order(this->pb);
 
         less_cmp->generate_r1cs_witness();
     }
@@ -480,10 +490,10 @@ int main () {
 
     libff::print_header("#             test comparison gadget with assert()");
 
-    uint64_t value = uint64_t(264); 
-    uint64_t value_old = uint64_t(250); 
-    uint64_t value_s = uint64_t(14);
-    uint64_t balance = uint64_t(300); // 由于balance是对外公开的，所以blance>0;此处balance设为负数也能验证通过
+    uint64_t value = uint64_t(49168); 
+    uint64_t value_old = uint64_t(32776); 
+    uint64_t value_s = uint64_t(16392);
+    uint64_t balance = uint64_t(30000); // 由于balance是对外公开的，所以blance>0;此处balance设为负数也能验证通过
 
     test_note_gadget_with_comparison_for_balance_with_instance<default_r1cs_ppzksnark_pp>(value, value_old, value_s, balance);
 
