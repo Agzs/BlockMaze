@@ -4,7 +4,7 @@
 #include <iostream> //--Agzs
 
 const size_t sha256_digest_len = 256;
-const size_t tuple_data_len = 256*3;
+//const size_t tuple_data_len = 256*3;
 
 using namespace libff;
 
@@ -13,14 +13,22 @@ using namespace libff;
 */
 
 // length of msg is 768 bits
-bool sha256_padding[256] = {1,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
-                            0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
-                            0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
-                            0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
-                            0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
-                            0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
-                            0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
-                            0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,1,1, 0,0,0,0,0,0,0,0};
+bool sha256_padding[448] = {
+                1,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, // 12*4*8 = 384bits
+                // length of message (576 bits)
+                0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,1,0, 0,1,0,0,0,0,0,0}; // 8*8 = 64bits};
 
 
 template<typename FieldT>
@@ -33,7 +41,10 @@ public:
     // ======= Sha256 hash gadget for tuple data ======== 
     std::shared_ptr<digest_variable<FieldT>> hash_tuple_data_var; /* Hash(tuple_data) */
 
-    std::shared_ptr<digest_variable<FieldT>> tuple_data_var; /* tuple_data */
+    //std::shared_ptr<digest_variable<FieldT>> tuple_data_var; /* tuple_data */
+    pb_variable_array<FieldT> value;      // 64bits value for Mint
+    std::shared_ptr<digest_variable<FieldT>> sn; // 256位的随机数r
+    std::shared_ptr<digest_variable<FieldT>> r; // 256位的随机数r
 
      /* 1024 bit block that contains data(768 bits) + padding(256 bits) 分组处理，填充比特*/
     std::shared_ptr<block_variable<FieldT>> block1;
@@ -73,7 +84,7 @@ public:
         // printf("\n============================\n");
 
         // SHA256's length padding 位数填充至512bit, 转换为域上相应的值
-        for (size_t i = 0; i < 256; i++) {
+        for (size_t i = 0; i < 448; i++) {
             if (sha256_padding[i])
                 padding_var.emplace_back(ONE); // 类似于push_back()，但是比其速度更快, ONE是有限域上的0
             else
@@ -93,29 +104,38 @@ public:
 
         // Prover inputs:
         // Convert multi-attribute into one tuple
-        tuple_data_var.reset(new digest_variable<FieldT>(pb, tuple_data_len, "tuple_data")); 
+        //tuple_data_var.reset(new digest_variable<FieldT>(pb, tuple_data_len, "tuple_data")); 
+        value.allocate(pb, 64);
+        sn.reset(new digest_variable<FieldT>(pb, 256, "serial number"));
+        r.reset(new digest_variable<FieldT>(pb, 256, "random number"));
 
         // IV for SHA256 初始化SHA256缓存
         pb_linear_combination_array<FieldT> IV = SHA256_default_IV(pb);
 
-        pb_variable_array<FieldT> first_of_data(tuple_data_var->bits.begin(), tuple_data_var->bits.begin()+512);
-        pb_variable_array<FieldT> last_of_data(tuple_data_var->bits.begin()+512, tuple_data_var->bits.end());
+        // pb_variable_array<FieldT> first_of_data(tuple_data_var->bits.begin(), tuple_data_var->bits.begin()+512);
+        // pb_variable_array<FieldT> last_of_data(tuple_data_var->bits.begin()+512, tuple_data_var->bits.end());
+        pb_variable_array<FieldT> first_of_r(r->bits.begin(), r->bits.begin()+192);
+        pb_variable_array<FieldT> last_of_r(r->bits.begin()+192, r->bits.end());
 
         intermediate_hash.reset(new digest_variable<FieldT>(pb, sha256_digest_len, "intermediate_hash"));
 
-        block1.reset(new block_variable<FieldT>(pb, {first_of_data}, "block1"));
+        block1.reset(new block_variable<FieldT>(pb, {
+            value,           // 64bits
+            sn->bits,      // 256bits
+            first_of_r   // 192bits
+        }, "sha256_two_block_gadget_block1"));
 
         block2.reset(new block_variable<FieldT>(pb, {
-            last_of_data, 
-            padding_var
-        }, "block2"));
+            last_of_r,      // (256-192)=64bits
+            padding_var  // 448bits
+        }, "sha256_two_block_gadget_block2"));
 
         hasher1.reset(new sha256_compression_function_gadget<FieldT>(
             pb,
             IV,
             block1->bits,
             *intermediate_hash,
-        "hasher1"));
+        "sha256_two_block_hash1"));
 
         pb_linear_combination_array<FieldT> IV2(intermediate_hash->bits); // hash迭代
 
@@ -124,7 +144,7 @@ public:
             IV2,
             block2->bits,
             *hash_tuple_data_var,
-        "hasher2"));
+        "sha256_two_block_hash2"));
     }
 
     void generate_r1cs_constraints() {
@@ -134,7 +154,9 @@ public:
 
         // Ensure bitness of the digests. Bitness of the inputs
         // is established by `unpack_inputs->generate_r1cs_constraints(true)`
-        tuple_data_var->generate_r1cs_constraints();
+        //tuple_data_var->generate_r1cs_constraints();
+        sn->generate_r1cs_constraints(); // 随机数的约束
+        r->generate_r1cs_constraints(); // 随机数的约束
 
         generate_r1cs_equals_const_constraint<FieldT>(this->pb, zero, FieldT::zero(), "zero");
 
@@ -147,9 +169,14 @@ public:
     }
 
     void generate_r1cs_witness(const bit_vector &h_data, 
-                                const bit_vector &tuple_data) {
-
-        tuple_data_var->bits.fill_with_bits(this->pb, tuple_data);
+                               const bit_vector &v_data,
+                               const bit_vector &sn_data,
+                               const bit_vector &r_data
+                                ) {
+        value.fill_with_bits(this->pb, v_data);
+        sn->bits.fill_with_bits(this->pb, sn_data);
+        r->bits.fill_with_bits(this->pb, r_data);
+        //tuple_data_var->bits.fill_with_bits(this->pb, tuple_data);
         this->pb.val(zero) = FieldT::zero();
 
         hasher1->generate_r1cs_witness();

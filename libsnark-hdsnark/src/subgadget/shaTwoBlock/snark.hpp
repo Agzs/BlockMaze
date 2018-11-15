@@ -36,8 +36,10 @@ r1cs_ppzksnark_keypair<ppzksnark_ppT> generate_keypair()
 // 生成proof
 template<typename ppzksnark_ppT>
 boost::optional<r1cs_ppzksnark_proof<ppzksnark_ppT>> generate_proof(r1cs_ppzksnark_proving_key<ppzksnark_ppT> proving_key,
-                                                                   const bit_vector &hash,
-                                                                   const bit_vector &tuple_data
+                                                                    const bit_vector &hash,
+                                                                    const bit_vector &v_data,
+                                                                    const bit_vector &sn_data,
+                                                                    const bit_vector &r_data
                                                                    )
 {
     typedef Fr<ppzksnark_ppT> FieldT;
@@ -45,7 +47,7 @@ boost::optional<r1cs_ppzksnark_proof<ppzksnark_ppT>> generate_proof(r1cs_ppzksna
     protoboard<FieldT> pb;  // 定义原始模型，该模型包含constraint_system成员变量
     sha_two_block_gadget<FieldT> g(pb); // 构造新模型
     g.generate_r1cs_constraints(); // 生成约束
-    g.generate_r1cs_witness(hash, tuple_data); // 为新模型的参数生成证明
+    g.generate_r1cs_witness(hash, v_data, sn_data, r_data); // 为新模型的参数生成证明
 
     cout << "pb.is_satisfied() is " << pb.is_satisfied() << endl;
 

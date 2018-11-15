@@ -1,5 +1,8 @@
 #include <stdlib.h>
 #include <iostream>
+#include <boost/optional.hpp>
+#include <boost/foreach.hpp>
+#include <boost/format.hpp>
 
 #include "snark.hpp"
 
@@ -20,21 +23,46 @@ int main()
 
     // Initialize bit_vectors for all of the variables involved.
     std::vector<bool> hash_bv(256); 
-    std::vector<bool> tuple_data_bv(256*3); // unknown --Agzs
+    //std::vector<bool> tuple_data_bv(256*3); // unknown --Agzs
+    std::vector<bool> v_data_bv(64);
+    std::vector<bool> sn_data_bv(256);
+    std::vector<bool> r_data_bv(256);
     std::vector<bool> test_hash_bv(256); 
 
     {
-        hash_bv = int_list_to_bits({117, 168, 218, 154, 81, 177, 31, 236, 177, 112, 34, 236, 238, 84, 38, 152, 27, 161, 236, 35, 127, 156, 212, 161, 69, 210, 107, 160, 230, 81, 189, 250}, 8);
-        tuple_data_bv = int_list_to_bits({
-            80, 75, 115, 178, 85, 17, 148, 178, 17, 126, 39, 9, 34, 14, 66, 65, 203, 6, 191, 16, 141, 210, 73, 136, 65, 136, 152, 60, 117, 24, 101, 18, 
-            80, 75, 115, 178, 85, 17, 148, 178, 17, 126, 39, 9, 34, 14, 66, 65, 203, 6, 191, 16, 141, 210, 73, 136, 65, 136, 152, 60, 117, 24, 101, 18, 
-            80, 75, 115, 178, 85, 17, 148, 178, 17, 126, 39, 9, 34, 14, 66, 65, 203, 6, 191, 16, 141, 210, 73, 136, 65, 136, 152, 60, 117, 24, 101, 18
-        }, 8);    
+        hash_bv = int_list_to_bits({190, 52, 115, 56, 213, 177, 167, 45, 56, 54, 234, 220, 215, 251, 27, 80, 21, 187, 215, 179, 191, 244, 97, 164, 206, 7, 154, 32, 206, 177, 86, 90}, 8);
+        v_data_bv = int_list_to_bits({3, 0, 0, 0, 0, 0, 0, 0}, 8);
+        sn_data_bv = int_list_to_bits({1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 8);
+        r_data_bv = int_list_to_bits({1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 8);
+    }
+
+    {
+        printf(" value = [ ");
+        BOOST_FOREACH(bool vs, v_data_bv) {
+            printf("%d, ", vs);
+        }
+
+        printf("]\n sn = [ ");
+        BOOST_FOREACH(bool vs, sn_data_bv) {
+            printf("%d, ", vs);
+        }
+
+        printf("]\n r = [ ");
+        BOOST_FOREACH(bool vs, r_data_bv) {
+            printf("%d, ", vs);
+        }
+        printf("]\n");
+
+        printf("]\n cmtA = [ ");
+        BOOST_FOREACH(bool vs, hash_bv) {
+            printf("%d, ", vs);
+        }
+        printf("]\n");
     }
 
     // 生成proof
     cout << "Trying to generate proof..." << endl;
-    auto proof = generate_proof<default_r1cs_ppzksnark_pp>(keypair.pk, hash_bv, tuple_data_bv);
+    auto proof = generate_proof<default_r1cs_ppzksnark_pp>(keypair.pk, hash_bv, v_data_bv, sn_data_bv, r_data_bv);
     cout << "Proof generated!" << endl;
     cout << "\n======== Proof content =====" << endl;
     cout << proof << endl;
@@ -44,7 +72,7 @@ int main()
     if (!proof) {
         return false;
     } else {
-        test_hash_bv = int_list_to_bits({117, 168, 218, 154, 81, 177, 31, 236, 177, 112, 34, 236, 238, 84, 38, 152, 27, 161, 236, 35, 127, 156, 212, 161, 69, 210, 107, 160, 230, 81, 189, 250}, 8);
+        test_hash_bv = int_list_to_bits({190, 52, 115, 56, 213, 177, 167, 45, 56, 54, 234, 220, 215, 251, 27, 80, 21, 187, 215, 179, 191, 244, 97, 164, 206, 7, 154, 32, 206, 177, 86, 90}, 8);
 
         // verification should not fail if the proof is generated!
         bool result = verify_proof(keypair.vk, *proof, test_hash_bv);
