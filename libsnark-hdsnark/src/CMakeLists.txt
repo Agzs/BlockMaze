@@ -217,7 +217,9 @@ target_include_directories(
   ${DEPENDS_DIR}/libsnark
   ${DEPENDS_DIR}/libsnark/depends/libfqfft
 )
-
+##################################################################
+#                     五大主要gadget                              #
+##################################################################
 # ========= mint ========================
 add_executable(
   mint
@@ -232,6 +234,26 @@ target_link_libraries(
 
 target_include_directories(
   mint
+
+  PUBLIC
+  ${DEPENDS_DIR}/libsnark
+  ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+
+# ========= redeem ========================
+add_executable(
+  redeem
+
+  redeem/main.cpp
+)
+target_link_libraries(
+  redeem
+
+  snark
+)
+
+target_include_directories(
+  redeem
 
   PUBLIC
   ${DEPENDS_DIR}/libsnark
