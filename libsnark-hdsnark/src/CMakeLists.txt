@@ -178,19 +178,19 @@ target_include_directories(
 # https://download.libsodium.org/libsodium/releases/old/unsupported/libsodium-1.0.8.tar.gz
 # https://download.libsodium.org/doc/installation
 add_executable(
-  mint
+  mintTest
 
   subgadget/mintGadget/main.cpp
 )
 target_link_libraries(
-  mint
+  mintTest
 
   snark
   sodium 
 )
 
 target_include_directories(
-  mint
+  mintTest
 
   PUBLIC
   ${DEPENDS_DIR}/libsnark
@@ -218,11 +218,27 @@ target_include_directories(
   ${DEPENDS_DIR}/libsnark/depends/libfqfft
 )
 
+# ========= mint ========================
+add_executable(
+  mint
+
+  mint/main.cpp
+)
+target_link_libraries(
+  mint
+
+  snark
+)
+
+target_include_directories(
+  mint
+
+  PUBLIC
+  ${DEPENDS_DIR}/libsnark
+  ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+
 #set(SRC_LISTS ./hdsnark/test.cpp)
 
 
 #add_library(libsnark-hdsnark SHARED ${SRC_LISTS})
-
-
-
-
