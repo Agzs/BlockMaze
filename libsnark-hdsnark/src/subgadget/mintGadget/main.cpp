@@ -207,20 +207,28 @@ public:
     std::shared_ptr<digest_variable<FieldT>> sn; // 256位的随机数serial number
     std::shared_ptr<digest_variable<FieldT>> sn_old; // 256位的随机数serial number
 
-    note_gadget_with_packing(protoboard<FieldT> &pb) : gadget<FieldT>(pb) {
-        value.allocate(pb, 64);
-        value_packed.allocate(pb);
+    note_gadget_with_packing(
+        protoboard<FieldT> &pb,
+        pb_variable_array<FieldT> &value,
+        pb_variable_array<FieldT> &value_old,
+        pb_variable_array<FieldT> &value_s,
+        std::shared_ptr<digest_variable<FieldT>> &r,
+        std::shared_ptr<digest_variable<FieldT>> &r_old,
+        std::shared_ptr<digest_variable<FieldT>> &sn,
+        std::shared_ptr<digest_variable<FieldT>> &sn_old
+    ) : gadget<FieldT>(pb), value(value), 
+        value_old(value_old), 
+        value_s(value_s), 
+        r(r),
+        r_old(r_old),
+        sn(sn),
+        sn_old(sn_old) 
+    {
+        value_packed.allocate(pb, "value_packed");
         
-        value_old.allocate(pb, 64);
-        value_old_packed.allocate(pb);
+        value_old_packed.allocate(pb, "value_old_packed");
 
-        value_s.allocate(pb, 64);
         value_s_packed.allocate(pb, "value_s_packed");
-       
-        r.reset(new digest_variable<FieldT>(pb, 256, "random number"));
-        r_old.reset(new digest_variable<FieldT>(pb, 256, "old random number"));
-        sn.reset(new digest_variable<FieldT>(pb, 256, "serial number"));
-        sn_old.reset(new digest_variable<FieldT>(pb, 256, "old serial number"));
     }
 
     void generate_r1cs_constraints() { // const Note& note
@@ -381,8 +389,19 @@ public:
 
     std::shared_ptr<less_comparison_gadget<FieldT> > less_cmp;
 
-    note_gadget_with_comparison_and_addition_for_balance(protoboard<FieldT> &pb) : note_gadget_with_packing<FieldT>(pb) {
-        balance.allocate(pb, 64);
+    note_gadget_with_comparison_and_addition_for_balance(
+        protoboard<FieldT> &pb,
+        pb_variable_array<FieldT> &balance,
+        pb_variable_array<FieldT> &value,
+        pb_variable_array<FieldT> &value_old,
+        pb_variable_array<FieldT> &value_s,
+        std::shared_ptr<digest_variable<FieldT>> &r,
+        std::shared_ptr<digest_variable<FieldT>> &r_old,
+        std::shared_ptr<digest_variable<FieldT>> &sn,
+        std::shared_ptr<digest_variable<FieldT>> &sn_old
+    ) : note_gadget_with_packing<FieldT>(pb, value, value_old, value_s, r, r_old, sn, sn_old),
+        balance(balance) 
+    {
         balance_packed.allocate(pb, "balance_packed");
 
         less_cmp.reset(new less_comparison_gadget<FieldT>(pb, this->value_s_packed, balance_packed,
@@ -536,8 +555,8 @@ public:
  *            value_s < balance
  **********************************************************/
 template<typename FieldT>
-class mint_gadget : public note_gadget_with_comparison_and_addition_for_balance<FieldT> {
-private:
+class mint_gadget : public gadget<FieldT> {
+public:
     // Verifier inputs 验证者输入
     pb_variable_array<FieldT> zk_packed_inputs; // 合并为十进制
     pb_variable_array<FieldT> zk_unpacked_inputs; // 拆分为二进制
@@ -551,7 +570,17 @@ private:
      * pb_variable_array<FieldT> balance_A;                // this->balance
      * *********************************************************************/
 
-public:
+    pb_variable_array<FieldT> balance;
+    pb_variable_array<FieldT> value;
+    pb_variable_array<FieldT> value_old;
+    pb_variable_array<FieldT> value_s;
+    std::shared_ptr<digest_variable<FieldT>> r;
+    std::shared_ptr<digest_variable<FieldT>> r_old;
+    std::shared_ptr<digest_variable<FieldT>> sn;
+    std::shared_ptr<digest_variable<FieldT>> sn_old;
+
+    std::shared_ptr<note_gadget_with_comparison_and_addition_for_balance<FieldT>> ncab;
+
     // old commitment with sha256_two_block_gadget
     std::shared_ptr<digest_variable<FieldT>> cmtA_old; // cm
     std::shared_ptr<sha256_two_block_gadget<FieldT>> commit_to_inputs_old; // note_commitment
@@ -566,7 +595,7 @@ public:
 
     mint_gadget(
         protoboard<FieldT>& pb
-    ) : note_gadget_with_comparison_and_addition_for_balance<FieldT>(pb) {
+    ) : gadget<FieldT>(pb) {
         // Verification
         {
             // The verification inputs are all bit-strings of various
@@ -578,11 +607,11 @@ public:
             this->pb.set_input_sizes(verifying_field_element_size());
 
             alloc_uint256(zk_unpacked_inputs, cmtA_old);
-            //alloc_uint256(zk_unpacked_inputs, this->sn_old);
+            alloc_uint256(zk_unpacked_inputs, sn_old);
             alloc_uint256(zk_unpacked_inputs, cmtA);
 
-            //alloc_uint64(zk_unpacked_inputs, this->value_s); 
-            //alloc_uint64(zk_unpacked_inputs, this->balance);
+            alloc_uint64(zk_unpacked_inputs, this->value_s); 
+            alloc_uint64(zk_unpacked_inputs, this->balance);
 
             assert(zk_unpacked_inputs.size() == verifying_input_bit_size()); // 判定输入长度
 
@@ -597,16 +626,36 @@ public:
             ));
         }
 
-        ZERO.allocate(pb);
-
-        //cmtA_old.reset(new digest_variable<FieldT>(pb, 256, "cmtA_old"));
+        ZERO.allocate(this->pb, FMT(this->annotation_prefix, "zero"));
+        
+        //balance.allocate(pb, 64);
+        value.allocate(pb, 64);
+        value_old.allocate(pb, 64);
+        //value_s.allocate(pb, 64);
+        r.reset(new digest_variable<FieldT>(pb, 256, "random number"));
+        r_old.reset(new digest_variable<FieldT>(pb, 256, "old random number"));
+        sn.reset(new digest_variable<FieldT>(pb, 256, "serial number"));
+        //sn_old.reset(new digest_variable<FieldT>(pb, 256, "old serial number"));
+        
+        ncab.reset(new note_gadget_with_comparison_and_addition_for_balance<FieldT>(
+            pb,
+            balance,
+            value,
+            value_old,
+            value_s,
+            r,
+            r_old,
+            sn,
+            sn_old
+        ));
+        // cmtA_old.reset(new digest_variable<FieldT>(pb, 256, "cmtA_old"));
 
         commit_to_inputs_old.reset(new sha256_two_block_gadget<FieldT>( 
             pb,
             ZERO,
-            this->value_old,      // 64bits value for Mint
-            this->sn_old->bits,   // 256bits serial number
-            this->r_old->bits,    // 256bits random number
+            value_old,      // 64bits value for Mint
+            sn_old->bits,   // 256bits serial number
+            r_old->bits,    // 256bits random number
             cmtA_old
         ));
 
@@ -615,9 +664,9 @@ public:
         commit_to_inputs.reset(new sha256_two_block_gadget<FieldT>( 
             pb,
             ZERO,
-            this->value,       // 64bits value for Mint
-            this->sn->bits,    // 256bits serial number
-            this->r->bits,     // 256bits random number
+            value,       // 64bits value for Mint
+            sn->bits,    // 256bits serial number
+            r->bits,     // 256bits random number
             cmtA
         ));
     }
@@ -627,7 +676,7 @@ public:
         // The true passed here ensures all the inputs are boolean constrained.
         unpacker->generate_r1cs_constraints(true);
 
-        note_gadget_with_comparison_and_addition_for_balance<FieldT>::generate_r1cs_constraints();
+        ncab->generate_r1cs_constraints();
 
         // Constrain `ZERO`
         generate_r1cs_equals_const_constraint<FieldT>(this->pb, ZERO, FieldT::zero(), "ZERO");
@@ -647,11 +696,13 @@ public:
     void generate_r1cs_witness(
         const Note& note_old, 
         const Note& note, 
+        uint256 cmtA_old_data,
+        uint256 cmtA_data,
         uint64_t v_s, 
         uint64_t b
     ) {
         //(const Note& note_old, const Note& note, uint64_t v_s, uint64_t b)
-        note_gadget_with_comparison_and_addition_for_balance<FieldT>::generate_r1cs_witness(note_old, note, v_s, b);
+        ncab->generate_r1cs_witness(note_old, note, v_s, b);
 
         // Witness `zero`
         this->pb.val(ZERO) = FieldT::zero();
@@ -659,34 +710,34 @@ public:
         // Witness the commitment of the input note
         commit_to_inputs_old->generate_r1cs_witness();
 
-        // [SANITY CHECK] Ensure the commitment is
-        // valid.
-        cmtA_old->bits.fill_with_bits(
-            this->pb,
-            uint256_to_bool_vector(note_old.cm())
-        );
-
         // Witness the commitment of the input note
         commit_to_inputs->generate_r1cs_witness();
 
         // [SANITY CHECK] Ensure the commitment is
         // valid.
-        cmtA->bits.fill_with_bits(
+        cmtA_old->bits.fill_with_bits(
             this->pb,
-            uint256_to_bool_vector(note.cm())
+            uint256_to_bool_vector(cmtA_old_data)
         );
 
-        printf("============= generate_r1cs_witness() =================\n");
-        printf(" cmtA_old = [ ");
-        BOOST_FOREACH(bool vs, uint256_to_bool_vector(note_old.cm())) {
-            printf("%d, ", vs);
-        }
+        // [SANITY CHECK] Ensure the commitment is
+        // valid.
+        cmtA->bits.fill_with_bits(
+            this->pb,
+            uint256_to_bool_vector(cmtA_data)
+        );
 
-        printf("]\n cmtA = [ ");
-        BOOST_FOREACH(bool vs, uint256_to_bool_vector(note.cm())) {
-            printf("%d, ", vs);
-        }
-        printf("]\n");
+        // printf("============= generate_r1cs_witness() =================\n");
+        // printf(" cmtA_old = [ ");
+        // BOOST_FOREACH(bool vs, uint256_to_bool_vector(note_old.cm())) {
+        //     printf("%d, ", vs);
+        // }
+
+        // printf("]\n cmtA = [ ");
+        // BOOST_FOREACH(bool vs, uint256_to_bool_vector(note.cm())) {
+        //     printf("%d, ", vs);
+        // }
+        // printf("]\n");
 
         // This happens last, because only by now are all the verifier inputs resolved.
         unpacker->generate_r1cs_witness_from_bits();
@@ -703,23 +754,23 @@ public:
         std::vector<bool> verify_inputs;
 
         insert_uint256(verify_inputs, cmtA_old);
-        //insert_uint256(verify_inputs, sn_old);
+        insert_uint256(verify_inputs, sn_old);
         insert_uint256(verify_inputs, cmtA);
 
-        //insert_uint64(verify_inputs, value_s);
-        //insert_uint64(verify_inputs, balance);
+        insert_uint64(verify_inputs, value_s);
+        insert_uint64(verify_inputs, balance);
 
-        printf("============= r1cs_primary_input::witness_map() =================\n");
-        printf(" cmtA_old = [ ");
-        BOOST_FOREACH(bool vs, uint256_to_bool_vector(cmtA_old)) {
-            printf("%d, ", vs);
-        }
+        // printf("============= r1cs_primary_input::witness_map() =================\n");
+        // printf(" cmtA_old = [ ");
+        // BOOST_FOREACH(bool vs, uint256_to_bool_vector(cmtA_old)) {
+        //     printf("%d, ", vs);
+        // }
 
-        printf("]\n cmtA = [ ");
-        BOOST_FOREACH(bool vs, uint256_to_bool_vector(cmtA)) {
-            printf("%d, ", vs);
-        }
-        printf("]\n");
+        // printf("]\n cmtA = [ ");
+        // BOOST_FOREACH(bool vs, uint256_to_bool_vector(cmtA)) {
+        //     printf("%d, ", vs);
+        // }
+        // printf("]\n");
 
 
         assert(verify_inputs.size() == verifying_input_bit_size());
@@ -733,11 +784,11 @@ public:
         size_t acc = 0;
 
         acc += 256; // cmtA_old
-        //acc += 256; // sn_old
+        acc += 256; // sn_old
         acc += 256; // cmtA
         
-        //acc += 64; // value_s
-        //acc += 64; // balance
+        acc += 64; // value_s
+        acc += 64; // balance
 
         return acc;
     }
@@ -771,6 +822,8 @@ template<typename ppzksnark_ppT>
 boost::optional<r1cs_ppzksnark_proof<ppzksnark_ppT>> generate_proof(r1cs_ppzksnark_proving_key<ppzksnark_ppT> proving_key,
                                                                     const Note& note_old,
                                                                     const Note& note,
+                                                                    uint256 cmtA_old,
+                                                                    uint256 cmtA,
                                                                     uint64_t value_s,
                                                                     uint64_t balance
                                                                    )
@@ -781,7 +834,7 @@ boost::optional<r1cs_ppzksnark_proof<ppzksnark_ppT>> generate_proof(r1cs_ppzksna
     mint_gadget<FieldT> g(pb); // 构造新模型
     g.generate_r1cs_constraints(); // 生成约束
 
-    g.generate_r1cs_witness(note_old, note, value_s, balance); // 为新模型的参数生成证明
+    g.generate_r1cs_witness(note_old, note, cmtA_old, cmtA, value_s, balance); // 为新模型的参数生成证明
 
     cout << "pb.is_satisfied() is " << pb.is_satisfied() << endl;
 
@@ -808,6 +861,7 @@ bool verify_proof(r1cs_ppzksnark_verification_key<ppzksnark_ppT> verification_ke
 
     // const r1cs_primary_input<FieldT> input = note_gadget_with_add_input_map<FieldT>(uint64_to_bool_vector(value)); // 获取输入，并转换为有限域上的值
     
+    //const r1cs_primary_input<FieldT> input;
     const r1cs_primary_input<FieldT> input = mint_gadget<FieldT>::witness_map(
         cmtA_old,
         sn_old,
@@ -855,11 +909,14 @@ void PrintProof(r1cs_ppzksnark_proof<ppzksnark_ppT> proof)
 // test_comparison_gadget_with_instance, v = v_old + v_s && v_s < b
 template<typename ppzksnark_ppT> //--Agzs
 bool test_mint_gadget_with_instance(
+                            uint64_t value,
                             uint64_t value_old,
                             //uint256 sn_old,
                             //uint256 r_old,
                             //uint256 sn,
                             //uint256 r,
+                            //uint256 cmtA_old,
+                            //uint256 cmtA,
                             uint64_t value_s,
                             uint64_t balance
                         )
@@ -870,15 +927,17 @@ bool test_mint_gadget_with_instance(
     // uint256 sn_test = random_uint256();
     // uint256 r_test = random_uint256();
    
-    uint256 sn_old = uint256S("123");//random_uint256();
-    uint256 r_old = uint256S("123");//random_uint256();
+    uint256 sn_old = uint256S("123456");//random_uint256();
+    uint256 r_old = uint256S("123456");//random_uint256();
     Note note_old = Note(value_old, sn_old, r_old);
+    uint256 cmtA_old = note_old.cm();
 
     uint256 sn = uint256S("123");//random_uint256();
     uint256 r = uint256S("123");//random_uint256();
-    Note note = Note(value_old+value_s, sn, r);
+    Note note = Note(value, sn, r);
+    uint256 cmtA = note.cm();
 
-    printf("value_old+value_s = %zu\n", value_old+value_s);
+    //printf("value_old+value_s = %zu\n", value_old+value_s);
     
     typedef libff::Fr<ppzksnark_ppT> FieldT;
 
@@ -899,6 +958,8 @@ bool test_mint_gadget_with_instance(
     auto proof = generate_proof<default_r1cs_ppzksnark_pp>(keypair.pk, 
                                                             note_old,
                                                             note,
+                                                            cmtA_old,
+                                                            cmtA,
                                                             value_s,
                                                             balance
                                                             );
@@ -911,12 +972,18 @@ bool test_mint_gadget_with_instance(
         PrintProof(*proof);
 
         //assert(verify_proof(keypair.vk, *proof));
+        // wrong test data
+        uint256 wrong_sn_old = uint256S("666");//random_uint256();
+        uint64_t wrong_value_s = uint64_t(100);
+        uint64_t wrong_balance = uint64_t(20);
+        uint256 wrong_cmtA_old = note.cm();
+        uint256 wrong_cmtA = note_old.cm();
         
         bool result = verify_proof(keypair.vk, 
                                    *proof, 
-                                   note_old.cm(),
-                                   note_old.sn,
-                                   note.cm(),
+                                   cmtA_old,
+                                   sn_old,
+                                   cmtA,
                                    value_s,
                                    balance
                                    );
@@ -939,12 +1006,12 @@ int main () {
 
     libff::print_header("#             testing mint gadget");
 
-    uint64_t value = uint64_t(2); 
-    uint64_t value_old = uint64_t(2); 
-    uint64_t value_s = uint64_t(0);
+    uint64_t value = uint64_t(13); 
+    uint64_t value_old = uint64_t(6); 
+    uint64_t value_s = uint64_t(7);
     uint64_t balance = uint64_t(30); // 由于balance是对外公开的，所以blance>0;此处balance设为负数也能验证通过
 
-    test_mint_gadget_with_instance<default_r1cs_ppzksnark_pp>(value_old, value_s, balance);
+    test_mint_gadget_with_instance<default_r1cs_ppzksnark_pp>(value, value_old, value_s, balance);
 
     // Note. cmake can not compile the assert()  --Agzs
     

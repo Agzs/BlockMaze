@@ -207,8 +207,8 @@ public:
     pb_variable_array<FieldT> zk_unpacked_inputs; // 拆分为二进制
     std::shared_ptr<multipacking_gadget<FieldT>> unpacker; // 二进制转十进制转换器
 
-    // new commitment with sha256_two_block_gadget
-    std::shared_ptr<digest_variable<FieldT>> cmtA; // cm
+    // // new commitment with sha256_two_block_gadget
+    // std::shared_ptr<digest_variable<FieldT>> cmtA; // cm
 
     pb_variable_array<FieldT> value;      // 64bits value for Mint
     std::shared_ptr<digest_variable<FieldT>> sn; // 256位的随机数r
@@ -219,6 +219,9 @@ public:
     std::shared_ptr<sha256_compression_function_gadget<FieldT>> hasher1;
     std::shared_ptr<digest_variable<FieldT>> intermediate_hash; // 中间hash值
     std::shared_ptr<sha256_compression_function_gadget<FieldT>> hasher2;
+
+    // new commitment with sha256_two_block_gadget
+    std::shared_ptr<digest_variable<FieldT>> cmtA; // cm
 
     pb_variable<FieldT> ZERO;
 
@@ -231,6 +234,28 @@ public:
         {
             zk_packed_inputs.allocate(pb, verifying_field_element_size()); 
             this->pb.set_input_sizes(verifying_field_element_size());
+
+            //cmtA.reset(new digest_variable<FieldT>(pb, 256, "cmtA"));
+            alloc_uint256(zk_unpacked_inputs, cmtA);
+            //zk_unpacked_inputs.insert(zk_unpacked_inputs.end(), cmtA->bits.begin(), cmtA->bits.end());
+
+            // sn.reset(new digest_variable<FieldT>(pb, 256, "serial number"));
+            alloc_uint256(zk_unpacked_inputs, sn);
+            // zk_unpacked_inputs.insert(zk_unpacked_inputs.end(), sn->bits.begin(), sn->bits.end());
+
+            printf("zk_unpacked_inputs.size() = %d\n", zk_unpacked_inputs.size());
+            printf("verifying_input_bit_size() = %d\n", verifying_input_bit_size());
+            assert(zk_unpacked_inputs.size() == verifying_input_bit_size()); // 判定输入长度
+
+            // This gadget will ensure that all of the inputs we provide are
+            // boolean constrained. 布尔约束 <=> 比特位, 打包
+            unpacker.reset(new multipacking_gadget<FieldT>(
+                pb,
+                zk_unpacked_inputs,
+                zk_packed_inputs,
+                FieldT::capacity(),
+                "unpacker"
+            ));
         }
 
         ZERO.allocate(this->pb, FMT(this->annotation_prefix, "zero"));
@@ -254,29 +279,6 @@ public:
                 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
                 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,1,0, 0,1,0,0,0,0,0,0 // 8*8 = 64bits
             }, ZERO); // 56*8=448bits
-
-
-        //cmtA.reset(new digest_variable<FieldT>(pb, 256, "cmtA"));
-        alloc_uint256(zk_unpacked_inputs, cmtA);
-        //zk_unpacked_inputs.insert(zk_unpacked_inputs.end(), cmtA->bits.begin(), cmtA->bits.end());
-
-        // sn.reset(new digest_variable<FieldT>(pb, 256, "serial number"));
-        alloc_uint256(zk_unpacked_inputs, sn);
-        // zk_unpacked_inputs.insert(zk_unpacked_inputs.end(), sn->bits.begin(), sn->bits.end());
-
-        printf("zk_unpacked_inputs.size() = %d\n", zk_unpacked_inputs.size());
-        printf("verifying_input_bit_size() = %d\n", verifying_input_bit_size());
-        assert(zk_unpacked_inputs.size() == verifying_input_bit_size()); // 判定输入长度
-
-        // This gadget will ensure that all of the inputs we provide are
-        // boolean constrained. 布尔约束 <=> 比特位, 打包
-        unpacker.reset(new multipacking_gadget<FieldT>(
-            pb,
-            zk_unpacked_inputs,
-            zk_packed_inputs,
-            FieldT::capacity(),
-            "unpacker"
-        ));
 
         value.allocate(pb, 64);
         //sn.reset(new digest_variable<FieldT>(pb, 256, "serial number"));
