@@ -281,6 +281,26 @@ target_include_directories(
   ${DEPENDS_DIR}/libsnark/depends/libfqfft
 )
 
+# ========= send ========================
+add_executable(
+  send
+
+  send/main.cpp
+)
+target_link_libraries(
+  send
+
+  snark
+)
+
+target_include_directories(
+  send
+
+  PUBLIC
+  ${DEPENDS_DIR}/libsnark
+  ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+
 #set(SRC_LISTS ./hdsnark/test.cpp)
 
 
