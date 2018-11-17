@@ -217,6 +217,27 @@ target_include_directories(
   ${DEPENDS_DIR}/libsnark
   ${DEPENDS_DIR}/libsnark/depends/libfqfft
 )
+
+# =========== threeBlock =============
+add_executable(
+  threeBlock
+
+  subgadget/threeBlock/main.cpp
+)
+target_link_libraries(
+  threeBlock
+
+  snark
+  sodium 
+)
+
+target_include_directories(
+  threeBlock
+
+  PUBLIC
+  ${DEPENDS_DIR}/libsnark
+  ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
 ##################################################################
 #                     五大主要gadget                              #
 ##################################################################
