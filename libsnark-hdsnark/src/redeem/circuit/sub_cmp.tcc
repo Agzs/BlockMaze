@@ -1,12 +1,12 @@
 /**********************************************
- * comparison_gadget and addition_constraint
- * value_s < balance for Mint, 
- * value_old + value_s == value for Mint
- * publicData: balance, value_s, 
+ * comparison_gadget and subtraction_constraint
+ * value_s < value_old for Redeem, 
+ * value_old - value_s == value for Redeem
+ * publicData: value_s, 
  * privateData: value_old, value, 
  * ********************************************/
 template<typename FieldT>
-class note_gadget_with_comparison_and_subtraction_for_value_old : public note_gadget_with_packing<FieldT> { // 基类和比较类组合，基本的note_gadget和comparison_gadget (value_s)
+class note_gadget_with_comparison_and_subtraction_for_value_old : public note_gadget_with_packing<FieldT> { // 基类
 public:   
     std::shared_ptr<less_comparison_gadget<FieldT> > less_cmp;
 
@@ -25,10 +25,10 @@ public:
                                                     FMT(this->annotation_prefix, " less_cmp")));
     }
 
-    void generate_r1cs_constraints() { // const Note& note
+    void generate_r1cs_constraints() { 
         note_gadget_with_packing<FieldT>::generate_r1cs_constraints();
 
-        // 1 * (value_old + value_s) = this->value 
+        // 1 * (value_old - value_s) = this->value 
         this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(1, (this->value_old_packed - this->value_s_packed), this->value_packed),
                                  FMT(this->annotation_prefix, " equal"));
 

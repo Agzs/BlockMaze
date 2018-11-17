@@ -186,7 +186,7 @@ public:
 
         pb_linear_combination_array<FieldT> IV3(intermediate_hash2->bits); // hash迭代
 
-        hasher2.reset(new sha256_compression_function_gadget<FieldT>(
+        hasher3.reset(new sha256_compression_function_gadget<FieldT>(
             pb,
             IV3,
             block3->bits,

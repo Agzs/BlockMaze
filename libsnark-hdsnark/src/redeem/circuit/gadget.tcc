@@ -14,11 +14,11 @@
  * publicData: cmt_A_old, sn_A_old,  
  * privateData: value_old, r_A_old
  * *************************************************************
- * publicData: cmt_A_new, (value_s, balance)  
+ * publicData: cmt_A_new, value_s 
  * privateData: value_new, sn_A_new, r_A_new
  * *************************************************************
- * auxiliary: value_new == value_old + value_s
- *            value_s < balance
+ * auxiliary: value_new == value_old - value_s
+ *            value_s < value_old
  **********************************************************/
 template<typename FieldT>
 class redeem_gadget : public gadget<FieldT> {
@@ -104,7 +104,7 @@ public:
         commit_to_inputs_old.reset(new sha256_two_block_gadget<FieldT>( 
             pb,
             ZERO,
-            value_old,      // 64bits value for Mint
+            value_old,      // 64bits value
             sn_old->bits,   // 256bits serial number
             r_old->bits,    // 256bits random number
             cmtA_old
@@ -113,7 +113,7 @@ public:
         commit_to_inputs.reset(new sha256_two_block_gadget<FieldT>( 
             pb,
             ZERO,
-            value,       // 64bits value for Mint
+            value,       // 64bits value
             sn->bits,    // 256bits serial number
             r->bits,     // 256bits random number
             cmtA

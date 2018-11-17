@@ -168,7 +168,7 @@ public:
     const pb_linear_combination<FieldT> A;
     const pb_linear_combination<FieldT> B;
 
-    less_cmp_gadget(protoboard<FieldT>& pb,
+    less_comparison_gadget(protoboard<FieldT>& pb,
                       const pb_linear_combination<FieldT> &A,
                       const pb_linear_combination<FieldT> &B,
                       const std::string &annotation_prefix="") :
@@ -339,7 +339,7 @@ public:
  * sha256_two_block_gadget, Add_gadget, Comparison_gadget
  **********************************************************/
 template<typename FieldT>
-class commitment_with_add_and_less_gadget : note_gadget_with_packing<FieldT> {
+class commitment_with_add_and_less_gadget : public note_gadget_with_packing<FieldT> {
 private:
     // commitment with sha256_two_block_gadget
     std::shared_ptr<digest_variable<FieldT>> commitment; // cm

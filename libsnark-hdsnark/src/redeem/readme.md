@@ -11,7 +11,7 @@
 基于`libsnark`自带的`comparison_gadget`的, 重新构造`less_comparison_gadget`电路，证明`A < B`的关系
 
 ##### 1.3 gadget.tcc文件
-整合上述子电路，构造支持`mint`的电路，根据以下已知条件：
+整合上述子电路，构造支持`redeem`的电路，根据以下已知条件：
 ```
  * ************* for cmtA_old **************
  * publicData: cmtA_old, sn_old,  

@@ -32,7 +32,7 @@ public:
                                                     FMT(this->annotation_prefix, " less_cmp")));
     }
 
-    void generate_r1cs_constraints() { // const Note& note
+    void generate_r1cs_constraints() { 
         note_gadget_with_packing<FieldT>::generate_r1cs_constraints();
 
         // 1 * (value_old + value_s) = this->value 

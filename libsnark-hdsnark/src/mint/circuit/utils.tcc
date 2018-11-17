@@ -1,6 +1,3 @@
-/********************************************************
- * copy from util.tcc
- * ******************************************************/
 // 进行bit转换
 template<typename FieldT>
 pb_variable_array<FieldT> from_bits(std::vector<bool> bits, pb_variable<FieldT>& ZERO) {

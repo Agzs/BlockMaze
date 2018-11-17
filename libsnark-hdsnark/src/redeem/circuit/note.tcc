@@ -1,9 +1,8 @@
-//=============================================================
 /*****************************************************
  * note_gadget_with_packing for packing value, value_old and value_s
  * ***************************************************/
 template<typename FieldT>
-class note_gadget_with_packing : public gadget<FieldT> { // 基类和比较类组合，基本的note_gadget和comparison_gadget (value_s)
+class note_gadget_with_packing : public gadget<FieldT> { // 基类
 public:
     pb_variable_array<FieldT> value; // 64位的value, 操作后的账户余额，也是当前最新的账户余额
     pb_variable<FieldT> value_packed;

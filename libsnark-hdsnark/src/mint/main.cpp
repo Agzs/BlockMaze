@@ -33,10 +33,10 @@ boost::optional<r1cs_ppzksnark_proof<ppzksnark_ppT>> generate_proof(r1cs_ppzksna
     typedef Fr<ppzksnark_ppT> FieldT;
 
     protoboard<FieldT> pb;  // 定义原始模型，该模型包含constraint_system成员变量
-    mint_gadget<FieldT> g(pb); // 构造新模型
-    g.generate_r1cs_constraints(); // 生成约束
+    mint_gadget<FieldT> mint(pb); // 构造新模型
+    mint.generate_r1cs_constraints(); // 生成约束
 
-    g.generate_r1cs_witness(note_old, note, cmtA_old, cmtA, value_s, balance); // 为新模型的参数生成证明
+    mint.generate_r1cs_witness(note_old, note, cmtA_old, cmtA, value_s, balance); // 为新模型的参数生成证明
 
     cout << "pb.is_satisfied() is " << pb.is_satisfied() << endl;
 
@@ -194,7 +194,6 @@ bool test_mint_gadget_with_instance(
 
 int main () {
     default_r1cs_ppzksnark_pp::init_public_params();
-    //test_r1cs_gg_ppzksnark<default_r1cs_gg_ppzksnark_pp>(1000, 100);
 
     libff::print_header("#             testing mint gadget");
 

@@ -1,15 +1,4 @@
-/***************************************************************
- * sha256(data+padding), 512bits < data.size() < 1024-64-1bits
- * *************************************************************
- * publicData: cmt_A_old, sn_A_old,  
- * privateData: value_old, r_A_old
- * *************************************************************
- * publicData: cmt_A_new, (value_s, balance)  
- * privateData: value_new, sn_A_new, r_A_new
- * *************************************************************
- * auxiliary: value_new == value_old + value_s
- *            value_s < balance
- * *************************************************************/
+// sha256(data+padding), 512bits < data.size() < 1024-64-1bits
 template<typename FieldT>
 class sha256_two_block_gadget : gadget<FieldT> {
 private:
@@ -20,10 +9,10 @@ private:
     std::shared_ptr<sha256_compression_function_gadget<FieldT>> hasher2;
 
 public:
-    sha256_two_block_gadget(              // cmt_A = sha256(value, sn, r, padding) for Mint
+    sha256_two_block_gadget(              // cmt_A = sha256(value, sn, r, padding)
         protoboard<FieldT> &pb,
         pb_variable<FieldT>& ZERO,
-        pb_variable_array<FieldT>& v,      // 64bits value for Mint
+        pb_variable_array<FieldT>& v,      // 64bits value
         pb_variable_array<FieldT>& sn_old, // 256bits serial number
         pb_variable_array<FieldT>& rho,      // 256bits random number
         std::shared_ptr<digest_variable<FieldT>> cmtA // 256bits hash
