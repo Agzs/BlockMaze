@@ -37,8 +37,8 @@ public:
 
     // cmtA_old = sha256(value_old, sn_old, r_old)
     pb_variable_array<FieldT> value_old;
-    std::shared_ptr<digest_variable<FieldT>> r_old;
     std::shared_ptr<digest_variable<FieldT>> sn_old;
+    std::shared_ptr<digest_variable<FieldT>> r_old;
 
     // cmtA = sha256(value, sn, r)
     pb_variable_array<FieldT> value;
@@ -46,7 +46,7 @@ public:
     std::shared_ptr<digest_variable<FieldT>> r;
 
     // note gadget and subtraction constraint
-    std::shared_ptr<note_gadget_with_packing<FieldT>> noteSUB;
+    std::shared_ptr<note_gadget_with_packing_and_SUB<FieldT>> noteSUB;
 
     // new commitment with sha256_three_block_gadget
     std::shared_ptr<digest_variable<FieldT>> cmtS; // cm
@@ -108,7 +108,7 @@ public:
         sn.reset(new digest_variable<FieldT>(pb, 256, "serial number"));
         r.reset(new digest_variable<FieldT>(pb, 256, "random number"));
         
-        noteSUB.reset(new note_gadget_with_packing<FieldT>(
+        noteSUB.reset(new note_gadget_with_packing_and_SUB<FieldT>(
             pb,
             value_s, 
             pk_recv,

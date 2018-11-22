@@ -59,6 +59,12 @@ void insert_uint256(std::vector<bool>& into, uint256 from) {
 }
 
 // 向into数组后追加from
+void insert_uint160(std::vector<bool>& into, uint160 from) {
+    std::vector<bool> blob = uint160_to_bool_vector(from);
+    into.insert(into.end(), blob.begin(), blob.end());
+}
+
+// 向into数组后追加from
 void insert_uint64(std::vector<bool>& into, uint64_t from) {
     std::vector<bool> num = uint64_to_bool_vector(from);
     into.insert(into.end(), num.begin(), num.end());

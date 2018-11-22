@@ -5,39 +5,43 @@
 ##### 1.1 commitment.tcc文件
 基于`libsnark`自带的`sha256`的电路，重新构造`sha256_two_block_gadget`电路，支持两个`blocks`的哈希，
 
+证明`cmt_A_old = sha256(value_old, sn_old, r_old)`
+
 证明`cmt_A = sha256(value, sn, r)`
 
-##### 1.2 comparison.tcc文件
-基于`libsnark`自带的`comparison_gadget`的, 重新构造`less_comparison_gadget`电路，证明`A < B`的关系
+重新构造`sha256_three_block_gadget`电路，支持三个`blocks`的哈希，
 
-##### 1.3 gadget.tcc文件
+证明`cmt_S = sha256(value_s, pk_B, sn_s, r_s, sn_A)`
+
+##### 1.2 gadget.tcc文件
 整合上述子电路，构造支持`update`的电路，根据以下已知条件：
 ```
  * ************* for cmtA_old **************
- * publicData: cmtA_old, sn_old,  
- * privateData: value_old, r_old
-
+ * publicData: cmtA_old  
+ * privateData: value_old, sn_A_old, r_old
  * ************** for cmtA_new **************
- * publicData: cmtA_new, value_s  
+ * publicData: cmtB_new  
  * privateData: value_new, sn_new, r_new
+ * ************** for cmtS **************
+ * publicData:  
+ * privateData: value_s, pk_B, sn_s, r_s, sn_A_old
+ * ************** for MerkleTree  **********
+ * publicData: rt_cmt  
+ * privateData: authPath, cmtS
  ```
  证明以下等式成立：
 ```
-cmt_A_old = sha256(value_old, sn_old, r_old)
+cmtS = sha256(value_s, pk_B, sn_s, r_s, sn_A_old)
+cmt_A_old = sha256(value_old, sn_A_old, r_old)
 cmtA_new = sha256(value_new, sn_new, r_new)
 value_new = value_old - value_s
-value_s < value_old
+cmtS在以rt_cmt为根的MerkleTree上
 ```
 
 ##### 1.4 note.tcc文件
 基于`libsnark`自带的`packing_gadget`的, 重新改写`get_field_element_from_bits_by_order()`函数，实现域上二进制到域上十进制的转化
 
-##### 1.5 sub_cmp.tcc文件
-重写`libsnark`自带的比较电路，添加加法约束，构造`note_gadget_with_comparison_and_subtraction_for_value_old`的电路, 
-
-证明 `value_old - value_s = value` 并且 `value_s < value_old`
-
-##### 1.6 utils.tcc文件
+##### 1.5 utils.tcc文件
 包含`gadget`辅助函数，实现类型转化等操作
 
 #### 2、deps 目录
@@ -62,6 +66,9 @@ value_s < value_old
 
 ##### 3.4 Note.h文件
 含有`Note`结构体，用于包装`value`，`sn`和`r`，计算`cmtA`的哈希值
+含有`NoteS`结构体，用于包装`value_s`，`pk_B`, `sn_s`, `r_s`和`sn_A_old`，计算`cmtS`的哈希值
+
+含有`NoteS`结构体，用于包装`value_s`，`pk_B`, `sn_s`, `r_s`和`sn_A_old`，计算`cmtS`的哈希值
 
 ##### 3.5 uint256.h文件
 从`bitcoin`中导入的文件，支持`uint256`相关操作

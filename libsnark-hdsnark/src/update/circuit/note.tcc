@@ -2,7 +2,7 @@
  * note_gadget_with_packing for packing value, value_old and value_s
  * ***************************************************/
 template<typename FieldT>
-class note_gadget_with_packing : public gadget<FieldT> { // 基类
+class note_gadget_with_packing_and_SUB : public gadget<FieldT> { // 基类
 public:
     pb_variable_array<FieldT> value_s; // 64位的value，待操作的账户余额
     pb_variable<FieldT> value_s_packed;
@@ -23,7 +23,7 @@ public:
     std::shared_ptr<digest_variable<FieldT>> sn; // 256位的随机数serial number    
     std::shared_ptr<digest_variable<FieldT>> r; // 256位的随机数r
 
-    note_gadget_with_packing(
+    note_gadget_with_packing_and_SUB(
         protoboard<FieldT> &pb,
         pb_variable_array<FieldT> &value_s,
         std::shared_ptr<digest_variable<FieldT>> &pk_recv,
