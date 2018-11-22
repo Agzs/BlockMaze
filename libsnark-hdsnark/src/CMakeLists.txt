@@ -321,6 +321,26 @@ target_include_directories(
   ${DEPENDS_DIR}/libsnark/depends/libfqfft
 )
 
+# ========= deposit ========================
+add_executable(
+  deposit
+
+  deposit/main.cpp
+)
+target_link_libraries(
+  deposit
+
+  snark
+)
+
+target_include_directories(
+  deposit
+
+  PUBLIC
+  ${DEPENDS_DIR}/libsnark
+  ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+
 #set(SRC_LISTS ./hdsnark/test.cpp)
 
 
