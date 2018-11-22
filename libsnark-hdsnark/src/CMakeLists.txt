@@ -301,6 +301,26 @@ target_include_directories(
   ${DEPENDS_DIR}/libsnark/depends/libfqfft
 )
 
+# ========= update ========================
+add_executable(
+  update
+
+  update/main.cpp
+)
+target_link_libraries(
+  update
+
+  snark
+)
+
+target_include_directories(
+  update
+
+  PUBLIC
+  ${DEPENDS_DIR}/libsnark
+  ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+
 #set(SRC_LISTS ./hdsnark/test.cpp)
 
 
