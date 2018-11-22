@@ -5,239 +5,239 @@ include_directories(
   ${DEPENDS_DIR}/libsnark/depends/libff
 )
 
-# ======== addition ======================
-# test default_r1cs_ppzksnark_pp with addition
-add_executable(
-  addition
+# # ======== addition ======================
+# # test default_r1cs_ppzksnark_pp with addition
+# add_executable(
+#   addition
 
-  subgadget/addition/addByOrder.cpp
-)
-target_link_libraries(
-  addition
+#   subgadget/addition/addByOrder.cpp
+# )
+# target_link_libraries(
+#   addition
 
-  snark
-)
+#   snark
+# )
 
-target_include_directories(
-  addition
+# target_include_directories(
+#   addition
 
-  PUBLIC
-  ${DEPENDS_DIR}/libsnark
-  ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
+#   PUBLIC
+#   ${DEPENDS_DIR}/libsnark
+#   ${DEPENDS_DIR}/libsnark/depends/libfqfft
+# )
 
-# ========= additionLess ========================
-# test default_r1cs_ppzksnark_pp with addition and less_cmp
-add_executable(
-  lessADD
+# # ========= additionLess ========================
+# # test default_r1cs_ppzksnark_pp with addition and less_cmp
+# add_executable(
+#   lessADD
 
-  subgadget/additionLess/main.cpp
-)
-target_link_libraries(
-  lessADD
+#   subgadget/additionLess/main.cpp
+# )
+# target_link_libraries(
+#   lessADD
 
-  snark
-)
+#   snark
+# )
 
-target_include_directories(
-  lessADD
+# target_include_directories(
+#   lessADD
 
-  PUBLIC
-  ${DEPENDS_DIR}/libsnark
-  ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
+#   PUBLIC
+#   ${DEPENDS_DIR}/libsnark
+#   ${DEPENDS_DIR}/libsnark/depends/libfqfft
+# )
 
-# ========= subtractionLess ===================
-# test default_r1cs_ppzksnark_pp with subtraction and less_cmp
-add_executable(
-  lessSub
+# # ========= subtractionLess ===================
+# # test default_r1cs_ppzksnark_pp with subtraction and less_cmp
+# add_executable(
+#   lessSub
 
-  subgadget/subtractionLess/main.cpp
-)
-target_link_libraries(
-  lessSub
+#   subgadget/subtractionLess/main.cpp
+# )
+# target_link_libraries(
+#   lessSub
 
-  snark
-)
+#   snark
+# )
 
-target_include_directories(
-  lessSub
+# target_include_directories(
+#   lessSub
 
-  PUBLIC
-  ${DEPENDS_DIR}/libsnark
-  ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
-# ========= comparison ========================
-# test default_r1cs_ppzksnark_pp with cmp
-add_executable(
-  cmp
+#   PUBLIC
+#   ${DEPENDS_DIR}/libsnark
+#   ${DEPENDS_DIR}/libsnark/depends/libfqfft
+# )
+# # ========= comparison ========================
+# # test default_r1cs_ppzksnark_pp with cmp
+# add_executable(
+#   cmp
 
-  subgadget/comparison/less_cmp_test.cpp
-)
-target_link_libraries(
-  cmp
+#   subgadget/comparison/less_cmp_test.cpp
+# )
+# target_link_libraries(
+#   cmp
 
-  snark
-)
+#   snark
+# )
 
-target_include_directories(
-  cmp
+# target_include_directories(
+#   cmp
 
-  PUBLIC
-  ${DEPENDS_DIR}/libsnark
-  ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
+#   PUBLIC
+#   ${DEPENDS_DIR}/libsnark
+#   ${DEPENDS_DIR}/libsnark/depends/libfqfft
+# )
 
-# ============= pack_gadget ===============
-# test default_r1cs_ppzksnark_pp with packing
-add_executable(
-  pack
+# # ============= pack_gadget ===============
+# # test default_r1cs_ppzksnark_pp with packing
+# add_executable(
+#   pack
 
-  subgadget/pack_gadget/main.cpp
-)
-target_link_libraries(
-  pack
+#   subgadget/pack_gadget/main.cpp
+# )
+# target_link_libraries(
+#   pack
 
-  snark
-)
+#   snark
+# )
 
-target_include_directories(
-  pack
+# target_include_directories(
+#   pack
 
-  PUBLIC
-  ${DEPENDS_DIR}/libsnark
-  ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
+#   PUBLIC
+#   ${DEPENDS_DIR}/libsnark
+#   ${DEPENDS_DIR}/libsnark/depends/libfqfft
+# )
 
-# ============== hdsnark ===============
-# test default_r1cs_ppzksnark_pp with hdsnark
-add_executable(
-  shaOneBlock
+# # ============== hdsnark ===============
+# # test default_r1cs_ppzksnark_pp with hdsnark
+# add_executable(
+#   shaOneBlock
 
-  subgadget/hdsnark/main.cpp
-)
-target_link_libraries(
-  shaOneBlock
+#   subgadget/hdsnark/main.cpp
+# )
+# target_link_libraries(
+#   shaOneBlock
 
-  snark
-)
+#   snark
+# )
 
-target_include_directories(
-  shaOneBlock
+# target_include_directories(
+#   shaOneBlock
 
-  PUBLIC
-  ${DEPENDS_DIR}/libsnark
-  ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
+#   PUBLIC
+#   ${DEPENDS_DIR}/libsnark
+#   ${DEPENDS_DIR}/libsnark/depends/libfqfft
+# )
 
-# ============== shaTwoBlock ===============
-# test default_r1cs_ppzksnark_pp with shaTwoBlock
-add_executable(
-  shaTwoBlock
+# # ============== shaTwoBlock ===============
+# # test default_r1cs_ppzksnark_pp with shaTwoBlock
+# add_executable(
+#   shaTwoBlock
 
-  subgadget/shaTwoBlock/main.cpp
-)
-target_link_libraries(
-  shaTwoBlock
+#   subgadget/shaTwoBlock/main.cpp
+# )
+# target_link_libraries(
+#   shaTwoBlock
 
-  snark
-)
+#   snark
+# )
 
-target_include_directories(
-  shaTwoBlock
+# target_include_directories(
+#   shaTwoBlock
 
-  PUBLIC
-  ${DEPENDS_DIR}/libsnark
-  ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
+#   PUBLIC
+#   ${DEPENDS_DIR}/libsnark
+#   ${DEPENDS_DIR}/libsnark/depends/libfqfft
+# )
 
-# ============== shaThreeBlock ===============
-# test default_r1cs_ppzksnark_pp with shaThreeBlock
-add_executable(
-  shaThreeBlock
+# # ============== shaThreeBlock ===============
+# # test default_r1cs_ppzksnark_pp with shaThreeBlock
+# add_executable(
+#   shaThreeBlock
 
-  subgadget/shaThreeBlock/main.cpp
-)
-target_link_libraries(
-  shaThreeBlock
+#   subgadget/shaThreeBlock/main.cpp
+# )
+# target_link_libraries(
+#   shaThreeBlock
 
-  snark
-)
+#   snark
+# )
 
-target_include_directories(
-  shaThreeBlock
+# target_include_directories(
+#   shaThreeBlock
 
-  PUBLIC
-  ${DEPENDS_DIR}/libsnark
-  ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
+#   PUBLIC
+#   ${DEPENDS_DIR}/libsnark
+#   ${DEPENDS_DIR}/libsnark/depends/libfqfft
+# )
 
-# ========= mintGadget ========================
-# test default_r1cs_ppzksnark_pp with addition and less_cmp
-# There needs libsodium
-# https://download.libsodium.org/libsodium/releases/old/unsupported/libsodium-1.0.8.tar.gz
-# https://download.libsodium.org/doc/installation
-add_executable(
-  mintTest
+# # ========= mintGadget ========================
+# # test default_r1cs_ppzksnark_pp with addition and less_cmp
+# # There needs libsodium
+# # https://download.libsodium.org/libsodium/releases/old/unsupported/libsodium-1.0.8.tar.gz
+# # https://download.libsodium.org/doc/installation
+# add_executable(
+#   mintTest
 
-  subgadget/mintGadget/main.cpp
-)
-target_link_libraries(
-  mintTest
+#   subgadget/mintGadget/main.cpp
+# )
+# target_link_libraries(
+#   mintTest
 
-  snark
-  sodium 
-)
+#   snark
+#   sodium 
+# )
 
-target_include_directories(
-  mintTest
+# target_include_directories(
+#   mintTest
 
-  PUBLIC
-  ${DEPENDS_DIR}/libsnark
-  ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
+#   PUBLIC
+#   ${DEPENDS_DIR}/libsnark
+#   ${DEPENDS_DIR}/libsnark/depends/libfqfft
+# )
 
-# =========== twoBlock =============
-add_executable(
-  twoBlock
+# # =========== twoBlock =============
+# add_executable(
+#   twoBlock
 
-  subgadget/twoBlock/main.cpp
-)
-target_link_libraries(
-  twoBlock
+#   subgadget/twoBlock/main.cpp
+# )
+# target_link_libraries(
+#   twoBlock
 
-  snark
-  sodium 
-)
+#   snark
+#   sodium 
+# )
 
-target_include_directories(
-  twoBlock
+# target_include_directories(
+#   twoBlock
 
-  PUBLIC
-  ${DEPENDS_DIR}/libsnark
-  ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
+#   PUBLIC
+#   ${DEPENDS_DIR}/libsnark
+#   ${DEPENDS_DIR}/libsnark/depends/libfqfft
+# )
 
-# =========== threeBlock =============
-add_executable(
-  threeBlock
+# # =========== threeBlock =============
+# add_executable(
+#   threeBlock
 
-  subgadget/threeBlock/main.cpp
-)
-target_link_libraries(
-  threeBlock
+#   subgadget/threeBlock/main.cpp
+# )
+# target_link_libraries(
+#   threeBlock
 
-  snark
-  sodium 
-)
+#   snark
+#   sodium 
+# )
 
-target_include_directories(
-  threeBlock
+# target_include_directories(
+#   threeBlock
 
-  PUBLIC
-  ${DEPENDS_DIR}/libsnark
-  ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
+#   PUBLIC
+#   ${DEPENDS_DIR}/libsnark
+#   ${DEPENDS_DIR}/libsnark/depends/libfqfft
+# )
 ##################################################################
 #                     五大主要gadget                              #
 ##################################################################
