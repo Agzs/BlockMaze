@@ -7,7 +7,7 @@
 /***********************************************************
  * 模块整合，主要包括验证proof时所需要的publicData的输入
  ***********************************************************
- * sha256_two_block_gadget, Add_gadget, Comparison_gadget
+ * sha256_two_block_gadget, subtraction_constraint, Comparison_gadget
  ***************************************************************
  * sha256(data+padding), 512bits < data.size() < 1024-64-1bits
  * *************************************************************

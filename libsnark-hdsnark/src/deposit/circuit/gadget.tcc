@@ -5,18 +5,18 @@
 /***********************************************************
  * 模块整合，主要包括验证proof时所需要的publicData的输入
  ***********************************************************
- * sha256_two_block_gadget, subtraction_constraint, 
+ * sha256_two_block_gadget, addition_constraint, 
  * sha256_three_block_gadget, merkle_gadget
  **************************************************************
  * sha256_two(data+padding), 512bits < data.size() < 1024-64-1bits
  * sha256_three(data+padding), 1024bits < data.size() < 1536-64-1bits
  * ************************************************************
- * publicData: cmtB_old, cmtB, rt_cmt
- * privateData: cmtS, value_s, pk_B', sn_s, r_s, sn_A_old
- *              value_old, sn_A_old, r_A_old
- *              value_new, sn_A, r_A
+ * publicData:  pk_B', cmtB_old, cmtB, sn_B_old, rt_cmt
+ * privateData: cmtS, value_s, sn_s, r_s, sn_A_old
+ *              value_old, r_B_old
+ *              value_new, sn_B, r_B
  * ********************************************************
- * auxiliary: value_new == value_old - value_s
+ * auxiliary: value_new == value_old + value_s
  *            rt_cmt
  **********************************************************/
 template<typename FieldT>
@@ -98,14 +98,12 @@ public:
         ZERO.allocate(this->pb, FMT(this->annotation_prefix, "zero"));
         
         value_s.allocate(pb, 64);
-        //pk_recv.reset(new digest_variable<FieldT>(pb, 160, "random address"));//
         sn_s.reset(new digest_variable<FieldT>(pb, 256, "serial number"));
         r_s.reset(new digest_variable<FieldT>(pb, 256, "random number"));
         sn_A_old.reset(new digest_variable<FieldT>(pb, 256, "serial number"));
         cmtS.reset(new digest_variable<FieldT>(pb, 256, "cmtS"));
 
         value_old.allocate(pb, 64);
-        //sn_old.reset(new digest_variable<FieldT>(pb, 256, "serial number"));//
         r_old.reset(new digest_variable<FieldT>(pb, 256, "old random number"));
 
         value.allocate(pb, 64);

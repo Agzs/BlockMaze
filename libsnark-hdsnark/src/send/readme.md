@@ -20,7 +20,6 @@
  * ************* for cmtA_old **************
  * publicData: sn_A_old,  
  * privateData: value_old, r_old, cmtA_old
-
  * ************** for cmtS **************
  * publicData: cmtS, sn_A_old  
  * privateData: value_s, sn_s, r_s, pk_B
