@@ -18,6 +18,7 @@
 package accounts
 
 import (
+	"crypto/elliptic"
 	"math/big"
 
 	ethereum "github.com/ethereum/go-ethereum"
@@ -31,6 +32,13 @@ import (
 type Account struct {
 	Address common.Address `json:"address"` // Ethereum account address derived from the key
 	URL     URL            `json:"url"`     // Optional resource locator within a backend
+}
+
+type Key struct {
+	X          *big.Int
+	Y          *big.Int
+	Cureve     elliptic.Curve
+	PrivateKey *big.Int
 }
 
 // Wallet represents a software or hardware wallet that might contain one or more
@@ -126,6 +134,7 @@ type Wallet interface {
 	// It looks up the account specified either solely via its address contained within,
 	// or optionally with the aid of any location metadata from the embedded URL field.
 	SignTxWithPassphrase(account Account, passphrase string, tx *types.Transaction, chainID *big.Int) (*types.Transaction, error)
+	GetKeyByAccount(account Account, passphrase string, chainID *big.Int) (*Key, error)
 }
 
 // Backend is a "wallet provider" that may contain a batch of accounts they can

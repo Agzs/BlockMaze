@@ -17,6 +17,9 @@
 package core
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/consensus/misc"
@@ -25,7 +28,10 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/params"
+	"github.com/ethereum/go-ethereum/zktx"
 )
+
+var CMTHashSuffix = []byte("cmt")
 
 // StateProcessor is a basic Processor, which takes care of transitioning
 // state from one point to another.
@@ -95,10 +101,62 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 	// Create a new environment which holds all relevant information
 	// about the transaction and calling mechanisms.
 	vmenv := vm.NewEVM(context, statedb, config, cfg)
+
+	DB := statedb.Database()
+	database := DB.TrieDB().DB()
+
+	if tx.TxCode() == types.MintTx {
+		if data, _ := database.Get(append([]byte("cmt"), tx.ZKSN().Bytes()...)); len(data) != 0 { //if sn is already exist,
+			return nil, 0, errors.New("sn is already used ")
+		}
+		balance := statedb.GetBalance(msg.From())
+		cmtbalance := statedb.GetCMTBalance(msg.From())
+		fmt.Println("aaaa", cmtbalance)
+		if err = zktx.VerifyMintProof(&cmtbalance, tx.ZKSN(), tx.ZKCMT(), tx.Value().Uint64(), balance.Uint64(), tx.ZKProof()); err != nil {
+			fmt.Println("invalid zkproof")
+			return nil, 0, err
+		}
+		database.Put(append([]byte("cmt"), tx.ZKSN().Bytes()...), tx.ZKSN().Bytes())
+	} else if tx.TxCode() == types.SendTx {
+		if data, _ := database.Get(append([]byte("cmt"), tx.ZKSN().Bytes()...)); len(data) != 0 { //if sn is already exist,
+			return nil, 0, errors.New("sn is already used ")
+		}
+		if err = zktx.VerifySendProof(tx.ZKSN(), tx.ZKCMT(), tx.ZKProof()); err != nil {
+			fmt.Println("invalid zkproof")
+			return nil, 0, err
+		}
+	} else if tx.TxCode() == types.UpdateTx {
+		cmtbalance := statedb.GetCMTBalance(msg.From())
+		if err = zktx.VerifyUpdateProof(&cmtbalance, []byte{}, tx.ZKCMT(), tx.ZKProof()); err != nil {
+			fmt.Println("invalid zkproof")
+			return nil, 0, err
+		}
+	} else if tx.TxCode() == types.DepositTx {
+		cmtbalance := statedb.GetCMTBalance(msg.From())
+		addr, err := types.Sender(types.HomesteadSigner{}, tx) //tbd
+		if err != nil {
+			fmt.Println(addr)
+			return nil, 0, errors.New("invalid depositTx signature ")
+		}
+		if err = zktx.VerifyDepositProof(tx.X(), tx.Y(), nil, &cmtbalance, tx.ZKSN(), tx.ZKCMT(), tx.ZKProof()); err != nil {
+			fmt.Println("invalid zkproof")
+			return nil, 0, err
+		}
+	} else if tx.TxCode() == types.RedeemTx {
+		cmtbalance := statedb.GetCMTBalance(msg.From())
+		if err = zktx.VerifyRedeemProof(&cmtbalance, tx.ZKSN(), tx.ZKCMT(), tx.Value().Uint64(), tx.ZKProof()); err != nil {
+			fmt.Println("invalid zkproof")
+			return nil, 0, err
+		}
+	}
+
 	// Apply the transaction to the current state (included in the env)
 	_, gas, failed, err := ApplyMessage(vmenv, msg, gp)
 	if err != nil {
 		return nil, 0, err
+	}
+	if tx.TxCode() == types.SendTx {
+		//add cmts to mpt
 	}
 	// Update the state with pending changes
 	var root []byte

@@ -24,6 +24,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/ethereum/go-ethereum/zktx"
+
 	mapset "github.com/deckarep/golang-set"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/consensus"
@@ -273,8 +275,8 @@ func (self *worker) update() {
 					acc, _ := types.Sender(self.current.signer, tx)
 					txs[acc] = append(txs[acc], tx)
 				}
-				txset := types.NewTransactionsByPriceAndNonce(self.current.signer, txs)
-				self.current.commitTransactions(self.mux, txset, self.chain, self.coinbase)
+				//txset := types.NewTransactionsByPriceAndNonce(self.current.signer, txs)
+				//	self.current.commitTransactions(self.mux, txset, self.chain, self.coinbase)
 				self.updateSnapshot()
 				self.currentMu.Unlock()
 			} else {
@@ -610,6 +612,10 @@ func (env *Work) commitTransaction(tx *types.Transaction, bc *core.BlockChain, c
 	if err != nil {
 		env.state.RevertToSnapshot(snap)
 		return err, nil
+	}
+	if tx.TxCode() == types.MintTx || tx.TxCode() == types.UpdateTx || tx.TxCode() == types.DepositTx || tx.TxCode() == types.RedeemTx {
+		zktx.SequenceNumber = zktx.SequenceNumberAfter
+		zktx.SequenceNumberAfter = nil
 	}
 	env.txs = append(env.txs, tx)
 	env.receipts = append(env.receipts, receipt)

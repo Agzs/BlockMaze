@@ -19,6 +19,7 @@ package ethapi
 import (
 	"bytes"
 	"context"
+	"crypto/ecdsa"
 	"errors"
 	"fmt"
 	"math/big"
@@ -34,6 +35,7 @@ import (
 	"github.com/ethereum/go-ethereum/consensus/ethash"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/rawdb"
+	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -42,6 +44,7 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/ethereum/go-ethereum/zktx"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
 )
@@ -491,6 +494,11 @@ func (s *PublicBlockChainAPI) BlockNumber() hexutil.Uint64 {
 	return hexutil.Uint64(header.Number.Uint64())
 }
 
+type Balance struct {
+	Value *hexutil.Big
+	CMT   common.Hash
+}
+
 // GetBalance returns the amount of wei for the given address in the state of the
 // given block number. The rpc.LatestBlockNumber and rpc.PendingBlockNumber meta
 // block numbers are also allowed.
@@ -500,6 +508,14 @@ func (s *PublicBlockChainAPI) GetBalance(ctx context.Context, address common.Add
 		return nil, err
 	}
 	return (*hexutil.Big)(state.GetBalance(address)), state.Error()
+}
+
+func (s *PublicBlockChainAPI) GetBalance2(ctx context.Context, address common.Address, blockNr rpc.BlockNumber) (*Balance, error) {
+	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
+	if state == nil || err != nil {
+		return nil, err
+	}
+	return &Balance{Value: (*hexutil.Big)(state.GetBalance(address)), CMT: state.GetCMTBalance(address)}, state.Error()
 }
 
 // GetBlockByNumber returns the requested block. When blockNr is -1 the chain head is returned. When fullTx is true all
@@ -1026,6 +1042,20 @@ func (s *PublicTransactionPoolAPI) GetTransactionByHash(ctx context.Context, has
 	return nil
 }
 
+// GetTransactionByHash returns the transaction for the given hash
+func (s *PublicTransactionPoolAPI) GetTransactionByHash2(ctx context.Context, hash common.Hash) *types.Transaction {
+	// Try to return an already finalized transaction
+	if tx, _, _, _ := rawdb.ReadTransaction(s.b.ChainDb(), hash); tx != nil {
+		return tx
+	}
+	// No finalized transaction, try to retrieve it from the pool
+	if tx := s.b.GetPoolTransaction(hash); tx != nil {
+		return tx
+	}
+	// Transaction unknown, return as such
+	return nil
+}
+
 // GetRawTransactionByHash returns the bytes of the transaction for the given hash.
 func (s *PublicTransactionPoolAPI) GetRawTransactionByHash(ctx context.Context, hash common.Hash) (hexutil.Bytes, error) {
 	var tx *types.Transaction
@@ -1117,10 +1147,13 @@ type SendTxArgs struct {
 	GasPrice *hexutil.Big    `json:"gasPrice"`
 	Value    *hexutil.Big    `json:"value"`
 	Nonce    *hexutil.Uint64 `json:"nonce"`
+	PubKey   *hexutil.Bytes  `json:"pubKey"`
 	// We accept "data" and "input" for backwards-compatibility reasons. "input" is the
 	// newer name and should be preferred by clients.
-	Data  *hexutil.Bytes `json:"data"`
-	Input *hexutil.Bytes `json:"input"`
+	Data   *hexutil.Bytes `json:"data"`
+	Input  *hexutil.Bytes `json:"input"`
+	Key    string         `json:"key"`
+	TxHash common.Hash    `json:"txHash"`
 }
 
 // setDefaults is a helper function that fills in default values for unspecified tx fields.
@@ -1161,6 +1194,7 @@ func (args *SendTxArgs) setDefaults(ctx context.Context, b Backend) error {
 			return errors.New(`contract creation without any data provided`)
 		}
 	}
+
 	return nil
 }
 
@@ -1233,6 +1267,17 @@ func (s *PublicTransactionPoolAPI) SendPublicTransaction(ctx context.Context, ar
 	return submitTransaction(ctx, s.b, signed)
 }
 
+func GenZKProof() []byte {
+	return []byte{}
+
+}
+
+func (s *PublicTransactionPoolAPI) StateDB(ctx context.Context) (*state.StateDB, error) {
+	currentBlock := s.b.CurrentBlock()
+	state, _, err := s.b.StateAndHeaderByNumber(ctx, rpc.BlockNumber(currentBlock.NumberU64()))
+	return state, err
+}
+
 //================= zero-knowledge transactions ============================== --Agzs 09.17
 
 // SendMintTransaction creates a mint transaction for the given argument, sign it and submit it to the
@@ -1241,7 +1286,6 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 
 	// Look up the wallet containing the requested signer
 	account := accounts.Account{Address: args.From}
-
 	wallet, err := s.b.AccountManager().Find(account)
 	if err != nil {
 		return common.Hash{}, err
@@ -1253,7 +1297,7 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 		s.nonceLock.LockAddr(args.From)
 		defer s.nonceLock.UnlockAddr(args.From)
 	}
-
+	args.To = &zktx.ZKTxAddress
 	// Set some sanity defaults and terminate on failure
 	if err := args.setDefaults(ctx, s.b); err != nil {
 		return common.Hash{}, err
@@ -1261,26 +1305,86 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 	// Assemble the transaction and sign with the wallet
 	tx := args.toTransaction()
 	tx.SetTxCode(types.MintTx)
+	//tx.SetValue(big.NewInt(0))
+	tx.SetZKValue(args.Value.ToInt().Uint64())
+	tx.SetPrice(big.NewInt(0))
+	tx.SetZKAddress(&zktx.ZKTxAddress)
+	SN := zktx.SequenceNumber
+
+	//seqNumber := SN.SN
+	tx.SetZKSN(SN.SN) //SN
+
+	//tx.SetZKNounce()
+	//tx.SetTxRecepient(&common.ZKTxAddress)
+
+	newSN := zktx.NewRandomHash()
+	newRandom := zktx.NewRandomHash()
+	newValue := SN.Value + args.Value.ToInt().Uint64()
+
+	newCMT := zktx.GenCMT(newValue, newSN.Bytes(), newRandom.Bytes()) //tbd
+	tx.SetZKCMT(newCMT)                                               //cmt
+
+	state, _, err := s.b.StateAndHeaderByNumber(ctx, rpc.LatestBlockNumber)
+	if state == nil || err != nil {
+		return common.Hash{}, err
+	}
+	balance := state.GetBalance(args.From)
+	fmt.Println("balance=", balance)
+	fmt.Println("cmtold=", SN.CMT)
+	fmt.Println("cmtnew=", newCMT)
+	zkProof := zktx.GenMintProof(SN.Value, SN.Random, newSN, newRandom, SN.CMT, SN.SN, newCMT, newValue, balance.Uint64())
+	tx.SetZKProof(zkProof) //proof tbd
+
+	zktx.SequenceNumberAfter = &zktx.Sequence{SN: newSN, CMT: newCMT, Random: newRandom, Value: newValue}
+	var chainID *big.Int
+	if config := s.b.ChainConfig(); config.IsEIP155(s.b.CurrentBlock().Number()) {
+		chainID = config.ChainID
+	}
+
+	signed, err := wallet.SignTx(account, tx, chainID)
+	if err != nil {
+		return common.Hash{}, err
+	}
+	//return common.Hash{}, nil
+	return submitTransaction(ctx, s.b, signed)
+}
+
+func (s *PublicTransactionPoolAPI) GetKey(ctx context.Context, address common.Address, passwd string) (*accounts.Key, error) {
+	// Look up the wallet containing the requested signer
+	account := accounts.Account{Address: address}
+	wallet, err := s.b.AccountManager().Find(account)
+	if err != nil {
+		return nil, err
+	}
 
 	var chainID *big.Int
 	if config := s.b.ChainConfig(); config.IsEIP155(s.b.CurrentBlock().Number()) {
 		chainID = config.ChainID
 	}
-	signed, err := wallet.SignTx(account, tx, chainID)
-	if err != nil {
-		return common.Hash{}, err
-	}
-	return submitTransaction(ctx, s.b, signed)
+	return wallet.GetKeyByAccount(account, passwd, chainID)
 }
 
-// SendDepositTransaction creates a mint transaction for the given argument, sign it and submit it to the
+func (s *PublicTransactionPoolAPI) GetPubKeyRLPd(ctx context.Context, address common.Address, passwd string) ([]byte, error) {
+	key, err := s.GetKey(ctx, address, passwd)
+	if err != nil {
+		return nil, err
+	}
+	type pub struct {
+		X *big.Int
+		Y *big.Int
+	}
+	pubkey := pub{key.X, key.Y}
+	return rlp.EncodeToBytes(pubkey)
+
+}
+
+// SendSendTransaction creates a send transaction for the given argument, sign it and submit it to the
 // transaction pool.
-func (s *PublicTransactionPoolAPI) SendDepositTransaction(ctx context.Context, args SendTxArgs) (common.Hash, error) {
+func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args SendTxArgs) (common.Hash, error) { //tbd
 
 	// Look up the wallet containing the requested signer
 	account := accounts.Account{Address: args.From}
-
-	wallet, err := s.b.AccountManager().Find(account)
+	_, err := s.b.AccountManager().Find(account)
 	if err != nil {
 		return common.Hash{}, err
 	}
@@ -1291,34 +1395,67 @@ func (s *PublicTransactionPoolAPI) SendDepositTransaction(ctx context.Context, a
 		s.nonceLock.LockAddr(args.From)
 		defer s.nonceLock.UnlockAddr(args.From)
 	}
-
+	args.To = &zktx.ZKTxAddress
 	// Set some sanity defaults and terminate on failure
 	if err := args.setDefaults(ctx, s.b); err != nil {
 		return common.Hash{}, err
 	}
 	// Assemble the transaction and sign with the wallet
 	tx := args.toTransaction()
-	tx.SetTxCode(types.DepositTx)
+	tx.SetTxCode(types.SendTx)
+	tx.SetPrice(big.NewInt(0))
+	tx.SetValue(big.NewInt(0))
+	randomAddress := zktx.NewRandomAddress()
+	tx.SetZKAddress(randomAddress)
+	tx.SetNonce(0)
+	SN := zktx.SequenceNumber
 
-	var chainID *big.Int
-	if config := s.b.ChainConfig(); config.IsEIP155(s.b.CurrentBlock().Number()) {
-		chainID = config.ChainID
+	//eqNumber := SN.SN
+	tx.SetZKSN(SN.SN) //SN
+
+	//tx.SetZKNounce()
+	//tx.SetTxRecepient(&common.ZKTxAddress)
+	type pub struct {
+		X *big.Int
+		Y *big.Int
 	}
-	signed, err := wallet.SignTx(account, tx, chainID)
-	if err != nil {
-		return common.Hash{}, err
-	}
-	return submitTransaction(ctx, s.b, signed)
+	var pubKey pub
+	rlp.DecodeBytes(*args.PubKey, pubKey)
+	receiverPubkey := &ecdsa.PublicKey{crypto.S256(), pubKey.X, pubKey.Y}
+
+	R := zktx.GenR()
+	Sa := R.D
+	//Sa := zktx.NewRandomInt()
+
+	randomPK := R.PublicKey
+	tx.SetPubKey(randomPK.X, randomPK.Y)
+
+	SNs := zktx.NewRandomHash()
+	newRs := zktx.NewRandomHash()
+
+	randomReceiverPK := zktx.NewRandomPubKey(Sa, *receiverPubkey)
+
+	zktx.RandomReceiverPK = randomReceiverPK //store randomReceiverPK for update
+
+	CMTs := zktx.GenCMTS(args.Value.ToInt().Uint64(), randomReceiverPK.X, randomReceiverPK.Y, SNs.Bytes(), newRs.Bytes(), SN.SN.Bytes()) //tbd
+	tx.SetZKCMT(CMTs)                                                                                                                    //cmt
+
+	//proof tbd
+	zkProof := zktx.GenSendProof(SN.CMT, SN.Value, SN.Random, args.Value.ToInt().Uint64(), randomReceiverPK.X, randomReceiverPK.Y, SNs, newRs, SN.SN, CMTs)
+	tx.SetZKProof(zkProof) //proof tbd
+	AUX := zktx.ComputeAUX(randomReceiverPK, args.Value.ToInt().Uint64(), SNs, newRs, SN.SN)
+	tx.SetAUX(AUX)
+	zktx.SNS = &zktx.Sequence{SN: SNs, CMT: CMTs, Random: newRs, Value: args.Value.ToInt().Uint64()}
+	//return common.Hash{}, nil
+	return submitTransaction(ctx, s.b, tx)
 }
 
-// SendUpdateTransaction creates a mint transaction for the given argument, sign it and submit it to the
+// SendUpdateTransaction creates a Update transaction for the given argument, sign it and submit it to the
 // transaction pool.
 func (s *PublicTransactionPoolAPI) SendUpdateTransaction(ctx context.Context, args SendTxArgs) (common.Hash, error) {
-
 	// Look up the wallet containing the requested signer
 	account := accounts.Account{Address: args.From}
-
-	wallet, err := s.b.AccountManager().Find(account)
+	_, err := s.b.AccountManager().Find(account)
 	if err != nil {
 		return common.Hash{}, err
 	}
@@ -1329,7 +1466,8 @@ func (s *PublicTransactionPoolAPI) SendUpdateTransaction(ctx context.Context, ar
 		s.nonceLock.LockAddr(args.From)
 		defer s.nonceLock.UnlockAddr(args.From)
 	}
-
+	key := args.Key
+	args.To = &zktx.ZKTxAddress
 	// Set some sanity defaults and terminate on failure
 	if err := args.setDefaults(ctx, s.b); err != nil {
 		return common.Hash{}, err
@@ -1337,25 +1475,109 @@ func (s *PublicTransactionPoolAPI) SendUpdateTransaction(ctx context.Context, ar
 	// Assemble the transaction and sign with the wallet
 	tx := args.toTransaction()
 	tx.SetTxCode(types.UpdateTx)
+	tx.SetPrice(big.NewInt(0))
+	tx.SetValue(big.NewInt(0))
+	tx.SetZKAddress(&zktx.ZKTxAddress)
 
-	var chainID *big.Int
-	if config := s.b.ChainConfig(); config.IsEIP155(s.b.CurrentBlock().Number()) {
-		chainID = config.ChainID
-	}
-	signed, err := wallet.SignTx(account, tx, chainID)
+	SNa := zktx.SequenceNumber
+	SNs := zktx.SNS
+
+	newSN := zktx.NewRandomHash()
+	newRandom := zktx.NewRandomHash()
+	newValue := SNa.Value - SNs.Value
+	newCMTA := zktx.GenCMT(newValue, newSN.Bytes(), newRandom.Bytes())
+	tx.SetZKCMT(newCMTA)
+	zktx.SequenceNumberAfter = &zktx.Sequence{SN: newSN, CMT: newCMTA, Random: newRandom, Value: newValue}
+
+	//	RTcmt := zktx.CMTProof(SNs.CMT)
+	//	tx.SetCMTProof(RTcmt)
+
+	senderKey, err := s.GetKey(ctx, args.From, key)
 	if err != nil {
 		return common.Hash{}, err
 	}
-	return submitTransaction(ctx, s.b, signed)
+	tx.SetPubKey(senderKey.X, senderKey.Y)
+
+	zkProof := zktx.GenUpdateProof(SNs.CMT, SNs.Value, zktx.RandomReceiverPK.X, zktx.RandomReceiverPK.Y, SNs.SN, SNs.Random, SNa.SN, SNa.Value, SNa.Random, newSN, newRandom, newCMTA, nil, newCMTA)
+	tx.SetZKProof(zkProof) //proof tbd
+
+	//return common.Hash{}, nil
+	return submitTransaction(ctx, s.b, tx)
 }
 
-// SendRedeemTransaction creates a mint transaction for the given argument, sign it and submit it to the
+// SendUpdateTransaction creates a Deposit transaction for the given argument, sign it and submit it to the
+// transaction pool.
+func (s *PublicTransactionPoolAPI) SendDepositTransaction(ctx context.Context, args SendTxArgs) (common.Hash, error) {
+	// Look up the wallet containing the requested signer
+	account := accounts.Account{Address: args.From}
+	_, err := s.b.AccountManager().Find(account)
+	if err != nil {
+		return common.Hash{}, err
+	}
+
+	if args.Nonce == nil {
+		// Hold the addresse's mutex around signing to prevent concurrent assignment of
+		// the same nonce to multiple accounts.
+		s.nonceLock.LockAddr(args.From)
+		defer s.nonceLock.UnlockAddr(args.From)
+	}
+	key := args.Key
+	args.To = &args.From
+	// Set some sanity defaults and terminate on failure
+	if err := args.setDefaults(ctx, s.b); err != nil {
+		return common.Hash{}, err
+	}
+	// Assemble the transaction and sign with the wallet
+	tx := args.toTransaction()
+	tx.SetTxCode(types.DepositTx)
+	tx.SetPrice(big.NewInt(0))
+	tx.SetValue(big.NewInt(0))
+	tx.SetZKAddress(&args.From)
+
+	txSend := s.GetTransactionByHash2(ctx, args.TxHash)
+
+	keyB, err := s.GetKey(ctx, args.From, key)
+	if err != nil {
+		return common.Hash{}, err
+	}
+
+	Rx, Ry := txSend.R()
+	R := ecdsa.PublicKey{Curve: crypto.S256(), X: Rx, Y: Ry}
+	PKB := ecdsa.PublicKey{Curve: keyB.Cureve, X: keyB.X, Y: keyB.Y}
+	KB := ecdsa.PrivateKey{PKB, keyB.PrivateKey}
+	randomKeyB := zktx.GenerateKeyForRandomB(&R, &KB)
+
+	AUXA := tx.AUX()
+	valueS, sns, rs, sna := zktx.DecAUX(&PKB, AUXA)
+
+	SNb := zktx.SequenceNumber
+	tx.SetZKSN(SNb.SN)
+	//SNs := zktx.SNS
+
+	newSN := zktx.NewRandomHash()
+	newRandom := zktx.NewRandomHash()
+	newValue := SNb.Value + valueS
+	newCMTB := zktx.GenCMT(newValue, newSN.Bytes(), newRandom.Bytes())
+	tx.SetZKCMT(newCMTB)
+	//	zktx.SequenceNumber = &zktx.Sequence{SN: newSN, CMT: newCMTA, Random: newRandom, Value: newValue}  TBD
+	zktx.SequenceNumberAfter = &zktx.Sequence{SN: newSN, CMT: newCMTB, Random: newRandom, Value: newValue}
+	//tx.SetPubKey(senderKey.X, senderKey.Y)
+	tx.SetPubKey(randomKeyB.X, randomKeyB.Y)
+	zkProof := zktx.GenDepositProof(txSend.ZKCMT(), valueS, sns, rs, sna, SNb.Value, SNb.Random, newSN, newRandom, randomKeyB.X, randomKeyB.Y, nil, SNb.CMT, SNb.SN, newCMTB)
+	tx.SetZKProof(zkProof) //proof tbd
+
+	types.SignTx(tx, types.HomesteadSigner{}, randomKeyB)
+
+	//return common.Hash{}, nil
+	return submitTransaction(ctx, s.b, tx)
+}
+
+// SendRedeemTransaction creates a Redeem transaction for the given argument, sign it and submit it to the
 // transaction pool.
 func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, args SendTxArgs) (common.Hash, error) {
 
 	// Look up the wallet containing the requested signer
 	account := accounts.Account{Address: args.From}
-
 	wallet, err := s.b.AccountManager().Find(account)
 	if err != nil {
 		return common.Hash{}, err
@@ -1367,7 +1589,7 @@ func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, ar
 		s.nonceLock.LockAddr(args.From)
 		defer s.nonceLock.UnlockAddr(args.From)
 	}
-
+	args.To = &zktx.ZKTxAddress
 	// Set some sanity defaults and terminate on failure
 	if err := args.setDefaults(ctx, s.b); err != nil {
 		return common.Hash{}, err
@@ -1375,15 +1597,41 @@ func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, ar
 	// Assemble the transaction and sign with the wallet
 	tx := args.toTransaction()
 	tx.SetTxCode(types.RedeemTx)
+	//tx.SetValue(big.NewInt(0))
+	tx.SetZKValue(args.Value.ToInt().Uint64())
+	tx.SetPrice(big.NewInt(0))
+	tx.SetZKAddress(&zktx.ZKTxAddress)
+	SN := zktx.SequenceNumber
 
+	//seqNumber := SN.SN
+	tx.SetZKSN(SN.SN) //SN
+
+	tx.SetZKProof([]byte{}) //proof tbd
+
+	//tx.SetZKNounce()
+	//tx.SetTxRecepient(&common.ZKTxAddress)
+
+	newSN := zktx.NewRandomHash()
+	newRandom := zktx.NewRandomHash()
+	newValue := SN.Value - args.Value.ToInt().Uint64()
+
+	newCMT := zktx.GenCMT(newValue, newSN.Bytes(), newRandom.Bytes()) //tbd
+	tx.SetZKCMT(newCMT)                                               //cmt
+
+	zkProof := zktx.GenRedeemProof(SN.Value, SN.Random, newSN, newRandom, SN.CMT, SN.SN, newCMT, newValue)
+	tx.SetZKProof(zkProof)
+
+	zktx.SequenceNumberAfter = &zktx.Sequence{SN: newSN, CMT: newCMT, Random: newRandom, Value: newValue}
 	var chainID *big.Int
 	if config := s.b.ChainConfig(); config.IsEIP155(s.b.CurrentBlock().Number()) {
 		chainID = config.ChainID
 	}
+
 	signed, err := wallet.SignTx(account, tx, chainID)
 	if err != nil {
 		return common.Hash{}, err
 	}
+	//return common.Hash{}, nil
 	return submitTransaction(ctx, s.b, signed)
 }
 

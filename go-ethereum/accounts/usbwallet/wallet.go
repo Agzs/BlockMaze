@@ -560,3 +560,7 @@ func (w *wallet) SignHashWithPassphrase(account accounts.Account, passphrase str
 func (w *wallet) SignTxWithPassphrase(account accounts.Account, passphrase string, tx *types.Transaction, chainID *big.Int) (*types.Transaction, error) {
 	return w.SignTx(account, tx, chainID)
 }
+
+func (w *wallet) GetKeyByAccount(account accounts.Account, passphrase string, chainID *big.Int) (*accounts.Key, error) {
+	return nil, nil
+}

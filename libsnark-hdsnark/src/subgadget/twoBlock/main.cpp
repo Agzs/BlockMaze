@@ -22,7 +22,7 @@
 #include "deps/sha256.h"
 #include "util.h"
 #include "uint256.h"
-#include "deps/sodium.h"
+// #include "deps/sodium.h"
 
 
 using namespace libsnark;
@@ -48,13 +48,13 @@ using namespace std;
  * copy from Note.hpp and Note.cpp
  * ******************************************************/
 
-uint256 random_uint256()
-{
-    uint256 ret;
-    randombytes_buf(ret.begin(), 32);
+// uint256 random_uint256()
+// {
+//     uint256 ret;
+//     randombytes_buf(ret.begin(), 32);
 
-    return ret;
-}
+//     return ret;
+// }
 
 class Note {
 public:
@@ -65,12 +65,12 @@ public:
     Note(uint64_t value, uint256 sn, uint256 r)
         : value(value), sn(sn), r(r) {}
 
-    Note() {
-        //a_pk = random_uint256();
-        sn = random_uint256();
-        r = random_uint256();
-        value = 0;
-    }
+    // Note() {
+    //     //a_pk = random_uint256();
+    //     sn = random_uint256();
+    //     r = random_uint256();
+    //     value = 0;
+    // }
 
     uint256 cm() const{
         //unsigned char discriminant = 0xb0;

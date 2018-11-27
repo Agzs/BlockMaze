@@ -196,6 +196,15 @@ func (self *StateDB) GetBalance(addr common.Address) *big.Int {
 	return common.Big0
 }
 
+// Retrieve the balance from the given address or 0 if object not found
+func (self *StateDB) GetCMTBalance(addr common.Address) common.Hash {
+	stateObject := self.getStateObject(addr)
+	if stateObject != nil {
+		return stateObject.CMTBalance()
+	}
+	return common.Hash{}
+}
+
 func (self *StateDB) GetNonce(addr common.Address) uint64 {
 	stateObject := self.getStateObject(addr)
 	if stateObject != nil {
@@ -292,6 +301,13 @@ func (self *StateDB) SetBalance(addr common.Address, amount *big.Int) {
 	stateObject := self.GetOrNewStateObject(addr)
 	if stateObject != nil {
 		stateObject.SetBalance(amount)
+	}
+}
+
+func (self *StateDB) SetCMT(addr common.Address, cmt *common.Hash) {
+	stateObject := self.GetOrNewStateObject(addr)
+	if stateObject != nil {
+		stateObject.SetCMT(cmt)
 	}
 }
 
@@ -427,6 +443,7 @@ func (self *StateDB) CreateAccount(addr common.Address) {
 	new, prev := self.createObject(addr)
 	if prev != nil {
 		new.setBalance(prev.data.Balance)
+		new.setCMT(prev.data.CMT)
 	}
 }
 

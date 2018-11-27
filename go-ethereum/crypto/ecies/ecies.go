@@ -208,6 +208,10 @@ func generateIV(params *ECIESParams, rand io.Reader) (iv []byte, err error) {
 	return
 }
 
+func SymEncrypt(rand io.Reader, params *ECIESParams, key, m []byte) (ct []byte, err error) {
+	return symEncrypt(rand, params, key, m)
+}
+
 // symEncrypt carries out CTR encryption using the block cipher specified in the
 // parameters.
 func symEncrypt(rand io.Reader, params *ECIESParams, key, m []byte) (ct []byte, err error) {
@@ -226,6 +230,10 @@ func symEncrypt(rand io.Reader, params *ECIESParams, key, m []byte) (ct []byte, 
 	copy(ct, iv)
 	ctr.XORKeyStream(ct[params.BlockSize:], m)
 	return
+}
+
+func SymDecrypt(params *ECIESParams, key, ct []byte) (m []byte, err error) {
+	return symDecrypt(params, key, ct)
 }
 
 // symDecrypt carries out CTR decryption using the block cipher specified in

@@ -5275,6 +5275,13 @@ var methods = function () {
         outputFormatter: formatters.outputBigNumberFormatter
     });
 
+    var getBalance2 = new Method({
+        name: 'getBalance2',
+        call: 'eth_getBalance2',
+        params: 2,
+        inputFormatter: [formatters.inputAddressFormatter, formatters.inputDefaultBlockNumberFormatter]
+    });
+
     var getStorageAt = new Method({
         name: 'getStorageAt',
         call: 'eth_getStorageAt',
@@ -5302,7 +5309,7 @@ var methods = function () {
         call: uncleCall,
         params: 2,
         inputFormatter: [formatters.inputBlockNumberFormatter, utils.toHex],
-        outputFormatter: formatters.outputBlockFormatter,
+        outputFormatter: formatters.outputBlockFormatter
 
     });
 
@@ -5375,29 +5382,31 @@ var methods = function () {
     var sendMintTransaction = new Method({
         name: 'sendMintTransaction',
         call: 'eth_sendMintTransaction',
-        params: 1,
-        inputFormatter: [formatters.inputTransactionFormatter]
+        params: 1
+    });
+
+    var sendSendTransaction = new Method({
+        name: 'sendSendTransaction',
+        call: 'eth_sendSendTransaction',
+        params: 1
     });
 
     var sendDepositTransaction = new Method({
         name: 'sendDepositTransaction',
         call: 'eth_sendDepositTransaction',
         params: 1,
-        inputFormatter: [formatters.inputTransactionFormatter]
     });
 
     var sendUpdateTransaction = new Method({
         name: 'sendUpdateTransaction',
         call: 'eth_sendUpdateTransaction',
         params: 1,
-        inputFormatter: [formatters.inputTransactionFormatter]
     });
 
     var sendRedeemTransaction = new Method({
         name: 'sendRedeemTransaction',
         call: 'eth_sendRedeemTransaction',
         params: 1,
-        inputFormatter: [formatters.inputTransactionFormatter]
     });
 
     var sendPublicTransaction = new Method({
@@ -5468,6 +5477,7 @@ var methods = function () {
 
     return [
         getBalance,
+        getBalance2,
         getStorageAt,
         getCode,
         getBlock,
@@ -5484,6 +5494,7 @@ var methods = function () {
         sendRawTransaction,
         signTransaction,
         sendMintTransaction,
+        sendSendTransaction,
         sendDepositTransaction, // --Agzs 09.17
         sendUpdateTransaction,
         sendRedeemTransaction,

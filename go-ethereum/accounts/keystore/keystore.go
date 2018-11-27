@@ -312,6 +312,15 @@ func (ks *KeyStore) SignTxWithPassphrase(a accounts.Account, passphrase string, 
 	return types.SignTx(tx, types.HomesteadSigner{}, key.PrivateKey)
 }
 
+func (ks *KeyStore) GetKeyWithPassphrase(a accounts.Account, passphrase string, chainID *big.Int) (*accounts.Key, error) {
+	_, key, err := ks.getDecryptedKey(a, passphrase)
+	if err != nil {
+		return nil, err
+	}
+
+	return &accounts.Key{key.PrivateKey.PublicKey.X, key.PrivateKey.PublicKey.Y, key.PrivateKey.Curve, key.PrivateKey.D}, nil
+}
+
 // Unlock unlocks the given account indefinitely.
 func (ks *KeyStore) Unlock(a accounts.Account, passphrase string) error {
 	return ks.TimedUnlock(a, passphrase, 0)

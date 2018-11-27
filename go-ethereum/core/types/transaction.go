@@ -39,14 +39,16 @@ var (
 const (
 	PublicTx  uint8 = 0x00
 	MintTx    uint8 = 0x01
-	DepositTx uint8 = 0x02
-	UpdateTx  uint8 = 0x03
-	RedeemTx  uint8 = 0x04
+	SendTx    uint8 = 0x02
+	DepositTx uint8 = 0x03
+	UpdateTx  uint8 = 0x04
+	RedeemTx  uint8 = 0x05
 )
 
 // Type of transaction using string --Agzs 09.17
 var PublicTxStr string = "Public Transaction"
 var MintTxStr string = "Mint Transaction"
+var SendTxStr string = "Send Transaction"
 var DepositTxStr string = "Deposit Transaction"
 var UpdateTxStr string = "Update Transaction"
 var RedeemTxStr string = "Redeem Transaction"
@@ -67,6 +69,22 @@ type txdata struct {
 	Recipient    *common.Address `json:"to"       rlp:"nil"` // nil means contract creation
 	Amount       *big.Int        `json:"value"    gencodec:"required"`
 	Payload      []byte          `json:"input"    gencodec:"required"`
+
+	ZKValue   uint64
+	ZKSN      *common.Hash
+	ZKNounce  uint64
+	ZKAdrress *common.Address
+	ZKCMT     *common.Hash
+	ZKProof   []byte
+	//	CMTProof  []byte
+	AUX []byte
+	X   *big.Int
+	Y   *big.Int
+
+	//depostiTx signature values
+	DepositTxV *big.Int
+	DepositTxR *big.Int
+	DepositTxS *big.Int
 
 	// Signature values
 	V *big.Int `json:"v" gencodec:"required"`
@@ -112,6 +130,8 @@ func newTransaction(nonce uint64, to *common.Address, amount *big.Int, gasLimit 
 		V:            new(big.Int),
 		R:            new(big.Int),
 		S:            new(big.Int),
+		X:            new(big.Int),
+		Y:            new(big.Int),
 	}
 	if amount != nil {
 		d.Amount.Set(amount)
@@ -186,17 +206,133 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
-func (tx *Transaction) Code() uint8        { return tx.data.Code }
-func (tx *Transaction) Data() []byte       { return common.CopyBytes(tx.data.Payload) }
-func (tx *Transaction) Gas() uint64        { return tx.data.GasLimit }
-func (tx *Transaction) GasPrice() *big.Int { return new(big.Int).Set(tx.data.Price) }
-func (tx *Transaction) Value() *big.Int    { return new(big.Int).Set(tx.data.Amount) }
-func (tx *Transaction) Nonce() uint64      { return tx.data.AccountNonce }
-func (tx *Transaction) CheckNonce() bool   { return true }
+func (tx *Transaction) Code() uint8             { return tx.data.Code }
+func (tx *Transaction) Data() []byte            { return common.CopyBytes(tx.data.Payload) }
+func (tx *Transaction) Gas() uint64             { return tx.data.GasLimit }
+func (tx *Transaction) GasPrice() *big.Int      { return new(big.Int).Set(tx.data.Price) }
+func (tx *Transaction) SetValue(value *big.Int) { tx.data.Amount = value }
+func (tx *Transaction) Value() *big.Int         { return new(big.Int).Set(tx.data.Amount) }
+func (tx *Transaction) Nonce() uint64           { return tx.data.AccountNonce }
+func (tx *Transaction) SetNonce(n uint64)       { tx.data.AccountNonce = n }
+func (tx *Transaction) CheckNonce() bool        { return true }
 
 // SetDefaultCode sets the transactoion's type code. --Agzs 09.18
+
+func (tx *Transaction) ZKValue() uint64 {
+	return tx.data.ZKValue
+}
+
+func (tx *Transaction) SetZKValue(Value uint64) {
+	tx.data.ZKValue = Value
+}
+
+func (tx *Transaction) TxCode() uint8 {
+	return tx.data.Code
+}
+
 func (tx *Transaction) SetTxCode(code uint8) {
 	tx.data.Code = code
+}
+
+//
+func (tx *Transaction) SetTxRecepient(address *common.Address) {
+	tx.data.Recipient = address
+}
+
+//
+func (tx *Transaction) ZKAddress() *common.Address {
+	return tx.data.ZKAdrress
+}
+
+//
+func (tx *Transaction) SetZKAddress(address *common.Address) {
+	tx.data.ZKAdrress = address
+}
+
+//
+func (tx *Transaction) SetZKNounce(nounce uint64) {
+	tx.data.ZKNounce = nounce
+}
+
+//
+func (tx *Transaction) ZKSN() *common.Hash {
+	return tx.data.ZKSN
+}
+
+//
+func (tx *Transaction) SetZKSN(hash *common.Hash) {
+	tx.data.ZKSN = hash
+}
+
+//
+func (tx *Transaction) R() (*big.Int, *big.Int) {
+	return tx.data.X, tx.data.Y
+}
+
+//
+func (tx *Transaction) X() *big.Int {
+	return tx.data.X
+
+}
+
+//
+func (tx *Transaction) Y() *big.Int {
+	return tx.data.Y
+
+}
+
+//
+func (tx *Transaction) SetPubKey(x *big.Int, y *big.Int) {
+	tx.data.X = x
+	tx.data.Y = y
+}
+
+//
+func (tx *Transaction) ZKCMT() *common.Hash {
+	return tx.data.ZKCMT
+}
+
+//
+func (tx *Transaction) SetZKCMT(hash *common.Hash) {
+	tx.data.ZKCMT = hash
+}
+
+//
+func (tx *Transaction) AUX() []byte {
+	return tx.data.AUX
+}
+
+//
+func (tx *Transaction) SetAUX(AUX []byte) {
+	tx.data.AUX = make([]byte, 0)
+	copy(tx.data.AUX[:], AUX[:])
+}
+
+//
+func (tx *Transaction) ZKProof() []byte {
+	return tx.data.ZKProof
+}
+
+//
+func (tx *Transaction) SetZKProof(proof []byte) {
+	tx.data.ZKProof = make([]byte, len(proof))
+	copy(tx.data.ZKProof[:], proof[:])
+}
+
+/*
+func (tx *Transaction) CMTProof() []byte {
+	return tx.data.CMTProof
+}
+
+
+func (tx *Transaction) SetCMTProof(proof []byte) {
+	tx.data.CMTProof = make([]byte, 0)
+	copy(tx.data.CMTProof[:], proof[:])
+}
+
+*/
+func (tx *Transaction) SetPrice(price *big.Int) {
+	tx.data.Price = price
 }
 
 // GetTxCode returns the transactoion's type code. --Agzs 09.18
@@ -205,6 +341,8 @@ func (tx *Transaction) GetTxCodeStr() string {
 		return PublicTxStr
 	} else if tx.Code() == MintTx {
 		return MintTxStr
+	} else if tx.Code() == SendTx {
+		return SendTxStr
 	} else if tx.Code() == DepositTx {
 		return DepositTxStr
 	} else if tx.Code() == UpdateTx {
@@ -256,6 +394,8 @@ func (tx *Transaction) Size() common.StorageSize {
 // XXX Rename message to something less arbitrary?
 func (tx *Transaction) AsMessage(s Signer) (Message, error) {
 	msg := Message{
+		txCode:     tx.data.Code,
+		cmt:        tx.data.ZKCMT,
 		nonce:      tx.data.AccountNonce,
 		gasLimit:   tx.data.GasLimit,
 		gasPrice:   new(big.Int).Set(tx.data.Price),
@@ -263,6 +403,7 @@ func (tx *Transaction) AsMessage(s Signer) (Message, error) {
 		amount:     tx.data.Amount,
 		data:       tx.data.Payload,
 		checkNonce: true,
+		zkValue:    tx.ZKValue(),
 	}
 
 	var err error
@@ -421,22 +562,24 @@ func (t *TransactionsByPriceAndNonce) Pop() {
 //
 // NOTE: In a future PR this will be removed.
 type Message struct {
+	txCode     uint8
+	cmt        *common.Hash
 	to         *common.Address
 	from       common.Address
-	code       uint8
 	nonce      uint64
 	amount     *big.Int
 	gasLimit   uint64
 	gasPrice   *big.Int
 	data       []byte
 	checkNonce bool
+	zkValue    uint64
 }
 
 func NewMessage(from common.Address, to *common.Address, code uint8, nonce uint64, amount *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte, checkNonce bool) Message {
 	return Message{
-		from:       from,
-		to:         to,
-		code:       code, // differ txs --Agzs 09.18
+		from: from,
+		to:   to,
+		//code:       code, // differ txs --Agzs 09.18
 		nonce:      nonce,
 		amount:     amount,
 		gasLimit:   gasLimit,
@@ -454,4 +597,6 @@ func (m Message) Gas() uint64          { return m.gasLimit }
 func (m Message) Nonce() uint64        { return m.nonce }
 func (m Message) Data() []byte         { return m.data }
 func (m Message) CheckNonce() bool     { return m.checkNonce }
-func (m Message) Code() uint8          { return m.code }
+func (m Message) TxCode() uint8        { return m.txCode }
+func (m Message) CMT() *common.Hash    { return m.cmt }
+func (m Message) ZKValue() uint64      { return m.zkValue }

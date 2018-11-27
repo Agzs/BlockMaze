@@ -35,6 +35,7 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/ethereum/go-ethereum/zktx"
 )
 
 //go:generate gencodec -type Genesis -field-override genesisSpecMarshaling -out gen_genesis.go
@@ -232,6 +233,8 @@ func (g *Genesis) ToBlock(db ethdb.Database) *types.Block {
 		for key, value := range account.Storage {
 			statedb.SetState(addr, key, value)
 		}
+		statedb.SetCMT(addr, zktx.GenCMT(0, common.Hash{}.Bytes(), common.Hash{}.Bytes()))
+		//fmt.Println("zzzzzzzzzzzzzzzzzzzzkkkkkkkkkkkkkkkkkkkkkkkkkkkkk", addr, zktx.SequenceNumber.CMT, statedb.GetCMTBalance(addr))
 	}
 	root := statedb.IntermediateRoot(false)
 	head := &types.Header{

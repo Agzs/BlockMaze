@@ -276,6 +276,10 @@ func (db *Database) DiskDB() DatabaseReader {
 	return db.diskdb
 }
 
+func (db *Database) DB() ethdb.Database {
+	return db.diskdb
+}
+
 // InsertBlob writes a new reference tracked blob to the memory database if it's
 // yet unknown. This method should only be used for non-trie nodes that require
 // reference counting, since trie nodes are garbage collected directly through

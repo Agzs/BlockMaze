@@ -32,6 +32,7 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/metrics"
 	"github.com/ethereum/go-ethereum/params"
+	"github.com/ethereum/go-ethereum/zktx"
 	"gopkg.in/karalabe/cookiejar.v2/collections/prque"
 )
 
@@ -554,6 +555,9 @@ func (pool *TxPool) local() map[common.Address]types.Transactions {
 // rules and adheres to some heuristic limits of the local node (price and size).
 func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	// Heuristic limit, reject transactions over 32KB to prevent DOS attacks
+
+	txCode := tx.TxCode()
+
 	if tx.Size() > 32*1024 {
 		return ErrOversizedData
 	}
@@ -573,16 +577,16 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	}
 	// Drop non-local transactions under our own minimal accepted gas price
 	local = local || pool.locals.contains(from) // account may be local even if the transaction arrived from the network
-	if !local && pool.gasPrice.Cmp(tx.GasPrice()) > 0 {
+	if txCode == types.PublicTx && !local && pool.gasPrice.Cmp(tx.GasPrice()) > 0 {
 		return ErrUnderpriced
 	}
 	// Ensure the transaction adheres to nonce ordering
-	if pool.currentState.GetNonce(from) > tx.Nonce() {
+	if txCode != types.SendTx && pool.currentState.GetNonce(from) > tx.Nonce() {
 		return ErrNonceTooLow
 	}
 	// Transactor should have enough funds to cover the costs
 	// cost == V + GP * GL
-	if pool.currentState.GetBalance(from).Cmp(tx.Cost()) < 0 {
+	if txCode != types.SendTx && pool.currentState.GetBalance(from).Cmp(tx.Cost()) < 0 {
 		return ErrInsufficientFunds
 	}
 	intrGas, err := IntrinsicGas(tx.Data(), tx.To() == nil, pool.homestead)
@@ -592,6 +596,30 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	if tx.Gas() < intrGas {
 		return ErrIntrinsicGas
 	}
+	if txCode == types.MintTx {
+		balance := pool.currentState.GetBalance(from)
+		cmtbalance := pool.currentState.GetCMTBalance(from)
+		err = zktx.VerifyMintProof(&cmtbalance, tx.ZKSN(), tx.ZKCMT(), tx.Value().Uint64(), balance.Uint64(), tx.ZKProof()) //TBD
+		if err != nil {
+			return err
+		}
+	}
+	if txCode == types.RedeemTx {
+		cmtbalance := pool.currentState.GetCMTBalance(from)
+		err = zktx.VerifyRedeemProof(&cmtbalance, tx.ZKSN(), tx.ZKCMT(), tx.Value().Uint64(), tx.ZKProof()) //TBD
+		if err != nil {
+			return err
+		}
+	}
+	/*
+		if txCode != types.PublicTx {
+			err = zktx.VerZKProof(tx.ZKProof()) //TBD
+			if err != nil {
+				return err
+			}
+		}
+	*/
+
 	return nil
 }
 
@@ -606,6 +634,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 func (pool *TxPool) add(tx *types.Transaction, local bool) (bool, error) {
 	// If the transaction is already known, discard it
 	hash := tx.Hash()
+
 	if pool.all.Get(hash) != nil {
 		log.Trace("Discarding already known transaction", "hash", hash)
 		return false, fmt.Errorf("known transaction: %x", hash)
@@ -671,6 +700,7 @@ func (pool *TxPool) add(tx *types.Transaction, local bool) (bool, error) {
 
 	log.Trace("Pooled new future transaction", "hash", hash, "from", from, "to", tx.To())
 	return replace, nil
+
 }
 
 // enqueueTx inserts a new transaction into the non-executable transaction queue.
@@ -937,6 +967,7 @@ func (pool *TxPool) promoteExecutables(accounts []common.Address) {
 			queuedNofundsCounter.Inc(1)
 		}
 		// Gather all executable transactions and promote them
+		fmt.Println(addr, pool.pendingState.GetNonce(addr))
 		for _, tx := range list.Ready(pool.pendingState.GetNonce(addr)) {
 			hash := tx.Hash()
 			if pool.promoteTx(addr, hash, tx) {
