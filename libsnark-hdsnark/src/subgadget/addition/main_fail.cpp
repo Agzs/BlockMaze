@@ -91,7 +91,7 @@ void PrintProof(r1cs_ppzksnark_proof<ppzksnark_ppT> proof)
 {
     printf("================== Print proof ==================================\n");
     //printf("proof is %x\n", *proof);
-    std::cout << "comparison proof:\n";
+    std::cout << "addition proof:\n";
 
     // std::cout << "\n knowledge_commitment<G2<ppT>, G1<ppT> > g_B: \n " << proof.g_B << endl;
     // std::cout << "\n knowledge_commitment<G2<ppT>, G1<ppT> > g_B: \n " << proof.g_B << endl;

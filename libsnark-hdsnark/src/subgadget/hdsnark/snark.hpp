@@ -90,7 +90,7 @@ void PrintProof(r1cs_ppzksnark_proof<ppzksnark_ppT> proof)
     printf("================== Print proof ==================================\n");
     // std::cout << proof << endl;
     // printf("proof is %x\n", *proof);
-    std::cout << "hdsnark proof with r1cs_ppzksnark:\n";
+    std::cout << "sha256 one block proof with r1cs_ppzksnark:\n";
 
     /*
       为把平常点和无穷远点的坐标统一起来，把点的坐标用（X，Y，Z）表示，X，Y，Z不能同时为0，

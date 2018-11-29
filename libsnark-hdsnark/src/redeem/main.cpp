@@ -75,7 +75,7 @@ void PrintProof(r1cs_ppzksnark_proof<ppzksnark_ppT> proof)
 {
     printf("================== Print proof ==================================\n");
     //printf("proof is %x\n", *proof);
-    std::cout << "mint proof:\n";
+    std::cout << "redeem proof:\n";
 
     std::cout << "\n knowledge_commitment<G1<ppT>, G1<ppT> > g_A: ";
     std::cout << "\n   knowledge_commitment.g: \n     " << proof.g_A.g;
