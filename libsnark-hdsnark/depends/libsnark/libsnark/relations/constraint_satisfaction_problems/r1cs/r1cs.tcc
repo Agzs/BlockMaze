@@ -82,6 +82,7 @@ std::istream& operator>>(std::istream &in, r1cs_constraint<FieldT> &c)
     return in;
 }
 
+// primary_input的长度 --Agzs
 template<typename FieldT>
 size_t r1cs_constraint_system<FieldT>::num_inputs() const
 {

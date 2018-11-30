@@ -4,16 +4,20 @@
 #include <boost/optional.hpp>
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
+#include <boost/array.hpp>
 
 #include "libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp"
 #include "libsnark/common/default_types/r1cs_ppzksnark_pp.hpp"
-#include <libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_gadget.hpp>
+#include "libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_gadget.hpp"
+#include "libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_read_gadget.hpp"
 
 #include "Note.h"
+#include "IncrementalMerkleTree.hpp"
 
 using namespace libsnark;
 using namespace libff;
 using namespace std;
+using namespace libvnt;
 
 #include "circuit/gadget.tcc"
 
@@ -27,7 +31,9 @@ boost::optional<r1cs_ppzksnark_proof<ppzksnark_ppT>> generate_proof(r1cs_ppzksna
                                                                     const Note& note,
                                                                     uint256 cmtS,
                                                                     uint256 cmtA_old,
-                                                                    uint256 cmtA
+                                                                    uint256 cmtA,
+                                                                    const uint256& rt,
+                                                                     const MerklePath& path
                                                                    )
 {
     typedef Fr<ppzksnark_ppT> FieldT;
@@ -36,7 +42,7 @@ boost::optional<r1cs_ppzksnark_proof<ppzksnark_ppT>> generate_proof(r1cs_ppzksna
     update_gadget<FieldT> update(pb); // 构造新模型
     update.generate_r1cs_constraints(); // 生成约束
 
-    update.generate_r1cs_witness(note_s, note_old, note, cmtS, cmtA_old, cmtA); // 为新模型的参数生成证明
+    update.generate_r1cs_witness(note_s, note_old, note, cmtS, cmtA_old, cmtA, rt, path); // 为新模型的参数生成证明
 
     cout << "pb.is_satisfied() is " << pb.is_satisfied() << endl;
 
@@ -52,14 +58,14 @@ boost::optional<r1cs_ppzksnark_proof<ppzksnark_ppT>> generate_proof(r1cs_ppzksna
 template<typename ppzksnark_ppT>
 bool verify_proof(r1cs_ppzksnark_verification_key<ppzksnark_ppT> verification_key,
                     r1cs_ppzksnark_proof<ppzksnark_ppT> proof,
-                    // const uint256& merkle_root,
+                    const uint256& rt,
                     const uint256& cmtA_old,
                     const uint256& cmtA                  )
 {
     typedef Fr<ppzksnark_ppT> FieldT;
 
     const r1cs_primary_input<FieldT> input = update_gadget<FieldT>::witness_map(
-        //merkle_root,
+        rt,
         cmtA_old,
         cmtA
     ); 
@@ -73,7 +79,7 @@ void PrintProof(r1cs_ppzksnark_proof<ppzksnark_ppT> proof)
 {
     printf("================== Print proof ==================================\n");
     //printf("proof is %x\n", *proof);
-    std::cout << "mint proof:\n";
+    std::cout << "update proof:\n";
 
     std::cout << "\n knowledge_commitment<G1<ppT>, G1<ppT> > g_A: ";
     std::cout << "\n   knowledge_commitment.g: \n     " << proof.g_A.g;
@@ -128,24 +134,69 @@ bool test_update_gadget_with_instance(
     Note note = Note(value, sn, r);
     uint256 cmtA = note.cm();
 
-    /*
-    // 打印 cmtA = sha256(value, sn, r)
-    cout << "==============================================\n";
-    std::cout << "value = {";
-    BOOST_FOREACH(unsigned char ch, convertIntToVectorLE(value)) {
-        printf("%d, ", ch);
+    boost::array<uint256, 16> commitments; //16个cmts
+    //std::vector<boost::optional<uint256>>& commitments;
+    
+    const char *str[] = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+                    "11", "12", "13", "14", "15", "16"};
+    commitments[9] = cmtS;
+    cout << "cmtS = 0x" << cmtS.ToString() << endl;
+    for (size_t i = 0; i < 16; i++) {
+        if(i == 9) {
+            //cout << "commitments[" << i << "] = 0x" << commitments[i].ToString() << endl;
+            continue;
+        }
+        //const char *ch = str[i];
+        commitments[i] = uint256S(str[i]);
+        //cout << "commitments[" << i << "] = 0x" << commitments[i].ToString() << endl;
     }
-    printf("}\nsn = {");
-    for (int i = 0; i < 32; i ++ ){
-        printf("%d, ", *(sn.begin()+i));
+
+    ZCIncrementalMerkleTree tree;
+    assert(tree.root() == ZCIncrementalMerkleTree::empty_root());
+    
+    ZCIncrementalWitness wit = tree.witness(); //初始化witness
+    bool find_cmtS = false;
+    for (size_t i = 0; i < 16; i++) {
+        if (find_cmtS) {
+            wit.append(commitments[i]);
+        } else {
+            /********************************************
+             * 如果删除else分支，
+             * 将tree.append(commitments[i])放到for循环体中，
+             * 最终得到的rt == wit.root() == tree.root()
+             *********************************************/
+            tree.append(commitments[i]);
+        }
+
+        if (commitments[i] == cmtS) {
+            //在要证明的叶子节点添加到tree后，才算真正初始化wit，下面的root和path才会正确。
+            wit = tree.witness(); 
+            find_cmtS = true;
+        } 
     }
-    printf("}\nr = {");
-    for (int i = 0; i < 32; i ++ ){
-        printf("%d, ", *(r.begin()+i));
-    }
-    cout << "}\ncmtA = 0x" << cmtA.ToString() << endl;
-    cout << "==============================================\n";
-    */
+
+    auto path = wit.path();
+    uint256 rt = wit.root();
+
+    cout << "tree.root = 0x" << tree.root().ToString() << endl;
+    cout << "wit.root = 0x" << wit.root().ToString() << endl;
+
+    // 错误测试数据
+    ZCIncrementalMerkleTree wrong_tree;
+    assert(wrong_tree.root() == ZCIncrementalMerkleTree::empty_root());
+    wrong_tree.append(uint256S("17"));
+    ZCIncrementalWitness wrong_wit = wrong_tree.witness(); //初始化witness
+    wrong_wit.append(uint256S("18"));
+    wrong_wit.append(uint256S("19"));
+    wrong_wit.append(uint256S("20"));
+    
+    uint256 wrong_rt = wrong_wit.root();
+    auto wrong_path = wrong_wit.path();
+    uint256 wrong_cmtS = note_old.cm();
+    uint256 wrong_cmtA_old = note.cm();
+    uint256 wrong_cmtA = note_old.cm();
+
+    cout << "wit.wrong_root = 0x" << wrong_rt.ToString() << endl;
    
     typedef libff::Fr<ppzksnark_ppT> FieldT;
 
@@ -170,7 +221,9 @@ bool test_update_gadget_with_instance(
                                                             note,
                                                             cmtS,
                                                             cmtA_old,
-                                                            cmtA
+                                                            cmtA,
+                                                            rt, //wrong_rt
+                                                            path //wrong_path
                                                             );
 
     // verify proof
@@ -181,13 +234,10 @@ bool test_update_gadget_with_instance(
         PrintProof(*proof);
 
         //assert(verify_proof(keypair.vk, *proof));
-        // wrong test data
-        uint256 wrong_cmtA_old = note.cm();
-        uint256 wrong_cmtA = note_old.cm();
         
         bool result = verify_proof(keypair.vk, 
                                    *proof, 
-                                   //merkle_root,
+                                   rt, //wrong_rt
                                    cmtA_old,
                                    cmtA
                                    );

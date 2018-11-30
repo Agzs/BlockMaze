@@ -112,7 +112,7 @@ std::istream& operator>>(std::istream &in, r1cs_constraint_system<FieldT> &cs);
 template<typename FieldT>
 class r1cs_constraint_system {
 public:
-    size_t primary_input_size;
+    size_t primary_input_size; //相当于验证proof时的数据长度
     size_t auxiliary_input_size;
 
     std::vector<r1cs_constraint<FieldT> > constraints;
