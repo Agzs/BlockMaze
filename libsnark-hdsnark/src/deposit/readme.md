@@ -39,7 +39,7 @@ cmtS在以rt_cmt为根的MerkleTree上
 ```
 
 ##### 1.3 merkle.tcc文件
-基于`libsnark`自带的`merkle_gadget`的，** 待补充 **
+基于`libsnark`自带的`sha256_two_to_one_hash_gadget`和`merkle_tree_check_read_gadget`，仿照`zcash`中的`merkle_tree_gadget`实现，注意`witness`的`root`和`path`的初始化。
 
 ##### 1.4 note.tcc文件
 基于`libsnark`自带的`packing_gadget`的, 重新改写`get_field_element_from_bits_by_order()`函数，实现域上二进制到域上十进制的转化
@@ -67,13 +67,22 @@ cmtS在以rt_cmt为根的MerkleTree上
 ##### 3.3 deposit_gadget.hpp文件
 仿照`zcash`实现`Init`，`Generate`，`Prove`和`Verify`操作
 
-##### 3.4 Note.h文件
+##### 3.4 IncrementalMerkleTree.hpp文件
+仿照`zcash`中的`IncrementalMerkleTree`和`IncrementalWitness`，实现`merkleTree`的组织处理，包括`path`、`root`、`tree`和`witness`，该文件主要包括`MerklePath`，`EmptyMerkleRoots`，`IncrementalWitness`，和`IncrementalMerkleTree`，`SHA256Compress`的类模板及其方法。
+
+##### 3.5 IncrementalMerkleTree.tcc文件
+仿照`zcash`中的`IncrementalMerkleTree`和`IncrementalWitness`，实现`merkleTree`的组织处理，包括`path`、`root`、`tree`和`witness`，该文件主要包括`MerklePath`，`EmptyMerkleRoots`，`IncrementalWitness`，和`IncrementalMerkleTree`，`SHA256Compress`的类模板中方法的实现。
+
+##### 3.6 Note.h文件
 含有`Note`结构体，用于包装`value`，`sn`和`r`，计算`cmtB`的哈希值
 
 含有`NoteS`结构体，用于包装`value_s`，`pk_B`, `sn_s`, `r_s`和`sn_A_old`，计算`cmtS`的哈希值
 
-##### 3.5 uint256.h文件
+##### 3.7 uint256.h文件
 从`bitcoin`中导入的文件，支持`uint256`相关操作
 
-##### 3.6 util.h文件
+##### 3.8 util.h文件
 包含辅助函数，实现`vector`类型的相关转换等操作
+
+##### 3.9 VNT.h文件
+定义一些宏，比如`INCREMENTAL_MERKLE_TREE_DEPTH`
