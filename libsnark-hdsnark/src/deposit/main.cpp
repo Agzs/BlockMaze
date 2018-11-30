@@ -4,16 +4,20 @@
 #include <boost/optional.hpp>
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
+#include <boost/array.hpp>
 
 #include "libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp"
 #include "libsnark/common/default_types/r1cs_ppzksnark_pp.hpp"
-#include <libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_gadget.hpp>
+#include "libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_gadget.hpp"
+#include "libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_read_gadget.hpp"
 
 #include "Note.h"
+#include "IncrementalMerkleTree.hpp"
 
 using namespace libsnark;
 using namespace libff;
 using namespace std;
+using namespace libvnt;
 
 #include "circuit/gadget.tcc"
 
@@ -27,7 +31,9 @@ boost::optional<r1cs_ppzksnark_proof<ppzksnark_ppT>> generate_proof(r1cs_ppzksna
                                                                     const Note& note,
                                                                     uint256 cmtS,
                                                                     uint256 cmtB_old,
-                                                                    uint256 cmtB
+                                                                    uint256 cmtB,
+                                                                    const uint256& rt,
+                                                                     const MerklePath& path
                                                                    )
 {
     typedef Fr<ppzksnark_ppT> FieldT;
@@ -36,7 +42,7 @@ boost::optional<r1cs_ppzksnark_proof<ppzksnark_ppT>> generate_proof(r1cs_ppzksna
     deposit_gadget<FieldT> deposit(pb); // 构造新模型
     deposit.generate_r1cs_constraints(); // 生成约束
 
-    deposit.generate_r1cs_witness(note_s, note_old, note, cmtS, cmtB_old, cmtB); // 为新模型的参数生成证明
+    deposit.generate_r1cs_witness(note_s, note_old, note, cmtS, cmtB_old, cmtB, rt, path); // 为新模型的参数生成证明
 
     cout << "pb.is_satisfied() is " << pb.is_satisfied() << endl;
 
@@ -52,7 +58,7 @@ boost::optional<r1cs_ppzksnark_proof<ppzksnark_ppT>> generate_proof(r1cs_ppzksna
 template<typename ppzksnark_ppT>
 bool verify_proof(r1cs_ppzksnark_verification_key<ppzksnark_ppT> verification_key,
                     r1cs_ppzksnark_proof<ppzksnark_ppT> proof,
-                    // const uint256& merkle_root,
+                    const uint256& rt,
                     const uint160& pk_recv,
                     const uint256& cmtB_old,
                     const uint256& sn_old,
@@ -61,7 +67,7 @@ bool verify_proof(r1cs_ppzksnark_verification_key<ppzksnark_ppT> verification_ke
     typedef Fr<ppzksnark_ppT> FieldT;
 
     const r1cs_primary_input<FieldT> input = deposit_gadget<FieldT>::witness_map(
-        //merkle_root,
+        rt,
         pk_recv,
         cmtB_old,
         sn_old,
@@ -133,24 +139,71 @@ bool test_deposit_gadget_with_instance(
     Note note = Note(value, sn, r);
     uint256 cmtB = note.cm();
 
-    /*
-    // 打印 cmtB = sha256(value, sn, r)
-    cout << "==============================================\n";
-    std::cout << "value = {";
-    BOOST_FOREACH(unsigned char ch, convertIntToVectorLE(value)) {
-        printf("%d, ", ch);
+    boost::array<uint256, 16> commitments; //16个cmts
+    //std::vector<boost::optional<uint256>>& commitments;
+    
+    const char *str[] = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+                    "11", "12", "13", "14", "15", "16"};
+    commitments[9] = cmtS;
+    cout << "cmtS = 0x" << cmtS.ToString() << endl;
+    for (size_t i = 0; i < 16; i++) {
+        if(i == 9) {
+            //cout << "commitments[" << i << "] = 0x" << commitments[i].ToString() << endl;
+            continue;
+        }
+        //const char *ch = str[i];
+        commitments[i] = uint256S(str[i]);
+        //cout << "commitments[" << i << "] = 0x" << commitments[i].ToString() << endl;
     }
-    printf("}\nsn = {");
-    for (int i = 0; i < 32; i ++ ){
-        printf("%d, ", *(sn.begin()+i));
+
+    ZCIncrementalMerkleTree tree;
+    assert(tree.root() == ZCIncrementalMerkleTree::empty_root());
+    
+    ZCIncrementalWitness wit = tree.witness(); //初始化witness
+    bool find_cmtS = false;
+    for (size_t i = 0; i < 16; i++) {
+        if (find_cmtS) {
+            wit.append(commitments[i]);
+        } else {
+            /********************************************
+             * 如果删除else分支，
+             * 将tree.append(commitments[i])放到for循环体中，
+             * 最终得到的rt == wit.root() == tree.root()
+             *********************************************/
+            tree.append(commitments[i]);
+        }
+
+        if (commitments[i] == cmtS) {
+            //在要证明的叶子节点添加到tree后，才算真正初始化wit，下面的root和path才会正确。
+            wit = tree.witness(); 
+            find_cmtS = true;
+        } 
     }
-    printf("}\nr = {");
-    for (int i = 0; i < 32; i ++ ){
-        printf("%d, ", *(r.begin()+i));
-    }
-    cout << "}\ncmtB = 0x" << cmtB.ToString() << endl;
-    cout << "==============================================\n";
-    */
+
+    auto path = wit.path();
+    uint256 rt = wit.root();
+
+    cout << "tree.root = 0x" << tree.root().ToString() << endl;
+    cout << "wit.root = 0x" << wit.root().ToString() << endl;
+
+    // 错误测试数据
+    ZCIncrementalMerkleTree wrong_tree;
+    assert(wrong_tree.root() == ZCIncrementalMerkleTree::empty_root());
+    wrong_tree.append(uint256S("17"));
+    ZCIncrementalWitness wrong_wit = wrong_tree.witness(); //初始化witness
+    wrong_wit.append(uint256S("18"));
+    wrong_wit.append(uint256S("19"));
+    wrong_wit.append(uint256S("20"));
+    
+    uint256 wrong_rt = wrong_wit.root();
+    auto wrong_path = wrong_wit.path();
+    uint256 wrong_cmtS = note_old.cm();
+    uint256 wrong_cmtB_old = note.cm();
+    uint256 wrong_cmtB = note_old.cm();
+    uint160 wrong_pk_recv = uint160S("333");
+    uint256 wrong_sn_old = uint256S("666");
+
+    cout << "wit.wrong_root = 0x" << wrong_rt.ToString() << endl;
    
     typedef libff::Fr<ppzksnark_ppT> FieldT;
 
@@ -175,7 +228,9 @@ bool test_deposit_gadget_with_instance(
                                                             note,
                                                             cmtS,
                                                             cmtB_old,
-                                                            cmtB
+                                                            cmtB,
+                                                            rt, //wrong_rt
+                                                            path //wrong_path
                                                             );
 
     // verify proof
@@ -186,15 +241,10 @@ bool test_deposit_gadget_with_instance(
         PrintProof(*proof);
 
         //assert(verify_proof(keypair.vk, *proof));
-        // wrong test data
-        uint160 wrong_pk_recv = uint160S("333");
-        uint256 wrong_cmtB_old = note.cm();
-        uint256 wrong_sn_old = uint256S("666");
-        uint256 wrong_cmtB = note_old.cm();
         
         bool result = verify_proof(keypair.vk, 
                                     *proof, 
-                                    //merkle_root,
+                                    rt, //wrong_rt
                                     pk_recv,
                                     cmtB_old,
                                     sn_old,
