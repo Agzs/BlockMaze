@@ -5,13 +5,13 @@
 ##### 1.1 commitment.tcc文件
 基于`libsnark`自带的`sha256`的电路，重新构造`sha256_two_block_gadget`电路，支持两个`blocks`的哈希，
 
-证明`cmt_B_old = sha256(value_old, sn_old, r_old)`
+证明`cmt_B_old == sha256(value_old, sn_old, r_old)`
 
-证明`cmt_B = sha256(value, sn, r)`
+证明`cmt_B == sha256(value, sn, r)`
 
 重新构造`sha256_three_block_gadget`电路，支持三个`blocks`的哈希，
 
-证明`cmt_S = sha256(value_s, pk_B, sn_s, r_s, sn_A)`
+证明`cmt_S == sha256(value_s, pk_B, sn_s, r_s, sn_A)`
 
 ##### 1.2 gadget.tcc文件
 整合上述子电路，构造支持`deposit`的电路，根据以下已知条件：
@@ -31,10 +31,10 @@
  ```
  证明以下等式成立：
 ```
-cmtS = sha256(value_s, pk_B, sn_s, r_s, sn_A)
-cmt_B_old = sha256(value_old, sn_old, r_old)
-cmtB_new = sha256(value_new, sn_new, r_new)
-value_new = value_old + value_s
+cmtS == sha256(value_s, pk_B, sn_s, r_s, sn_A)
+cmt_B_old == sha256(value_old, sn_old, r_old)
+cmtB_new == sha256(value_new, sn_new, r_new)
+value_new == value_old + value_s
 cmtS在以rt_cmt为根的MerkleTree上
 ```
 

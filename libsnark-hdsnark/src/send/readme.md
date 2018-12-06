@@ -5,11 +5,11 @@
 ##### 1.1 commitment.tcc文件
 基于`libsnark`自带的`sha256`的电路，重新构造`sha256_two_block_gadget`电路，支持两个`blocks`的哈希，
 
-证明`cmt_A = sha256(value_A, sn_A, r_A)`
+证明`cmt_A == sha256(value_A, sn_A, r_A)`
 
 重新构造`sha256_three_block_gadget`电路，支持三个`blocks`的哈希，
 
-证明`cmt_S = sha256(value_s, pk_B, sn_s, r_s, sn_A)`
+证明`cmt_S == sha256(value_s, pk_B, sn_s, r_s, sn_A)`
 
 ##### 1.2 comparison.tcc文件
 基于`libsnark`自带的`comparison_gadget`的, 重新构造`less_comparison_gadget`电路，证明`A < B`的关系
@@ -26,8 +26,8 @@
  ```
  证明以下等式成立：
 ```
-cmt_A_old = sha256(value_old, sn_old, r_old)
-cmt_S = sha256(value_s, pk_B, sn_s, r_s, sn_old)
+cmt_A_old == sha256(value_old, sn_old, r_old)
+cmt_S == sha256(value_s, pk_B, sn_s, r_s, sn_old)
 value_s < value_old
 ```
 

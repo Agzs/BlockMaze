@@ -4,12 +4,12 @@
 ##### 1.1 add_cmp.tcc文件
 重写`libsnark`自带的比较电路，添加加法约束，构造`note_gadget_with_comparison_for_balance`的电路, 
 
-证明 `value_old + value_s = value` 并且 `value_s < balance`
+证明 `value_old + value_s == value` 并且 `value_s < balance`
 
 ##### 1.2 commitment.tcc文件
 基于`libsnark`自带的`sha256`的电路，重新构造`sha256_two_block_gadget`电路，支持两个`blocks`的哈希，
 
-证明`cmt_A = sha256(value, sn, r)`
+证明`cmt_A == sha256(value, sn, r)`
 
 ##### 1.3 comparison.tcc文件
 基于`libsnark`自带的`comparison_gadget`的, 重新构造`less_comparison_gadget`电路，证明`A < B`的关系
@@ -27,9 +27,9 @@
  ```
  证明以下等式成立：
 ```
-cmt_A_old = sha256(value_old, sn_old, r_old)
-cmtA_new = sha256(value_new, sn_new, r_new)
-value_new = value_old + value_s
+cmt_A_old == sha256(value_old, sn_old, r_old)
+cmtA_new == sha256(value_new, sn_new, r_new)
+value_new == value_old + value_s
 value_s < balance
 ```
 
