@@ -83,6 +83,8 @@ type Header struct {
 	Extra       []byte         `json:"extraData"        gencodec:"required"`
 	MixDigest   common.Hash    `json:"mixHash"          gencodec:"required"`
 	Nonce       BlockNonce     `json:"nonce"            gencodec:"required"`
+	RTCMT       common.Hash    `json:"cmtRoot"          gencodec:"required"`
+	CMT         []*common.Hash `json:"cmt"              gencodec:"required"`
 }
 
 // field type overrides for gencodec
@@ -319,7 +321,8 @@ func (b *Block) ReceiptHash() common.Hash { return b.header.ReceiptHash }
 func (b *Block) UncleHash() common.Hash   { return b.header.UncleHash }
 func (b *Block) Extra() []byte            { return common.CopyBytes(b.header.Extra) }
 
-func (b *Block) Header() *Header { return CopyHeader(b.header) }
+func (b *Block) Header() *Header      { return CopyHeader(b.header) }
+func (b *Block) CMTS() []*common.Hash { return b.header.CMT }
 
 // Body returns the non-header content of the block.
 func (b *Block) Body() *Body { return &Body{b.transactions, b.uncles} }

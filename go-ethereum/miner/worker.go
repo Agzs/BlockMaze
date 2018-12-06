@@ -460,7 +460,12 @@ func (self *worker) commitNewWork() {
 	var (
 		uncles    []*types.Header
 		badUncles []common.Hash
+		cmt       []*common.Hash
 	)
+	for _, tx := range work.txs {
+		cmt = append(cmt, tx.ZKCMT())
+	}
+	header.CMT = cmt
 	for hash, uncle := range self.possibleUncles {
 		if len(uncles) == 2 {
 			break

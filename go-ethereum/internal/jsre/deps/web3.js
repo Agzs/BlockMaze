@@ -5304,6 +5304,11 @@ var methods = function () {
         outputFormatter: formatters.outputBlockFormatter
     });
 
+    var getPubKeyRLP = new Method({
+        name: 'getPubKeyRLP',
+        call: 'eth_getPubKeyRLP',
+        params: 2
+    });
     var getUncle = new Method({
         name: 'getUncle',
         call: uncleCall,
@@ -5312,7 +5317,6 @@ var methods = function () {
         outputFormatter: formatters.outputBlockFormatter
 
     });
-
     var getCompilers = new Method({
         name: 'getCompilers',
         call: 'eth_getCompilers',
@@ -5489,6 +5493,7 @@ var methods = function () {
         getTransactionFromBlock,
         getTransactionReceipt,
         getTransactionCount,
+        getPubKeyRLP,
         call,
         estimateGas,
         sendRawTransaction,

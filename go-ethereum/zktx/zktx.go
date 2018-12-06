@@ -1,9 +1,12 @@
 package zktx
 
 /*
-#cgo LDFLAGS: -L/usr/local/lib -lzk_mint -lzk_redeem -lff -lzm -lsnark -lstdc++  -lgmp -lgmpxx
+#cgo LDFLAGS: -L/usr/local/lib -lzk_mint -lzk_redeem  -lzk_send -lzk_update -lzk_deposit -lff -lzm -lsnark -lstdc++  -lgmp -lgmpxx
 #include "mintcgo.hpp"
 #include "redeemcgo.hpp"
+#include "sendcgo.hpp"
+#include "updatecgo.hpp"
+#include "depositcgo.hpp"
 #include <stdlib.h>
 */
 import "C"
@@ -12,7 +15,6 @@ import (
 	"crypto/ecdsa"
 	"crypto/rand"
 	"crypto/sha256"
-	"encoding/binary"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -42,6 +44,8 @@ var SequenceNumber = InitializeSN()
 var SequenceNumberAfter *Sequence = nil
 var SNS *Sequence = nil
 var ZKTxAddress = common.HexToAddress("ffffffffffffffffffffffffffffffffffffffff")
+
+var ZKCMTNODES = 1 // max is 32  because if c is 32
 
 var ErrSequence = errors.New("invalid sequence")
 var RandomReceiverPK *ecdsa.PublicKey = nil
@@ -101,15 +105,49 @@ func VerifyMintProof(cmtold *common.Hash, snaold *common.Hash, cmtnew *common.Ha
 	return nil
 }
 
+var InvalidSendProof = errors.New("Verifying send proof failed!!!")
+
 func VerifySendProof(sna *common.Hash, cmts *common.Hash, proof []byte) error {
+	cproof := C.CString(string(proof))
+	snA := C.CString(string(sna.Bytes()[:]))
+	cmtS := C.CString(common.ToHex(cmts[:]))
+
+	tf := C.verifySendproof(cproof, snA, cmtS)
+	if tf == false {
+		return InvalidSendProof
+	}
 	return nil
 }
 
-func VerifyUpdateProof(cmta *common.Hash, rtmcmt []byte, cmtnew *common.Hash, proof []byte) error {
+var InvalidUpdateProof = errors.New("Verifying update proof failed!!!")
+
+//func VerifyUpdateProof(cmta *common.Hash, rtmcmt []byte, cmtnew *common.Hash, proof []byte) error {
+func VerifyUpdateProof(cmta *common.Hash, rtmcmt common.Hash, cmtnew *common.Hash, proof []byte) error {
+	cproof := C.CString(string(proof))
+	rtmCmt := C.CString(common.ToHex(rtmcmt[:]))
+	cmtA := C.CString(common.ToHex(cmta[:]))
+	cmtAnew := C.CString(common.ToHex(cmtnew[:]))
+
+	tf := C.verifyUpdateproof(cproof, rtmCmt, cmtA, cmtAnew)
+	if tf == false {
+		return InvalidUpdateProof
+	}
 	return nil
 }
 
-func VerifyDepositProof(x *big.Int, y *big.Int, rtcmt *common.Hash, cmtb *common.Hash, snb *common.Hash, cmtbnew *common.Hash, proof []byte) error {
+func VerifyDepositProof(pk *ecdsa.PublicKey, rtcmt common.Hash, cmtb *common.Hash, snb *common.Hash, cmtbnew *common.Hash, proof []byte) error {
+	PK := crypto.PubkeyToAddress(*pk) //--zy
+	fmt.Println("len pk_c=", len(common.ToHex(PK[:])), common.ToHex(PK[:]))
+	pk_c := C.CString(common.ToHex(PK[:]))
+	cproof := C.CString(string(proof))
+	rtmCmt := C.CString(common.ToHex(rtcmt[:]))
+	cmtB := C.CString(common.ToHex(cmtb[:]))
+	cmtBnew := C.CString(common.ToHex(cmtbnew[:]))
+	SNB_c := C.CString(string(snb.Bytes()[:]))
+	tf := C.verifyDepositproof(cproof, rtmCmt, pk_c, cmtB, SNB_c, cmtBnew)
+	if tf == false {
+		return InvalidUpdateProof
+	}
 	return nil
 }
 
@@ -133,6 +171,7 @@ func VerifyDepositSIG(x *big.Int, y *big.Int, sig []byte) error {
 	return nil
 }
 
+//GenCMT生成CMT 调用c的sha256函数  （go的sha256函数与c有一些区别）
 func GenCMT(value uint64, sn []byte, r []byte) *common.Hash {
 	value_c := C.ulong(value)
 	sn_string := string(sn[:])
@@ -150,28 +189,50 @@ func GenCMT(value uint64, sn []byte, r []byte) *common.Hash {
 	return &reshash
 }
 
-func GenCMTS(value uint64, pkX *big.Int, pkY *big.Int, sns []byte, rs []byte, sna []byte) *common.Hash {
-	//add value
-	all := make([]byte, 8)
-	binary.BigEndian.PutUint64(all[0:8], value)
-	//add pkx
-	x := pkX.Bytes()
-	all = append(all, x...)
-	//add pky
-	y := pkY.Bytes()
-	all = append(all, y...)
-	//add sns rs sna
-	all = append(all, sns...)
-	all = append(all, rs...)
-	all = append(all, sna...)
-	//sha256
-	h := sha256.New()
-	h.Write(all)
-	res := h.Sum(nil)
-	//bytestohash
-	hash := common.BytesToHash(res)
-	return &hash
+//GenCMT生成CMT 调用c的sha256函数  （go的sha256函数与c有一些区别）
+func GenCMTS(values uint64, pk *ecdsa.PublicKey, sns []byte, rs []byte, sna []byte) *common.Hash {
 
+	values_c := C.ulong(values)
+	fmt.Println("ecdsapub", pk)
+	PK := crypto.PubkeyToAddress(*pk) //--zy
+	fmt.Println("len pk_c=", len(common.ToHex(PK[:])), common.ToHex(PK[:]))
+	pk_c := C.CString(common.ToHex(PK[:]))
+	sns_string := string(sns[:])
+	sns_c := C.CString(sns_string)
+	defer C.free(unsafe.Pointer(sns_c))
+	rs_string := string(rs[:])
+	rs_c := C.CString(rs_string)
+	defer C.free(unsafe.Pointer(rs_c))
+	sna_string := string(sna[:])
+	sna_c := C.CString(sna_string)
+	defer C.free(unsafe.Pointer(sna_c))
+	//uint64_t value_s,char* pk_string,char* sn_s_string,char* r_s_string,char *sn_old_string
+	cmtA_c := C.genCMTS(values_c, pk_c, sns_c, rs_c, sna_c) //64长度16进制数
+	cmtA_go := C.GoString(cmtA_c)
+	//res := []byte(cmtA_go)
+	res, _ := hex.DecodeString(cmtA_go)
+	reshash := common.BytesToHash(res) //32长度byte数组
+	return &reshash
+}
+
+//GenRT 返回merkel树的hash  --zy
+func GenRT(CMTS *common.Hash, CMTSForMerkle []*common.Hash) common.Hash {
+	fmt.Println("cmts=", CMTS)
+	fmt.Println("cmtsmerkel=", CMTSForMerkle)
+	cmtS_c := C.CString(common.ToHex(CMTS[:]))
+	var cmtArray string
+	for i := 0; i < len(CMTSForMerkle); i++ {
+		s := string(common.ToHex(CMTSForMerkle[i][:]))
+		cmtArray += s
+	}
+	fmt.Println("cmtarray=", cmtArray)
+	cmtsM := C.CString(cmtArray)
+	rtC := C.genRoot(cmtS_c, cmtsM, C.int(len(CMTSForMerkle))) //--zy
+	rtGo := C.GoString(rtC)
+
+	res, _ := hex.DecodeString(rtGo)   //返回32长度 []byte  一个byte代表两位16进制数
+	reshash := common.BytesToHash(res) //32长度byte数组
+	return reshash
 }
 
 func ComputeR(sk *big.Int) *ecdsa.PublicKey {
@@ -215,12 +276,15 @@ func ComputeAUX(randomReceiverPK *ecdsa.PublicKey, value uint64, SNs *common.Has
 }
 
 func DecAUX(key *ecdsa.PublicKey, data []byte) (uint64, *common.Hash, *common.Hash, *common.Hash) {
+	fmt.Println("decaux key data", key, data)
 	decdata, _ := Decrypt(key, data)
+	fmt.Println("decdata=", decdata)
 	aux := AUX{}
 	r := bytes.NewReader(decdata)
 
-	s := rlp.NewStream(r, 0)
-	if err := s.Decode(aux); err != nil {
+	s := rlp.NewStream(r, 128)
+	if err := s.Decode(&aux); err != nil {
+		fmt.Println("err=", err)
 		return 0, nil, nil, nil
 	}
 	return aux.Value, aux.SNs, aux.Rs, aux.SNa
@@ -274,16 +338,105 @@ func GenMintProof(ValueOld uint64, RAold *common.Hash, SNAnew *common.Hash, RAne
 	return []byte(goproof)
 }
 
-func GenSendProof(CMTA *common.Hash, ValueA uint64, RA *common.Hash, ValueS uint64, PKX *big.Int, PKY *big.Int, SNS *common.Hash, RS *common.Hash, SNA *common.Hash, CMTS *common.Hash) []byte {
-	return []byte{}
+func GenSendProof(CMTA *common.Hash, ValueA uint64, RA *common.Hash, ValueS uint64, pk *ecdsa.PublicKey, SNS *common.Hash, RS *common.Hash, SNA *common.Hash, CMTS *common.Hash) []byte {
+	cmtA_c := C.CString(common.ToHex(CMTA[:]))
+	valueA_c := C.ulong(ValueA)
+	rA_c := C.CString(string(RA.Bytes()[:]))
+	valueS := C.ulong(ValueS)
+	// PK := crypto.PubkeyToAddress(*pk)
+	// fmt.Println("pk to c =", string(PK.Bytes()[:]))
+	// pk_c := C.CString(string(PK.Bytes()[:]))
+	PK := crypto.PubkeyToAddress(*pk) //--zy
+	fmt.Println("len pk_c=", len(common.ToHex(PK[:])), common.ToHex(PK[:]))
+	pk_c := C.CString(common.ToHex(PK[:]))
+	snS := C.CString(string(SNS.Bytes()[:]))
+	rS := C.CString(string(RS.Bytes()[:]))
+	snA := C.CString(string(SNA.Bytes()[:]))
+	cmtS := C.CString(common.ToHex(CMTS[:]))
+	//uint64_t value_A,char* sn_s_string,char* r_s_string,char* sn_string,char* r_string,char* cmt_s_string, char* cmtA_string,
+	//uint64_t value_s,char* pk_string
+	cproof := C.genSendproof(valueA_c, snS, rS, snA, rA_c, cmtS, cmtA_c, valueS, pk_c)
+	var goproof string
+	goproof = C.GoString(cproof)
+	return []byte(goproof)
 }
 
-func GenUpdateProof(CMTS *common.Hash, ValueS uint64, PKX *big.Int, PKY *big.Int, SNS *common.Hash, RS *common.Hash, SNA *common.Hash, ValueA uint64, RA *common.Hash, SNAnew *common.Hash, RAnew *common.Hash, CMTA *common.Hash, RTcmt []byte, CMTAnew *common.Hash) []byte {
-	return []byte{}
+//func GenUpdateProof(CMTS *common.Hash, ValueS uint64, PKX *big.Int, PKY *big.Int, SNS *common.Hash, RS *common.Hash, SNA *common.Hash, ValueA uint64, RA *common.Hash, SNAnew *common.Hash, RAnew *common.Hash, CMTA *common.Hash, RTcmt []byte, CMTAnew *common.Hash, CMTSForMerkle []*common.Hash) []byte {
+func GenUpdateProof(CMTS *common.Hash, ValueS uint64, pk *ecdsa.PublicKey, SNS *common.Hash, RS *common.Hash, SNA *common.Hash, ValueA uint64, RA *common.Hash, SNAnew *common.Hash, RAnew *common.Hash, CMTA *common.Hash, RTcmt []byte, CMTAnew *common.Hash, CMTSForMerkle []*common.Hash, n int) []byte {
+	cmtS_c := C.CString(common.ToHex(CMTS[:]))
+	valueS_c := C.ulong(ValueS)
+	// PK := crypto.PubkeyToAddress(*pk)
+	// pk_c := C.CString(string(PK[:]))
+	PK := crypto.PubkeyToAddress(*pk) //--zy
+	fmt.Println("len pk_c=", len(common.ToHex(PK[:])), common.ToHex(PK[:]))
+	pk_c := C.CString(common.ToHex(PK[:]))
+	SNS_c := C.CString(string(SNS.Bytes()[:])) //--zy
+	RS_c := C.CString(string(RS.Bytes()[:]))   //--zy
+	SNA_c := C.CString(string(SNA.Bytes()[:]))
+	valueA_c := C.ulong(ValueA)
+	RA_c := C.CString(string(RA.Bytes()[:])) //rA_c := C.CString(string(RA.Bytes()[:]))
+	SNAnew_c := C.CString(string(SNAnew.Bytes()[:]))
+	RAnew_c := C.CString(string(RAnew.Bytes()[:]))
+	cmtA_c := C.CString(common.ToHex(CMTA[:]))
+	RT_c := C.CString(common.ToHex(RTcmt)) //--zy   rt
+
+	cmtAnew_c := C.CString(common.ToHex(CMTAnew[:]))
+	fmt.Println("cmtanew=", common.ToHex(CMTAnew[:]))
+	valueANew_c := C.ulong(ValueA - ValueS)
+
+	var cmtArray string
+	for i := 0; i < len(CMTSForMerkle); i++ {
+		s := string(common.ToHex(CMTSForMerkle[i][:]))
+		cmtArray += s
+	}
+	fmt.Println("cmtarray=", cmtArray)
+	cmtsM := C.CString(cmtArray)
+
+	nC := C.int(n)
+	cproof := C.genUpdateproof(valueANew_c, valueA_c, SNA_c, RA_c, SNAnew_c, RAnew_c, SNS_c, RS_c, cmtA_c, cmtAnew_c, valueS_c, pk_c, cmtS_c, cmtsM, nC, RT_c)
+	var goproof string
+	goproof = C.GoString(cproof)
+	return []byte(goproof)
 }
 
-func GenDepositProof(CMTS *common.Hash, ValueS uint64, SNS *common.Hash, RS *common.Hash, SNA *common.Hash, ValueB uint64, RB *common.Hash, SNBnew *common.Hash, RBnew *common.Hash, PKX *big.Int, PKY *big.Int, RTcmt []byte, CMTB *common.Hash, SNB *common.Hash, CMTBnew *common.Hash) []byte {
-	return []byte{}
+func GenDepositProof(CMTS *common.Hash, ValueS uint64, SNS *common.Hash, RS *common.Hash, SNA *common.Hash, ValueB uint64, RB *common.Hash, SNBnew *common.Hash, RBnew *common.Hash, pk *ecdsa.PublicKey, RTcmt []byte, CMTB *common.Hash, SNB *common.Hash, CMTBnew *common.Hash, CMTSForMerkle []*common.Hash) []byte {
+	fmt.Println("cmtbold", CMTB)
+	fmt.Println("cmtboldstring", common.ToHex(CMTB[:]))
+	cmtS_c := C.CString(common.ToHex(CMTS[:]))
+	valueS_c := C.ulong(ValueS)
+	// PK := crypto.PubkeyToAddress(*pk)
+	// pk_c := C.CString(string(PK[:]))
+	PK := crypto.PubkeyToAddress(*pk) //--zy
+	fmt.Println("len pk_c=", len(common.ToHex(PK[:])), common.ToHex(PK[:]))
+	pk_c := C.CString(common.ToHex(PK[:]))
+	SNS_c := C.CString(string(SNS.Bytes()[:])) //--zy
+	RS_c := C.CString(string(RS.Bytes()[:]))   //--zy
+	SNA_c := C.CString(string(SNA.Bytes()[:]))
+	valueB_c := C.ulong(ValueB)
+	RB_c := C.CString(string(RB.Bytes()[:])) //rA_c := C.CString(string(RA.Bytes()[:]))
+	SNB_c := C.CString(string(SNB.Bytes()[:]))
+	SNBnew_c := C.CString(string(SNBnew.Bytes()[:]))
+	RBnew_c := C.CString(string(RBnew.Bytes()[:]))
+	cmtB_c := C.CString(common.ToHex(CMTB[:]))
+	RT_c := C.CString(common.ToHex(RTcmt)) //--zy   rt
+
+	cmtBnew_c := C.CString(common.ToHex(CMTBnew[:]))
+	fmt.Println("cmtBnew=", common.ToHex(CMTBnew[:]))
+	valueBNew_c := C.ulong(ValueB + ValueS)
+
+	var cmtArray string
+	for i := 0; i < len(CMTSForMerkle); i++ {
+		s := string(common.ToHex(CMTSForMerkle[i][:]))
+		cmtArray += s
+	}
+	fmt.Println("cmtarray=", cmtArray)
+	cmtsM := C.CString(cmtArray)
+
+	nC := C.int(len(CMTSForMerkle))
+	cproof := C.genDepositproof(valueBNew_c, valueB_c, SNB_c, RB_c, SNBnew_c, RBnew_c, SNS_c, RS_c, cmtB_c, cmtBnew_c, valueS_c, pk_c, SNA_c, cmtS_c, cmtsM, nC, RT_c)
+	var goproof string
+	goproof = C.GoString(cproof)
+	return []byte(goproof)
 }
 
 func GenRedeemProof(ValueOld uint64, RAold *common.Hash, SNAnew *common.Hash, RAnew *common.Hash, CMTold *common.Hash, SNold *common.Hash, CMTnew *common.Hash, ValueNew uint64) []byte {

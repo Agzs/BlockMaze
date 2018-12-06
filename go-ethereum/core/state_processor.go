@@ -17,6 +17,7 @@
 package core
 
 import (
+	"crypto/ecdsa"
 	"errors"
 	"fmt"
 
@@ -111,7 +112,6 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 		}
 		balance := statedb.GetBalance(msg.From())
 		cmtbalance := statedb.GetCMTBalance(msg.From())
-		fmt.Println("aaaa", cmtbalance)
 		if err = zktx.VerifyMintProof(&cmtbalance, tx.ZKSN(), tx.ZKCMT(), tx.Value().Uint64(), balance.Uint64(), tx.ZKProof()); err != nil {
 			fmt.Println("invalid zkproof")
 			return nil, 0, err
@@ -127,18 +127,20 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 		}
 	} else if tx.TxCode() == types.UpdateTx {
 		cmtbalance := statedb.GetCMTBalance(msg.From())
-		if err = zktx.VerifyUpdateProof(&cmtbalance, []byte{}, tx.ZKCMT(), tx.ZKProof()); err != nil {
+		if err = zktx.VerifyUpdateProof(&cmtbalance, tx.RTcmt(), tx.ZKCMT(), tx.ZKProof()); err != nil {
 			fmt.Println("invalid zkproof")
 			return nil, 0, err
 		}
 	} else if tx.TxCode() == types.DepositTx {
 		cmtbalance := statedb.GetCMTBalance(msg.From())
 		addr, err := types.Sender(types.HomesteadSigner{}, tx) //tbd
+		ppp := &ecdsa.PublicKey{crypto.S256(), tx.X(), tx.Y()}
+		fmt.Println("ppp=", ppp)
 		if err != nil {
 			fmt.Println(addr)
 			return nil, 0, errors.New("invalid depositTx signature ")
 		}
-		if err = zktx.VerifyDepositProof(tx.X(), tx.Y(), nil, &cmtbalance, tx.ZKSN(), tx.ZKCMT(), tx.ZKProof()); err != nil {
+		if err = zktx.VerifyDepositProof(ppp, tx.RTcmt(), &cmtbalance, tx.ZKSN(), tx.ZKCMT(), tx.ZKProof()); err != nil {
 			fmt.Println("invalid zkproof")
 			return nil, 0, err
 		}
@@ -156,7 +158,7 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 		return nil, 0, err
 	}
 	if tx.TxCode() == types.SendTx {
-		//add cmts to mpt
+		database.Put(append([]byte("cmtblock"), tx.ZKCMT().Bytes()...), header.Number.Bytes())
 	}
 	// Update the state with pending changes
 	var root []byte

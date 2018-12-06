@@ -77,9 +77,11 @@ type txdata struct {
 	ZKCMT     *common.Hash
 	ZKProof   []byte
 	//	CMTProof  []byte
-	AUX []byte
-	X   *big.Int
-	Y   *big.Int
+	RTcmt    common.Hash
+	CMTBlock []uint64
+	AUX      []byte
+	X        *big.Int
+	Y        *big.Int
 
 	//depostiTx signature values
 	DepositTxV *big.Int
@@ -132,6 +134,7 @@ func newTransaction(nonce uint64, to *common.Address, amount *big.Int, gasLimit 
 		S:            new(big.Int),
 		X:            new(big.Int),
 		Y:            new(big.Int),
+		ZKSN:         &common.Hash{},
 	}
 	if amount != nil {
 		d.Amount.Set(amount)
@@ -282,6 +285,11 @@ func (tx *Transaction) Y() *big.Int {
 }
 
 //
+func (tx *Transaction) PubKey() (*big.Int, *big.Int) {
+	return tx.data.X, tx.data.Y
+}
+
+//
 func (tx *Transaction) SetPubKey(x *big.Int, y *big.Int) {
 	tx.data.X = x
 	tx.data.Y = y
@@ -304,7 +312,7 @@ func (tx *Transaction) AUX() []byte {
 
 //
 func (tx *Transaction) SetAUX(AUX []byte) {
-	tx.data.AUX = make([]byte, 0)
+	tx.data.AUX = make([]byte, len(AUX))
 	copy(tx.data.AUX[:], AUX[:])
 }
 
@@ -317,6 +325,27 @@ func (tx *Transaction) ZKProof() []byte {
 func (tx *Transaction) SetZKProof(proof []byte) {
 	tx.data.ZKProof = make([]byte, len(proof))
 	copy(tx.data.ZKProof[:], proof[:])
+}
+
+//
+func (tx *Transaction) RTcmt() common.Hash {
+	return tx.data.RTcmt
+}
+
+//
+func (tx *Transaction) SetRTcmt(rtcmt common.Hash) {
+	tx.data.RTcmt = rtcmt
+
+}
+
+func (tx *Transaction) SetCMTBlocks(blocks []uint64) {
+	tx.data.CMTBlock = make([]uint64, len(blocks))
+	copy(tx.data.CMTBlock, blocks)
+}
+
+func (tx *Transaction) CMTBlocks() []uint64 {
+	return tx.data.CMTBlock
+
 }
 
 /*

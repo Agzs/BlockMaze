@@ -5,51 +5,9 @@ include_directories(
   ${DEPENDS_DIR}/libsnark/depends/libff
 )
 
-# ======== addition ======================
 
-##################################################################
-#                     五大主要gadget                              #
-##################################################################
-# ========= mint ========================
-add_executable(
-  mint
 
-  mint/main.cpp
-)
-target_link_libraries(
-  mint
-
-  snark
-)
-
-target_include_directories(
-  mint
-
-  PUBLIC
-  ${DEPENDS_DIR}/libsnark
-  ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
-
-# ========= redeem ========================
-add_executable(
-  redeem
-
-  redeem/main.cpp
-)
-target_link_libraries(
-  redeem
-
-  snark
-)
-
-target_include_directories(
-  redeem
-
-  PUBLIC
-  ${DEPENDS_DIR}/libsnark
-  ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
-
+#shared library
 add_library(
   zk_mint
   SHARED
@@ -66,4 +24,16 @@ add_library(
   zk_send
   SHARED
   send/sendcgo.cpp
+)
+
+add_library(
+  zk_update
+  SHARED
+  update/updatecgo.cpp
+)
+
+add_library(
+  zk_deposit
+  SHARED
+  deposit/depositcgo.cpp
 )

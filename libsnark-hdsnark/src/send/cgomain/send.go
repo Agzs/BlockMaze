@@ -7,6 +7,8 @@ package main
 */
 import "C"
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
@@ -15,6 +17,7 @@ import (
 	"unsafe"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 )
 
 //-lzm -lff -lsnark  //export LD_LIBRARY_PATH=/usr/local/lib
@@ -27,13 +30,13 @@ func main() {
 	ra := NewRandomHash()
 	sns := NewRandomHash()
 	rs := NewRandomHash()
+	pri, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	pk := pri.Public()
 
-	pkstr := "1231412"
-	pk := common.HexToAddress(pkstr)
 	cmta := GenCMT(valuea, sna.Bytes(), ra.Bytes())
-	cmts := GenCMTS(values, pk, sns.Bytes(), rs.Bytes(), sna.Bytes())
+	cmts := GenCMTS(values, &pk, sns.Bytes(), rs.Bytes(), sna.Bytes())
 
-	proof := GenSendProof(cmta, valuea, ra, values, pk, sns, rs, sna, cmts)
+	proof := GenSendProof(cmta, valuea, ra, values, &pk, sns, rs, sna, cmts)
 	//fmt.Println("proof=", proof)
 	tf := VerifySendProof(sna, cmts, proof)
 	fmt.Println(tf)
@@ -65,9 +68,10 @@ func GenCMT(value uint64, sn []byte, r []byte) *common.Hash {
 }
 
 //GenCMTS返回 HASH   value uint64, pkX *big.Int, pkY *big.Int, sns []byte, rs []byte, sna []byte
-func GenCMTS(values uint64, PK common.Address, sns []byte, rs []byte, sna []byte) *common.Hash {
-	values_c := C.ulong(values)
+func GenCMTS(values uint64, pk *ecdsa.PublicKey, sns []byte, rs []byte, sna []byte) *common.Hash {
 
+	values_c := C.ulong(values)
+	PK := crypto.PubkeyToAddress(*pk)
 	pk_c := C.CString(string(PK.Bytes()[:]))
 	sns_string := string(sns[:])
 	sns_c := C.CString(sns_string)
@@ -88,11 +92,12 @@ func GenCMTS(values uint64, PK common.Address, sns []byte, rs []byte, sna []byte
 }
 
 //CMTA *common.Hash, ValueA uint64, RA *common.Hash, ValueS uint64, PKX *big.Int, PKY *big.Int, SNS *common.Hash, RS *common.Hash, SNA *common.Hash, CMTS *common.Hash
-func GenSendProof(CMTA *common.Hash, ValueA uint64, RA *common.Hash, ValueS uint64, PK common.Address, SNS *common.Hash, RS *common.Hash, SNA *common.Hash, CMTS *common.Hash) []byte {
+func GenSendProof(CMTA *common.Hash, ValueA uint64, RA *common.Hash, ValueS uint64, pk *ecdsa.PublicKey, SNS *common.Hash, RS *common.Hash, SNA *common.Hash, CMTS *common.Hash) []byte {
 	cmtA_c := C.CString(common.ToHex(CMTA[:]))
 	valueA_c := C.ulong(ValueA)
 	rA_c := C.CString(string(RA.Bytes()[:]))
 	valueS := C.ulong(ValueS)
+	PK := crypto.PubkeyToAddress(*pk)
 	pk_c := C.CString(string(PK.Bytes()[:]))
 	snS := C.CString(string(SNS.Bytes()[:]))
 	rS := C.CString(string(RS.Bytes()[:]))
@@ -105,6 +110,11 @@ func GenSendProof(CMTA *common.Hash, ValueA uint64, RA *common.Hash, ValueS uint
 	goproof = C.GoString(cproof)
 	return []byte(goproof)
 }
+
+// func pubkeyToAddress(p *ecdsa.PublicKey) common.Address {
+// 	pubBytes := crypto.FromECDSAPub(p)
+// 	return common.BytesToAddress(crypto.Keccak256(pubBytes[1:])[12:])
+// }
 
 //sna *common.Hash, cmts *common.Hash, proof []byte
 //char *data, char* sn_old_string, char* cmtS_string

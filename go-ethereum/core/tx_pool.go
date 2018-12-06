@@ -117,6 +117,7 @@ const (
 type blockChain interface {
 	CurrentBlock() *types.Block
 	GetBlock(hash common.Hash, number uint64) *types.Block
+	GetBlockByNumber(number uint64) *types.Block
 	StateAt(root common.Hash) (*state.StateDB, error)
 
 	SubscribeChainHeadEvent(ch chan<- ChainHeadEvent) event.Subscription
@@ -572,6 +573,15 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	}
 	// Make sure the transaction is signed properly
 	from, err := types.Sender(pool.signer, tx)
+	// if txCode == types.DepositTx {
+	// 	x, y := tx.PubKey()
+	// 	pub := ecdsa.PublicKey{Curve: crypto.S256(), X: x, Y: y}
+	// 	fmt.Println(pub)
+	// 	address := common.Address{} //tbd
+	// 	if address != from {
+	// 		return errors.New("invalid publickey for deposit tx")
+	// 	}
+	// }
 	if err != nil {
 		return ErrInvalidSender
 	}
@@ -611,6 +621,26 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 			return err
 		}
 	}
+	if txCode == types.SendTx {
+		err = zktx.VerifySendProof(tx.ZKSN(), tx.ZKCMT(), tx.ZKProof()) //TBD
+		if err != nil {
+			return err
+		}
+	}
+	if txCode == types.UpdateTx {
+		cmtbalance := pool.currentState.GetCMTBalance(from)
+		err = zktx.VerifyUpdateProof(&cmtbalance, tx.RTcmt(), tx.ZKCMT(), tx.ZKProof())
+		if err != nil {
+			return err
+		}
+	}
+	// if txCode == types.DepositTx {
+	// 	cmtbalance := pool.currentState.GetCMTBalance(from)
+	// 	err = zktx.VerifyDepositProof(&cmtbalance, tx.RTcmt(), tx.ZKCMT(), tx.ZKProof())
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
 	/*
 		if txCode != types.PublicTx {
 			err = zktx.VerZKProof(tx.ZKProof()) //TBD
@@ -619,7 +649,22 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 			}
 		}
 	*/
+	//if txCode == types.UpdateTx || txCode == types.DepositTx {
+	// var cmtsForMerkle []*common.Hash
+	// cmtblocknumbers := tx.CMTBlocks()
+	// for i, _ := range cmtblocknumbers {
+	// 	blockNumber := cmtblocknumbers[i]
+	// 	block := pool.chain.GetBlockByNumber(blockNumber)
+	// 	cmtsForMerkle = append(cmtsForMerkle, block.CMTS()...)
+	// }
 
+	// cmtRoot := merkle.CMTRoot(cmtsForMerkle)
+	// txCMTroot := tx.RTcmt()
+	// if txCMTroot != cmtRoot {
+	// 	return errors.New("invalid CMTRoot")
+	// }
+
+	//}
 	return nil
 }
 

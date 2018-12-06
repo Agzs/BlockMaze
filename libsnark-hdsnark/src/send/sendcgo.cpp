@@ -234,6 +234,7 @@ char* genCMT(uint64_t value,char* sn_string,char* r_string){
 }
 
 char* genCMTS(uint64_t value_s,char* pk_string,char* sn_s_string,char* r_s_string,char *sn_old_string){
+    printf("pkcccccc=%s",pk_string);
     uint160 pk = uint160S(pk_string);
     uint256 sn_s=uint256S(sn_s_string);
     uint256 r_s=uint256S(r_s_string);
