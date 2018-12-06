@@ -1,7 +1,7 @@
 package zktx
 
 /*
-#cgo LDFLAGS: -L/usr/local/lib -lzk_mint -lzk_redeem  -lzk_send -lzk_update -lzk_deposit -lff -lzm -lsnark -lstdc++  -lgmp -lgmpxx
+#cgo LDFLAGS: -L/usr/local/lib -lzk_mint -lzk_redeem  -lzk_send -lzk_update -lzk_deposit -lff  -lsnark -lstdc++  -lgmp -lgmpxx
 #include "mintcgo.hpp"
 #include "redeemcgo.hpp"
 #include "sendcgo.hpp"

@@ -1,7 +1,7 @@
 package main
 
 /*
-#cgo LDFLAGS: -L/usr/local/lib -lzk_redeem -lff -lzm -lsnark -lstdc++  -lgmp -lgmpxx
+#cgo LDFLAGS: -L/usr/local/lib -lzk_redeem -lff  -lsnark -lstdc++  -lgmp -lgmpxx
 #include "../redeemcgo.hpp"
 #include <stdlib.h>
 */

@@ -1,7 +1,7 @@
 package main
 
 /*
-#cgo LDFLAGS: -L/usr/local/lib -lzk_send -lff -lzm -lsnark -lstdc++  -lgmp -lgmpxx
+#cgo LDFLAGS: -L/usr/local/lib -lzk_send -lff  -lsnark -lstdc++  -lgmp -lgmpxx
 #include "../sendcgo.hpp"
 #include <stdlib.h>
 */

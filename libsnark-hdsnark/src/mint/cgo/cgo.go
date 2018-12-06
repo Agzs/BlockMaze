@@ -1,7 +1,7 @@
 package main
 
 /*
-#cgo LDFLAGS: -L/usr/local/lib -lzk_mint -lff -lzm -lsnark -lstdc++  -lgmp -lgmpxx
+#cgo LDFLAGS: -L/usr/local/lib -lzk_mint -lff  -lsnark -lstdc++  -lgmp -lgmpxx
 #include "../mintcgo.hpp"
 #include <stdlib.h>
 */
