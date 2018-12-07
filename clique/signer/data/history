@@ -2769,3 +2769,5 @@ miner.start()
 miner.stop()
 miner.start()
 miner.stop()
+admin.peers
+admin.nodeInfo.enode
