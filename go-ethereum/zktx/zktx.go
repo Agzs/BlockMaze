@@ -40,12 +40,17 @@ type Sequence struct {
 	Lock   sync.Mutex
 }
 
-var SequenceNumber = InitializeSN()
-var SequenceNumberAfter *Sequence = nil
+type WriteSn struct {
+	SNumber      *Sequence
+	SNumberAfter *Sequence
+}
+
+var SequenceNumber = InitializeSN()     //--zy
+var SequenceNumberAfter *Sequence = nil //--zy
 var SNS *Sequence = nil
 var ZKTxAddress = common.HexToAddress("ffffffffffffffffffffffffffffffffffffffff")
 
-var ZKCMTNODES = 1 // max is 32  because if c is 32
+var ZKCMTNODES = 1 // max is 32  because of c is 32
 
 var ErrSequence = errors.New("invalid sequence")
 var RandomReceiverPK *ecdsa.PublicKey = nil

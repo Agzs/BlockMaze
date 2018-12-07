@@ -17,6 +17,7 @@
 package core
 
 import (
+	"crypto/ecdsa"
 	"errors"
 	"fmt"
 	"math"
@@ -28,6 +29,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/metrics"
@@ -573,15 +575,15 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	}
 	// Make sure the transaction is signed properly
 	from, err := types.Sender(pool.signer, tx)
-	// if txCode == types.DepositTx {
-	// 	x, y := tx.PubKey()
-	// 	pub := ecdsa.PublicKey{Curve: crypto.S256(), X: x, Y: y}
-	// 	fmt.Println(pub)
-	// 	address := common.Address{} //tbd
-	// 	if address != from {
-	// 		return errors.New("invalid publickey for deposit tx")
-	// 	}
-	// }
+	if txCode == types.DepositTx {
+		x, y := tx.PubKey()
+		pub := ecdsa.PublicKey{Curve: crypto.S256(), X: x, Y: y}
+		fmt.Println(pub)
+		address := crypto.PubkeyToAddress(pub)
+		if address != from {
+			return errors.New("invalid publickey for deposit tx")
+		}
+	}
 	if err != nil {
 		return ErrInvalidSender
 	}

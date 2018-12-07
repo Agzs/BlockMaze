@@ -620,6 +620,7 @@ func (env *Work) commitTransaction(tx *types.Transaction, bc *core.BlockChain, c
 	}
 	if tx.TxCode() == types.MintTx || tx.TxCode() == types.UpdateTx || tx.TxCode() == types.DepositTx || tx.TxCode() == types.RedeemTx {
 		zktx.SequenceNumber = zktx.SequenceNumberAfter
+		// snw:=zktx.WriteSn{SNumber:zktx.SequenceNumber,SNumberAfter:zktx.SequenceNumberAfter}
 		zktx.SequenceNumberAfter = nil
 	}
 	env.txs = append(env.txs, tx)
