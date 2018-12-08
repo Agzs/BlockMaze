@@ -160,6 +160,14 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 	if tx.TxCode() == types.SendTx {
 		database.Put(append([]byte("cmtblock"), tx.ZKCMT().Bytes()...), header.Number.Bytes())
 	}
+	if tx.TxCode() == types.DepositTx {
+		address := common.Address{}
+		_, err = database.Get(append([]byte("randompubkeyb"), address.Bytes()...))
+		if err == nil {
+			return nil, 0, errors.New("cannot use randompubkey for a second time")
+		}
+		database.Put(append([]byte("randompubkeyb"), address.Bytes()...), address.Bytes())
+	}
 	// Update the state with pending changes
 	var root []byte
 	if config.IsByzantium(header.Number) {

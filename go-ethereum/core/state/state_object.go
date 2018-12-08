@@ -25,6 +25,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/ethereum/go-ethereum/zktx"
 )
 
 var emptyCodeHash = crypto.Keccak256(nil)
@@ -107,6 +108,11 @@ type Account struct {
 func newObject(db *StateDB, address common.Address, data Account) *stateObject {
 	if data.Balance == nil {
 		data.Balance = new(big.Int)
+	}
+	if data.CMT == (common.Hash{}) {
+		h := &common.Hash{}
+		cmt := zktx.GenCMT(0, h.Bytes(), h.Bytes())
+		data.CMT = *cmt
 	}
 	if data.CodeHash == nil {
 		data.CodeHash = emptyCodeHash

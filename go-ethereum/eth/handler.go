@@ -26,6 +26,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/ethereum/go-ethereum/zktx"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/consensus/misc"
@@ -219,6 +221,8 @@ func (pm *ProtocolManager) Start(maxPeers int) {
 
 func (pm *ProtocolManager) Stop() {
 	log.Info("Stopping Ethereum protocol")
+
+	zktx.SNfile.Close()
 
 	pm.txsSub.Unsubscribe()        // quits txBroadcastLoop
 	pm.minedBlockSub.Unsubscribe() // quits blockBroadcastLoop

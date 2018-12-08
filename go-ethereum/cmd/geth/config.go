@@ -22,8 +22,12 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"reflect"
 	"unicode"
+
+	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/ethereum/go-ethereum/zktx"
 
 	cli "gopkg.in/urfave/cli.v1"
 
@@ -153,6 +157,25 @@ func enableWhisper(ctx *cli.Context) bool {
 func makeFullNode(ctx *cli.Context) *node.Node {
 	stack, cfg := makeConfigNode(ctx)
 
+	DBdir, _ := filepath.Abs(cfg.Node.NodeDB())
+	SNFilePath := filepath.Join(DBdir, "SN")
+	SNfile, err := os.OpenFile(SNFilePath, os.O_RDWR|os.O_CREATE, 0600)
+	if err != nil {
+		fmt.Println("OpenFile error")
+	}
+	zktx.SNfile = SNfile
+	rd := bufio.NewReader(zktx.SNfile)
+	SNBytes, _ := rd.ReadBytes('\n')
+	var SNS zktx.SequenceS
+	if len(SNBytes) != 0 {
+		err := rlp.DecodeBytes(SNBytes, &SNS)
+		if err != nil {
+			fmt.Println("decode sns error")
+		}
+		zktx.SequenceNumber = &SNS.Suquence1
+		zktx.SequenceNumberAfter = &SNS.Suquence2
+		zktx.Stage = SNS.Stage
+	}
 	utils.RegisterEthService(stack, &cfg.Eth)
 
 	if ctx.GlobalBool(utils.DashboardEnabledFlag.Name) {

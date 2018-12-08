@@ -44,7 +44,25 @@ type WriteSn struct {
 	SNumber      *Sequence
 	SNumberAfter *Sequence
 }
+type SequenceS struct {
+	Suquence1 Sequence
+	Suquence2 Sequence
+	Stage     uint8
+}
 
+const (
+	Origin = iota
+	Mint
+	Send
+	Update
+	Deposit
+	Redeem
+)
+
+var SNfile *os.File
+var FileLine uint8
+
+var Stage uint8
 var SequenceNumber = InitializeSN()     //--zy
 var SequenceNumberAfter *Sequence = nil //--zy
 var SNS *Sequence = nil
