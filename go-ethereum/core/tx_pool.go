@@ -576,11 +576,12 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	// Make sure the transaction is signed properly
 	from, err := types.Sender(pool.signer, tx)
 	if txCode == types.DepositTx {
+		PKBAddress := types.ExtractPKBAddress(types.HomesteadSigner{}, tx)
 		x, y := tx.PubKey()
 		pub := ecdsa.PublicKey{Curve: crypto.S256(), X: x, Y: y}
 		fmt.Println(pub)
 		address := crypto.PubkeyToAddress(pub)
-		if address != from {
+		if address != PKBAddress {
 			return errors.New("invalid publickey for deposit tx")
 		}
 	}

@@ -133,11 +133,12 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 		}
 	} else if tx.TxCode() == types.DepositTx {
 		cmtbalance := statedb.GetCMTBalance(msg.From())
-		addr, err := types.Sender(types.HomesteadSigner{}, tx) //tbd
+		addr1, err := types.ExtractPKBAddress(types.HomesteadSigner{}, tx) //tbd
 		ppp := &ecdsa.PublicKey{crypto.S256(), tx.X(), tx.Y()}
+		addr2 := crypto.PubkeyToAddress(ppp)
 		fmt.Println("ppp=", ppp)
-		if err != nil {
-			fmt.Println(addr)
+		if err != nil || addr1 != addr2 {
+			fmt.Println(addr1, addr2)
 			return nil, 0, errors.New("invalid depositTx signature ")
 		}
 		if err = zktx.VerifyDepositProof(ppp, tx.RTcmt(), &cmtbalance, tx.ZKSN(), tx.ZKCMT(), tx.ZKProof()); err != nil {
@@ -161,7 +162,7 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 		database.Put(append([]byte("cmtblock"), tx.ZKCMT().Bytes()...), header.Number.Bytes())
 	}
 	if tx.TxCode() == types.DepositTx {
-		address := common.Address{}
+		address, _ := types.ExtractPKBAddress(types.HomesteadSigner{}, tx)
 		_, err = database.Get(append([]byte("randompubkeyb"), address.Bytes()...))
 		if err == nil {
 			return nil, 0, errors.New("cannot use randompubkey for a second time")

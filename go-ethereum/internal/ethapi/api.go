@@ -1687,7 +1687,7 @@ loop: //得到 cmts
 
 	hash, err := submitTransaction(ctx, s.b, signed)
 	if err == nil {
-		zktx.Stage = zktx.Deposit
+		zktx.Stage = zktx.Update
 		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.Update}
 		SNSBytes, err := rlp.EncodeToBytes(SNS)
 		if err != nil {
@@ -1853,7 +1853,7 @@ loop:
 	zkProof := zktx.GenDepositProof(txSend.ZKCMT(), valueS, sns, rs, sna, SNb.Value, SNb.Random, newSN, newRandom, &randomKeyB.PublicKey, nil, SNb.CMT, SNb.SN, newCMTB, CMTSForMerkle)
 	tx.SetZKProof(zkProof) //proof tbd
 
-	address := common.Address{}
+	address := crypto.PubkeyToAddress(randomKeyB.PublicKey)
 	_, err = database.Get(append([]byte("randompubkeyb"), address.Bytes()...))
 	if err == nil {
 		fmt.Println("pubkeyb cat not be used for a second time")
