@@ -1298,14 +1298,14 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 
 	//check whether sn can be used
 	_, err := database.Get(append([]byte("cmt"), zktx.SequenceNumberAfter.SN.Bytes()...))
-	if err == nil {
+	if err == nil && *(zktx.SequenceNumberAfter.SN) != *(zktx.InitializeSN().SN) {
 		fmt.Println("sn is lost")
 		return common.Hash{}, nil
 	}
 
 	//check whether last tx is processed successfully
 	_, err = database.Get(append([]byte("cmt"), zktx.SequenceNumber.SN.Bytes()...))
-	if err != nil { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
+	if err != nil && *(zktx.SequenceNumberAfter.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
 		if zktx.Stage == zktx.Update {
 			fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
 			return common.Hash{}, nil
@@ -1366,6 +1366,7 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 
 	zktx.SequenceNumber = zktx.SequenceNumberAfter
 	zktx.SequenceNumberAfter = &zktx.Sequence{SN: newSN, CMT: newCMT, Random: newRandom, Value: newValue}
+	fmt.Println("zktx.seqafter", zktx.SequenceNumberAfter)
 	var chainID *big.Int
 	if config := s.b.ChainConfig(); config.IsEIP155(s.b.CurrentBlock().Number()) {
 		chainID = config.ChainID
@@ -1381,14 +1382,16 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 		zktx.Stage = zktx.Mint
 		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.Mint}
 		SNSBytes, err := rlp.EncodeToBytes(SNS)
+		fmt.Println("snsbytes", SNSBytes)
 		if err != nil {
 			fmt.Println("encode sns error")
 			return common.Hash{}, nil
 		}
 		zktx.SNfile.Seek(0, 0) //write in the first line of the file
 		wt := bufio.NewWriter(zktx.SNfile)
+		fmt.Println("zksnfile", zktx.SNfile)
 		wt.Write(append(SNSBytes, '\n')) //write a line
-
+		wt.Flush()
 	}
 	return hash, err
 }
@@ -1438,16 +1441,17 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 		return common.Hash{}, nil
 	}
 	database := s.b.ChainDb()
+
 	//check whether sn can be used
 	_, err := database.Get(append([]byte("cmt"), zktx.SequenceNumberAfter.SN.Bytes()...))
-	if err == nil {
+	if err == nil && *(zktx.SequenceNumberAfter.SN) != *(zktx.InitializeSN().SN) {
 		fmt.Println("sn is lost")
 		return common.Hash{}, nil
 	}
 
 	//check whether last tx is processed successfully
 	_, err = database.Get(append([]byte("cmt"), zktx.SequenceNumber.SN.Bytes()...))
-	if err != nil { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
+	if err != nil && *(zktx.SequenceNumberAfter.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
 		if zktx.Stage == zktx.Update {
 			fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
 			return common.Hash{}, nil
@@ -1538,7 +1542,7 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 		zktx.SNfile.Seek(0, 0) //write in the first line of the file
 		wt := bufio.NewWriter(zktx.SNfile)
 		wt.Write(append(SNSBytes, '\n')) //write a line
-
+		wt.Flush()
 	}
 	return hash, err
 
@@ -1556,16 +1560,13 @@ func (s *PublicTransactionPoolAPI) SendUpdateTransaction(ctx context.Context, ar
 		return common.Hash{}, nil
 	}
 	database := s.b.ChainDb()
-	_, err := database.Get(append([]byte("cmt"), zktx.SequenceNumber.SN.Bytes()...))
-	if err != nil {
-		fmt.Println("sn is lost")
+	//check whether sn can be used
+	_, err := database.Get(append([]byte("cmt"), zktx.SequenceNumberAfter.SN.Bytes()...))
+	if err != nil && *(zktx.SequenceNumberAfter.SN) != *(zktx.InitializeSN().SN) {
+		fmt.Println("send sendtx firstly")
 		return common.Hash{}, nil
 	}
-	_, err = database.Get(append([]byte("cmt"), zktx.SequenceNumberAfter.SN.Bytes()...))
-	if err != nil {
-		fmt.Println("sn is lost")
-		return common.Hash{}, nil
-	}
+
 	// Look up the wallet containing the requested signer
 	account := accounts.Account{Address: args.From}
 	wallet, err := s.b.AccountManager().Find(account)
@@ -1592,7 +1593,7 @@ func (s *PublicTransactionPoolAPI) SendUpdateTransaction(ctx context.Context, ar
 	tx.SetValue(big.NewInt(0))
 	tx.SetZKAddress(&zktx.ZKTxAddress)
 
-	SNa := zktx.SequenceNumber
+	SNa := zktx.SequenceNumberAfter
 	SNs := zktx.SNS
 
 	newSN := zktx.NewRandomHash()                                      //A新sn
@@ -1697,7 +1698,7 @@ loop: //得到 cmts
 		zktx.SNfile.Seek(0, 0) //write in the first line of the file
 		wt := bufio.NewWriter(zktx.SNfile)
 		wt.Write(append(SNSBytes, '\n')) //write a line
-
+		wt.Flush()
 	}
 	return hash, err
 }
@@ -1716,14 +1717,14 @@ func (s *PublicTransactionPoolAPI) SendDepositTransaction(ctx context.Context, a
 	database := s.b.ChainDb()
 	//check whether sn can be used
 	_, err := database.Get(append([]byte("cmt"), zktx.SequenceNumberAfter.SN.Bytes()...))
-	if err == nil {
+	if err == nil && *(zktx.SequenceNumberAfter.SN) != *(zktx.InitializeSN().SN) {
 		fmt.Println("sn is lost")
 		return common.Hash{}, nil
 	}
 
 	//check whether last tx is processed successfully
 	_, err = database.Get(append([]byte("cmt"), zktx.SequenceNumber.SN.Bytes()...))
-	if err != nil { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
+	if err != nil && *(zktx.SequenceNumberAfter.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
 		if zktx.Stage == zktx.Update {
 			fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
 			return common.Hash{}, nil
@@ -1832,9 +1833,8 @@ loop:
 	KB := ecdsa.PrivateKey{PKB, keyB.PrivateKey}
 	randomKeyB := zktx.GenerateKeyForRandomB(&R, &KB)
 	fmt.Println("randomkeyB=", randomKeyB)
-
-	AUXA := tx.AUX()
-	valueS, sns, rs, sna := zktx.DecAUX(&PKB, AUXA)
+	AUXA := txSend.AUX()
+	valueS, sns, rs, sna := zktx.DecAUX(&randomKeyB.PublicKey, AUXA) //--zy
 
 	SNb := zktx.SequenceNumberAfter
 	tx.SetZKSN(SNb.SN)
@@ -1850,6 +1850,7 @@ loop:
 	zktx.SequenceNumberAfter = &zktx.Sequence{SN: newSN, CMT: newCMTB, Random: newRandom, Value: newValue}
 	//tx.SetPubKey(senderKey.X, senderKey.Y)
 	tx.SetPubKey(randomKeyB.X, randomKeyB.Y)
+
 	zkProof := zktx.GenDepositProof(txSend.ZKCMT(), valueS, sns, rs, sna, SNb.Value, SNb.Random, newSN, newRandom, &randomKeyB.PublicKey, nil, SNb.CMT, SNb.SN, newCMTB, CMTSForMerkle)
 	tx.SetZKProof(zkProof) //proof tbd
 
@@ -1859,11 +1860,9 @@ loop:
 		fmt.Println("pubkeyb cat not be used for a second time")
 		return common.Hash{}, nil
 	}
-	types.SignTx(tx, types.HomesteadSigner{}, randomKeyB)
+	signnnnnnn, _ := types.SignTx(tx, types.HomesteadSigner{}, randomKeyB)
 
-	//return common.Hash{}, nil
-	//return submitTransaction(ctx, s.b, tx)
-	hash, err := submitTransaction(ctx, s.b, tx)
+	hash, err := submitTransaction(ctx, s.b, signnnnnnn)
 	if err == nil {
 		zktx.Stage = zktx.Deposit
 		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.Deposit}
@@ -1875,7 +1874,7 @@ loop:
 		zktx.SNfile.Seek(0, 0) //write in the first line of the file
 		wt := bufio.NewWriter(zktx.SNfile)
 		wt.Write(append(SNSBytes, '\n')) //write a line
-
+		wt.Flush()
 	}
 	return hash, err
 }
@@ -1894,14 +1893,14 @@ func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, ar
 	database := s.b.ChainDb()
 	//check whether sn can be used
 	_, err := database.Get(append([]byte("cmt"), zktx.SequenceNumberAfter.SN.Bytes()...))
-	if err == nil {
+	if err == nil && *(zktx.SequenceNumberAfter.SN) != *(zktx.InitializeSN().SN) {
 		fmt.Println("sn is lost")
 		return common.Hash{}, nil
 	}
 
 	//check whether last tx is processed successfully
 	_, err = database.Get(append([]byte("cmt"), zktx.SequenceNumber.SN.Bytes()...))
-	if err != nil { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
+	if err != nil && *(zktx.SequenceNumberAfter.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
 		if zktx.Stage == zktx.Update {
 			fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
 			return common.Hash{}, nil
@@ -1979,7 +1978,7 @@ func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, ar
 		zktx.SNfile.Seek(0, 0) //write in the first line of the file
 		wt := bufio.NewWriter(zktx.SNfile)
 		wt.Write(append(SNSBytes, '\n')) //write a line
-
+		wt.Flush()
 	}
 	return hash, err
 }

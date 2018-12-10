@@ -125,6 +125,7 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 			fmt.Println("invalid zkproof")
 			return nil, 0, err
 		}
+		database.Put(append([]byte("cmt"), tx.ZKSN().Bytes()...), tx.ZKSN().Bytes())
 	} else if tx.TxCode() == types.UpdateTx {
 		cmtbalance := statedb.GetCMTBalance(msg.From())
 		if err = zktx.VerifyUpdateProof(&cmtbalance, tx.RTcmt(), tx.ZKCMT(), tx.ZKProof()); err != nil {
@@ -132,25 +133,33 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 			return nil, 0, err
 		}
 	} else if tx.TxCode() == types.DepositTx {
+		if data, _ := database.Get(append([]byte("cmt"), tx.ZKSN().Bytes()...)); len(data) != 0 { //if sn is already exist,
+			return nil, 0, errors.New("sn is already used ")
+		}
 		cmtbalance := statedb.GetCMTBalance(msg.From())
 		addr1, err := types.ExtractPKBAddress(types.HomesteadSigner{}, tx) //tbd
-		ppp := &ecdsa.PublicKey{crypto.S256(), tx.X(), tx.Y()}
+		ppp := ecdsa.PublicKey{crypto.S256(), tx.X(), tx.Y()}
 		addr2 := crypto.PubkeyToAddress(ppp)
 		fmt.Println("ppp=", ppp)
 		if err != nil || addr1 != addr2 {
 			fmt.Println(addr1, addr2)
 			return nil, 0, errors.New("invalid depositTx signature ")
 		}
-		if err = zktx.VerifyDepositProof(ppp, tx.RTcmt(), &cmtbalance, tx.ZKSN(), tx.ZKCMT(), tx.ZKProof()); err != nil {
+		if err = zktx.VerifyDepositProof(&ppp, tx.RTcmt(), &cmtbalance, tx.ZKSN(), tx.ZKCMT(), tx.ZKProof()); err != nil {
 			fmt.Println("invalid zkproof")
 			return nil, 0, err
 		}
+		database.Put(append([]byte("cmt"), tx.ZKSN().Bytes()...), tx.ZKSN().Bytes())
 	} else if tx.TxCode() == types.RedeemTx {
+		if data, _ := database.Get(append([]byte("cmt"), tx.ZKSN().Bytes()...)); len(data) != 0 { //if sn is already exist,
+			return nil, 0, errors.New("sn is already used ")
+		}
 		cmtbalance := statedb.GetCMTBalance(msg.From())
 		if err = zktx.VerifyRedeemProof(&cmtbalance, tx.ZKSN(), tx.ZKCMT(), tx.Value().Uint64(), tx.ZKProof()); err != nil {
 			fmt.Println("invalid zkproof")
 			return nil, 0, err
 		}
+		database.Put(append([]byte("cmt"), tx.ZKSN().Bytes()...), tx.ZKSN().Bytes())
 	}
 
 	// Apply the transaction to the current state (included in the env)

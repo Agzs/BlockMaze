@@ -576,7 +576,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	// Make sure the transaction is signed properly
 	from, err := types.Sender(pool.signer, tx)
 	if txCode == types.DepositTx {
-		PKBAddress := types.ExtractPKBAddress(types.HomesteadSigner{}, tx)
+		PKBAddress, _ := types.ExtractPKBAddress(types.HomesteadSigner{}, tx)
 		x, y := tx.PubKey()
 		pub := ecdsa.PublicKey{Curve: crypto.S256(), X: x, Y: y}
 		fmt.Println(pub)
@@ -637,13 +637,14 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 			return err
 		}
 	}
-	// if txCode == types.DepositTx {
-	// 	cmtbalance := pool.currentState.GetCMTBalance(from)
-	// 	err = zktx.VerifyDepositProof(&cmtbalance, tx.RTcmt(), tx.ZKCMT(), tx.ZKProof())
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// }
+	if txCode == types.DepositTx {
+		cmtbalance := pool.currentState.GetCMTBalance(from)
+		ppp := &ecdsa.PublicKey{crypto.S256(), tx.X(), tx.Y()}
+		err = zktx.VerifyDepositProof(ppp, tx.RTcmt(), &cmtbalance, tx.ZKSN(), tx.ZKCMT(), tx.ZKProof())
+		if err != nil {
+			return err
+		}
+	}
 	/*
 		if txCode != types.PublicTx {
 			err = zktx.VerZKProof(tx.ZKProof()) //TBD

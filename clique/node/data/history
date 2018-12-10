@@ -24,3 +24,49 @@ admin.peers
 eth.blockNumber
 eth.getPubKeyRLP("0x29eec49600049eb192b860121447bfc72fe7ebac","")
 eth.sendDepositTransaction({from:"0x29eec49600049eb192b860121447bfc72fe7ebac",txHash:"0x44c83998d82880cb6ec8e691b12cba4d5ac414d6b08ebe0aed1dd8ada4e5afca",key:""})
+admin.addPeer("enode://6583a9ce880277bbe73355bafd51c380be4786f1944d23296c7a66fed384695a40003b2b3b6d47ee5df5fb22d02130a27488a603e4abdac891d8ea9e722d3876@101.76.218.214:2002")
+admin.peers
+admin.nodeInfo.enode
+admin.addPeer("enode://6583a9ce880277bbe73355bafd51c380be4786f1944d23296c7a66fed384695a40003b2b3b6d47ee5df5fb22d02130a27488a603e4abdac891d8ea9e722d3876@127.0.0.1:2002")
+admin.peers
+admin.addPeer("enode://42db028f168daf61f8e0daa7e8b7e8f8bbb7ac883812afff7c01fe43cd5c4bbe8507f176f7d802bcaf94665be99b768e6f2df90b4bebef02829e27cf5ad3645e@127.0.0.1:2002")
+eth.sendDepositTransaction({from:"0x29eec49600049eb192b860121447bfc72fe7ebac",txHash:"0xd07c124b3a17d33c6caf7410628b6fb6f57671489cdc355d01c0671b171ffa3a",key:""})
+admin.addPeer("enode://874f214fb442af15613565a6454e1b8a608099a39c3c07258881121527ee0f1fb7a07aee988c82377884a94d7cf846f5b3e9d9748fc3d576684cfe2baf804499@127.0.0.1:2002")
+admin.peers
+eth.sendDepositTransaction({from:"0x29eec49600049eb192b860121447bfc72fe7ebac",txHash:"0x92a515e6d8a2f6dacf43ec0dd93060f337970390579d2aeefbee90ac41357aa5",key:""})
+admin.addPeer("enode://3933e6f0ba2ce55092d407af53b6be84df1e33a24afc68701ccf1f35fb012a6608b645232d67f5823304a872d477b12f465632c8dd7fa9945a77f76f3f9a93b5@127.0.0.1:2002")
+admin.peers
+eth.sendDepositTransaction({from:"0x29eec49600049eb192b860121447bfc72fe7ebac",txHash:"0xdccdfae02fd646f7e9653c68220ecb32c60a26d0d044f96cf860f9087d7ad025",key:""})
+R := ecdsa.PublicKey{Curve: crypto.S256(), X: Rx, Y: Ry} //计算
+PKB := ecdsa.PublicKey{Curve: keyB.Cureve, X: keyB.X, Y: keyB.Y}
+KB := ecdsa.PrivateKey{PKB, keyB.PrivateKey}
+randomKeyB := zktx.GenerateKeyForRandomB(&R, &KB)
+fmt.Println("randomkeyB=", randomKeyB)
+AUXA := txSend.AUX()
+//valueS, sns, rs, sna := zktx.DecAUX(&PKB, AUXA)
+valueS, sns, rs, sna := zktx.DecAUX(&randomKeyB.PublicKey, AUXA)
+SNb := zktx.SequenceNumberAfter
+tx.SetZKSN(SNb.SN)
+//SNs := zktx.SNS
+newSN := zktx.NewRandomHash()
+newRandom := zktx.NewRandomHash()
+newValue := SNb.Value + valueSR := ecdsa.PublicKey{Curve: crypto.S256(), X: Rx, Y: Ry} //计算
+PKB := ecdsa.PublicKey{Curve: keyB.Cureve, X: keyB.X, Y: keyB.Y}
+KB := ecdsa.PrivateKey{PKB, keyB.PrivateKey}
+randomKeyB := zktx.GenerateKeyForRandomB(&R, &KB)
+fmt.Println("randomkeyB=", randomKeyB)
+AUXA := txSend.AUX()
+//valueS, sns, rs, sna := zktx.DecAUX(&PKB, AUXA)
+valueS, sns, rs, sna := zktx.DecAUX(&randomKeyB.PublicKey, AUXA)
+SNb := zktx.SequenceNumberAfter
+tx.SetZKSN(SNb.SN)
+//SNs := zktx.SNS
+newSN := zktx.NewRandomHash()
+newRandom := zktx.NewRandomHash()
+newValue := SNb.Value + valueSexit
+eth.sendDepositTransaction({from:"0x29eec49600049eb192b860121447bfc72fe7ebac",txHash:"0xdccdfae02fd646f7e9653c68220ecb32c60a26d0d044f96cf860f9087d7ad025",key:""})
+admin.addPeer("enode://3933e6f0ba2ce55092d407af53b6be84df1e33a24afc68701ccf1f35fb012a6608b645232d67f5823304a872d477b12f465632c8dd7fa9945a77f76f3f9a93b5@127.0.0.1:2002")
+eth.sendDepositTransaction({from:"0x29eec49600049eb192b860121447bfc72fe7ebac",txHash:"0xdccdfae02fd646f7e9653c68220ecb32c60a26d0d044f96cf860f9087d7ad025",key:""})
+admin.addPeer("enode://c2520a92adb21df16882024c953e88bb199efda7a10b962278eac5a5ab064be4571a495463d519101d398d64bce4c27da5df09b349a8aa893e11c9e8e853929c@127.0.0.1:2002")
+admin.peers
+eth.sendDepositTransaction({from:"0x29eec49600049eb192b860121447bfc72fe7ebac",txHash:"0xb6b7654cc42cf3b85e86c82079db90a46d329462b97e1f9bbb9a24a9f33439c4",key:""})

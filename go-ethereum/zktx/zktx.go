@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"io"
 	"math/big"
+	"os"
 	"sync"
 	"unsafe"
 
@@ -63,8 +64,8 @@ var SNfile *os.File
 var FileLine uint8
 
 var Stage uint8
-var SequenceNumber = InitializeSN()     //--zy
-var SequenceNumberAfter *Sequence = nil //--zy
+var SequenceNumber = InitializeSN()                //--zy
+var SequenceNumberAfter *Sequence = InitializeSN() //--zy
 var SNS *Sequence = nil
 var ZKTxAddress = common.HexToAddress("ffffffffffffffffffffffffffffffffffffffff")
 
@@ -158,6 +159,8 @@ func VerifyUpdateProof(cmta *common.Hash, rtmcmt common.Hash, cmtnew *common.Has
 	return nil
 }
 
+var InvalidDepositProof = errors.New("Verifying Deposit proof failed!!!")
+
 func VerifyDepositProof(pk *ecdsa.PublicKey, rtcmt common.Hash, cmtb *common.Hash, snb *common.Hash, cmtbnew *common.Hash, proof []byte) error {
 	PK := crypto.PubkeyToAddress(*pk) //--zy
 	fmt.Println("len pk_c=", len(common.ToHex(PK[:])), common.ToHex(PK[:]))
@@ -169,7 +172,7 @@ func VerifyDepositProof(pk *ecdsa.PublicKey, rtcmt common.Hash, cmtb *common.Has
 	SNB_c := C.CString(string(snb.Bytes()[:]))
 	tf := C.verifyDepositproof(cproof, rtmCmt, pk_c, cmtB, SNB_c, cmtBnew)
 	if tf == false {
-		return InvalidUpdateProof
+		return InvalidDepositProof
 	}
 	return nil
 }
