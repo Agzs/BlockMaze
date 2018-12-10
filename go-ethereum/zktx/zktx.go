@@ -69,7 +69,7 @@ var SequenceNumberAfter *Sequence = InitializeSN() //--zy
 var SNS *Sequence = nil
 var ZKTxAddress = common.HexToAddress("ffffffffffffffffffffffffffffffffffffffff")
 
-var ZKCMTNODES = 1 // max is 32  because of c is 32
+var ZKCMTNODES = 3 // max is 32  because of c is 32
 
 var ErrSequence = errors.New("invalid sequence")
 var RandomReceiverPK *ecdsa.PublicKey = nil
