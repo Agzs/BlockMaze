@@ -9,17 +9,15 @@
 
 ### How to clone ?
 ```
-cd gopath/src/github.com
+cd $GOPATH/src/github.com
 
 git clone https://github.com/Agzs/VNT.git ethereum
 
-cd ethereum/go-ethereum
+git checkout az
 
-make
+git branch
 
-cd ..
-
-cd libsnark-hdsnark
+cd ethereum/libsnark-hdsnark
 
 mkdir build && cd build
 
@@ -29,56 +27,24 @@ make
 
 sudo cp ./src/libzk* ./depends/libsnark/libsnark/libsnark.so ./depends/libsnark/depends/libff/libff/libff.so /usr/local/lib
 
-```
+cd ethereum/go-ethereum
 
-### How to run geth ?
-```
-cd ethereum/clique
+export LD_LIBRARY_PATH=/usr/local/lib
 
-../go-ethereum/build/bin/geth --datadir signer/data account new
-
-../go-ethereum/build/bin/geth --datadir signer/data init clique.json
-
-../go-ethereum/build/bin/geth --datadir signer/data --networkid 55661 --port 2002 --unlock 492f3232b3e2affb484ddebd3bc84c091b68626f --password signer/passwd.txt console
-
-eth.getBalance(eth.accounts[0])
-
-eth.getBalance(eth.accounts[1])
-
-sha3Msg = web3.sha3("blockchain")
-
-signedData = eth.sign(eth.accounts[0], sha3Msg)
-
-eth.sendPublicTransaction({from:eth.accounts[0],to:eth.accounts[1],value:web3.toWei(0.05, "ether"), data:sha3Msg})
-
-
-txpool.status
-
-miner.start()
-
-miner.stop()
-
-
-eth.getBalance(eth.accounts[0])
-
-eth.getBalance(eth.accounts[1])
-
-
-eth.getBlock()
-
-eth.getTransaction("")
+make
 
 ```
+
 
 ###简易测试步骤
-1.节点相连 nodeA 与nodeB互连 在clique文件夹下打开两个终端
+1.双节点相连 nodeA 与nodeB互连 在clique文件夹下打开两个终端
 ```
 cd ethereum/clique
 
 nodeA
 1 ../go-ethereum/build/bin/geth --datadir signer/data init clique.json
 
-2 ../go-ethereum/build/bin/geth --datadir signer/data --networkid 55661 --port 2002 --unlock 492f3232b3e2affb484ddebd3bc84c091b68626f --password signer/passwd.txt console
+2 ../go-ethereum/build/bin/geth --datadir signer/data --networkid 55661 --port 2002 --unlock 492f3232b3e2affb484ddebd3bc84c091b68626f --password signer/passwd.txt console(需要exit 后再次执行该命令，下同)
 
 5 admin.nodeInfo.enode
 
