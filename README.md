@@ -7,6 +7,23 @@
 * go-ethereum can build and compile geth
 * libsnark can provide a library for zero-knowledge proof
 
+### 环境搭建
+```
+* On Ubuntu 18.04 LTS:
+
+        $ sudo apt-get install build-essential cmake git libgmp3-dev libprocps-dev python-markdown libboost-all-dev libssl-dev pkg-config
+        
+* On Ubuntu 16.04 LTS:
+
+        $ sudo apt-get install build-essential cmake git libgmp3-dev libprocps4-dev python-markdown libboost-all-dev libssl-dev pkg-config
+        
+
+* On Ubuntu 14.04 LTS:
+
+        $ sudo apt-get install build-essential cmake git libgmp3-dev libprocps3-dev python-markdown libboost-all-dev libssl-dev
+
+go version >= 1.10
+```
 ### How to clone ?
 ```
 cd $GOPATH/src/github.com
@@ -29,12 +46,16 @@ sudo cp ./src/libzk* ./depends/libsnark/libsnark/libsnark.so ./depends/libsnark/
 
 cd ethereum/go-ethereum
 
+sudo gedit ~/.bashrc
+
+将下面一行添加到文件最后，保存
 export LD_LIBRARY_PATH=/usr/local/lib
 
 make
 
 ```
 
+> Note: 运行geth时，必须指定相对或绝对路径的`geth`，本机可能之前装过`geth`，注意区分
 
 ###简易测试步骤
 1.双节点相连 nodeA 与nodeB互连 在clique文件夹下打开两个终端
