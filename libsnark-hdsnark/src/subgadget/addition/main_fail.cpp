@@ -144,7 +144,7 @@ bool test_add_gadget_with_instance(uint64_t value,
         
         bool result = verify_proof(keypair.vk, *proof);
 
-        printf("verify result = %d\n", result);
+        //printf("verify result = %d\n", result);
          
         if (!result){
             cout << "Verifying addition proof unsuccessfully!!!" << endl;

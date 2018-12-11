@@ -412,7 +412,7 @@ bool verifySendproof(char *data, char* sn_old_string, char* cmtS_string){
 
     bool result = verify_proof(keypair.vk, proof, sn_old,cmtS);
 
-    printf("verify result = %d\n", result);
+    //printf("verify result = %d\n", result);
          
     if (!result){
         cout << "Verifying send proof unsuccessfully!!!" << endl;

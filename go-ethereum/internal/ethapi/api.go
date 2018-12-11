@@ -1366,7 +1366,7 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 
 	zktx.SequenceNumber = zktx.SequenceNumberAfter
 	zktx.SequenceNumberAfter = &zktx.Sequence{SN: newSN, CMT: newCMT, Random: newRandom, Value: newValue}
-	fmt.Println("zktx.seqafter", zktx.SequenceNumberAfter)
+	//fmt.Println("zktx.seqafter", zktx.SequenceNumberAfter)
 	var chainID *big.Int
 	if config := s.b.ChainConfig(); config.IsEIP155(s.b.CurrentBlock().Number()) {
 		chainID = config.ChainID
@@ -1382,14 +1382,14 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 		zktx.Stage = zktx.Mint
 		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.Mint}
 		SNSBytes, err := rlp.EncodeToBytes(SNS)
-		fmt.Println("snsbytes", SNSBytes)
+
 		if err != nil {
 			fmt.Println("encode sns error")
 			return common.Hash{}, nil
 		}
 		zktx.SNfile.Seek(0, 0) //write in the first line of the file
 		wt := bufio.NewWriter(zktx.SNfile)
-		fmt.Println("zksnfile", zktx.SNfile)
+
 		wt.Write(append(SNSBytes, '\n')) //write a line
 		wt.Flush()
 	}
@@ -1500,7 +1500,7 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 
 	rlp.DecodeBytes(*args.PubKey, &pubKey) //--zy
 	//fmt.Println("err=", err)
-	fmt.Println("pubkey=", pubKey)
+	//fmt.Println("pubkey=", pubKey)
 
 	receiverPubkey := &ecdsa.PublicKey{crypto.S256(), pubKey.X, pubKey.Y}
 
@@ -1521,7 +1521,7 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 	CMTs := zktx.GenCMTS(args.Value.ToInt().Uint64(), randomReceiverPK, SNs.Bytes(), newRs.Bytes(), SN.SN.Bytes()) //tbd
 	tx.SetZKCMT(CMTs)
 	//cmt
-	fmt.Println("randomReceiverPK=", randomReceiverPK)
+	//fmt.Println("randomReceiverPK=", randomReceiverPK)
 	//proof tbd
 	zkProof := zktx.GenSendProof(SN.CMT, SN.Value, SN.Random, args.Value.ToInt().Uint64(), randomReceiverPK, SNs, newRs, SN.SN, CMTs)
 	tx.SetZKProof(zkProof) //proof tbd

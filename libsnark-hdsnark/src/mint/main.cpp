@@ -180,7 +180,7 @@ bool test_mint_gadget_with_instance(
                                    balance
                                    );
 
-        printf("verify result = %d\n", result);
+        //printf("verify result = %d\n", result);
          
         if (!result){
             cout << "Verifying mint proof unsuccessfully!!!" << endl;

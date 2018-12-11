@@ -515,7 +515,7 @@ bool verifyDepositproof(char *data, char* RT,char* pk, char* cmtb_old,char *snol
                                 sn_old,
                                 cmtB);
 
-    printf("verify result = %d\n", result);
+    //printf("verify result = %d\n", result);
          
     if (!result){
         cout << "Verifying deposit proof unsuccessfully!!!" << endl;

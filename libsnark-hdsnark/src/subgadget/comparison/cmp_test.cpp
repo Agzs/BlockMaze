@@ -161,7 +161,7 @@ bool test_comparison_gadget_with_instance(const size_t a, const size_t b)
             
             bool result = verify_proof(keypair.vk, *proof);
 
-            printf("verify result = %d\n", result);
+            //printf("verify result = %d\n", result);
             printf("the %zu bit inputs, ", n);
 
             if (!result){

@@ -472,7 +472,7 @@ bool test_note_gadget_with_comparison_for_balance_with_instance(uint64_t value,
         
         bool result = verify_proof(keypair.vk, *proof);
 
-        printf("verify result = %d\n", result);
+        //printf("verify result = %d\n", result);
          
         if (!result){
             cout << "Verifying additionLess proof unsuccessfully!!!" << endl;

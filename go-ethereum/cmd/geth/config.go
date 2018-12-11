@@ -157,9 +157,10 @@ func enableWhisper(ctx *cli.Context) bool {
 func makeFullNode(ctx *cli.Context) *node.Node {
 	stack, cfg := makeConfigNode(ctx)
 
-	DBdir, _ := filepath.Abs(cfg.Node.NodeDB())
+	DBdir, _ := filepath.Abs(cfg.Node.DataDir)
 	SNFilePath := filepath.Join(DBdir, "SN")
 	SNfile, err := os.OpenFile(SNFilePath, os.O_RDWR|os.O_CREATE, 0600)
+	fmt.Println("err", err)
 	if err != nil {
 		fmt.Println("OpenFile error")
 	}

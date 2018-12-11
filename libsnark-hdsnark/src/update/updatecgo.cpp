@@ -557,7 +557,7 @@ bool verifyUpdateproof(char *data, char* RT, char* cmta_old,char* cmta){
                                 cmtA_old,
                                 cmtA);
 
-    printf("verify result = %d\n", result);
+    //printf("verify result = %d\n", result);
          
     if (!result){
         cout << "Verifying update proof unsuccessfully!!!" << endl;

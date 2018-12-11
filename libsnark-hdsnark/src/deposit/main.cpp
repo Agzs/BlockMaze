@@ -251,7 +251,7 @@ bool test_deposit_gadget_with_instance(
                                     cmtB
                                    );
 
-        printf("verify result = %d\n", result);
+        //printf("verify result = %d\n", result);
          
         if (!result){
             cout << "Verifying deposit proof unsuccessfully!!!" << endl;

@@ -163,7 +163,7 @@ var InvalidDepositProof = errors.New("Verifying Deposit proof failed!!!")
 
 func VerifyDepositProof(pk *ecdsa.PublicKey, rtcmt common.Hash, cmtb *common.Hash, snb *common.Hash, cmtbnew *common.Hash, proof []byte) error {
 	PK := crypto.PubkeyToAddress(*pk) //--zy
-	fmt.Println("len pk_c=", len(common.ToHex(PK[:])), common.ToHex(PK[:]))
+	//fmt.Println("len pk_c=", len(common.ToHex(PK[:])), common.ToHex(PK[:]))
 	pk_c := C.CString(common.ToHex(PK[:]))
 	cproof := C.CString(string(proof))
 	rtmCmt := C.CString(common.ToHex(rtcmt[:]))
@@ -219,9 +219,9 @@ func GenCMT(value uint64, sn []byte, r []byte) *common.Hash {
 func GenCMTS(values uint64, pk *ecdsa.PublicKey, sns []byte, rs []byte, sna []byte) *common.Hash {
 
 	values_c := C.ulong(values)
-	fmt.Println("ecdsapub", pk)
+	//fmt.Println("ecdsapub", pk)
 	PK := crypto.PubkeyToAddress(*pk) //--zy
-	fmt.Println("len pk_c=", len(common.ToHex(PK[:])), common.ToHex(PK[:]))
+	//fmt.Println("len pk_c=", len(common.ToHex(PK[:])), common.ToHex(PK[:]))
 	pk_c := C.CString(common.ToHex(PK[:]))
 	sns_string := string(sns[:])
 	sns_c := C.CString(sns_string)
@@ -373,7 +373,7 @@ func GenSendProof(CMTA *common.Hash, ValueA uint64, RA *common.Hash, ValueS uint
 	// fmt.Println("pk to c =", string(PK.Bytes()[:]))
 	// pk_c := C.CString(string(PK.Bytes()[:]))
 	PK := crypto.PubkeyToAddress(*pk) //--zy
-	fmt.Println("len pk_c=", len(common.ToHex(PK[:])), common.ToHex(PK[:]))
+	//fmt.Println("len pk_c=", len(common.ToHex(PK[:])), common.ToHex(PK[:]))
 	pk_c := C.CString(common.ToHex(PK[:]))
 	snS := C.CString(string(SNS.Bytes()[:]))
 	rS := C.CString(string(RS.Bytes()[:]))
@@ -394,7 +394,7 @@ func GenUpdateProof(CMTS *common.Hash, ValueS uint64, pk *ecdsa.PublicKey, SNS *
 	// PK := crypto.PubkeyToAddress(*pk)
 	// pk_c := C.CString(string(PK[:]))
 	PK := crypto.PubkeyToAddress(*pk) //--zy
-	fmt.Println("len pk_c=", len(common.ToHex(PK[:])), common.ToHex(PK[:]))
+	//fmt.Println("len pk_c=", len(common.ToHex(PK[:])), common.ToHex(PK[:]))
 	pk_c := C.CString(common.ToHex(PK[:]))
 	SNS_c := C.CString(string(SNS.Bytes()[:])) //--zy
 	RS_c := C.CString(string(RS.Bytes()[:]))   //--zy
@@ -433,7 +433,7 @@ func GenDepositProof(CMTS *common.Hash, ValueS uint64, SNS *common.Hash, RS *com
 	// PK := crypto.PubkeyToAddress(*pk)
 	// pk_c := C.CString(string(PK[:]))
 	PK := crypto.PubkeyToAddress(*pk) //--zy
-	fmt.Println("len pk_c=", len(common.ToHex(PK[:])), common.ToHex(PK[:]))
+	//fmt.Println("len pk_c=", len(common.ToHex(PK[:])), common.ToHex(PK[:]))
 	pk_c := C.CString(common.ToHex(PK[:]))
 	SNS_c := C.CString(string(SNS.Bytes()[:])) //--zy
 	RS_c := C.CString(string(RS.Bytes()[:]))   //--zy

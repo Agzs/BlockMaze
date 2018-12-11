@@ -401,7 +401,7 @@ bool verifyMintproof(char *data, char* cmtA_old_string, char* sn_old_string, cha
 
     bool result = verify_proof(keypair.vk, proof, cmtA_old,sn_old,cmtA,value_s, balance);
 
-    printf("verify result = %d\n", result);
+    //printf("verify result = %d\n", result);
          
     if (!result){
         cout << "Verifying mint proof unsuccessfully!!!" << endl;

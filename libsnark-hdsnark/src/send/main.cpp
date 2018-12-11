@@ -163,7 +163,7 @@ bool test_send_gadget_with_instance(
                                    cmtS
                                    );
 
-        printf("verify result = %d\n", result);
+        //printf("verify result = %d\n", result);
          
         if (!result){
             cout << "Verifying send proof unsuccessfully!!!" << endl;

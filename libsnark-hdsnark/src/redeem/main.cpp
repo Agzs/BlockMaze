@@ -173,7 +173,7 @@ bool test_mint_gadget_with_instance(
                                    value_s
                                    );
 
-        printf("verify result = %d\n", result);
+       // printf("verify result = %d\n", result);
          
         if (!result){
             cout << "Verifying redeem proof unsuccessfully!!!" << endl;

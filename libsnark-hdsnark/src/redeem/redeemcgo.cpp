@@ -397,7 +397,7 @@ bool verifyRedeemproof(char *data, char* cmtA_old_string, char* sn_old_string, c
 
     bool result = verify_proof(keypair.vk, proof, cmtA_old,sn_old,cmtA,value_s);
 
-    printf("verify result = %d\n", result);
+    //printf("verify result = %d\n", result);
          
     if (!result){
         cout << "Verifying redeem proof unsuccessfully!!!" << endl;
