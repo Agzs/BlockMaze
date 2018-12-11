@@ -29,12 +29,16 @@ sudo cp ./src/libzk* ./depends/libsnark/libsnark/libsnark.so ./depends/libsnark/
 
 cd ethereum/go-ethereum
 
+sudo gedit ~/.bashrc
+
+将下面一行添加到文件最后，保存
 export LD_LIBRARY_PATH=/usr/local/lib
 
 make
 
 ```
 
+> Note: 运行geth时，必须指定相对或绝对路径的`geth`，本机可能之前装过`geth`，注意区分
 
 ###简易测试步骤
 1.双节点相连 nodeA 与nodeB互连 在clique文件夹下打开两个终端
