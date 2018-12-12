@@ -367,21 +367,25 @@ char* genDepositproof(uint64_t value,
     //初始化参数
     alt_bn128_pp::init_public_params();
    
-    typedef libff::Fr<alt_bn128_pp> FieldT;
+    // typedef libff::Fr<alt_bn128_pp> FieldT;
 
-    protoboard<FieldT> pb;
+    // protoboard<FieldT> pb;
 
-    deposit_gadget<FieldT> deposit(pb);
-    deposit.generate_r1cs_constraints();// 生成约束
+    // deposit_gadget<FieldT> deposit(pb);
+    // deposit.generate_r1cs_constraints();// 生成约束
 
-    // check conatraints
-    const r1cs_constraint_system<FieldT> constraint_system = pb.get_constraint_system();
-    std::cout << "Number of R1CS constraints: " << constraint_system.num_constraints() << endl;
+    // // check conatraints
+    // const r1cs_constraint_system<FieldT> constraint_system = pb.get_constraint_system();
+    // std::cout << "Number of R1CS constraints: " << constraint_system.num_constraints() << endl;
     
-    // key pair generation
-    r1cs_ppzksnark_keypair<alt_bn128_pp> keypair = r1cs_ppzksnark_generator<alt_bn128_pp>(constraint_system);
-    //vk写入文件
-    vkToFile(keypair.vk,"depositvk.txt");
+    // // key pair generation
+    // r1cs_ppzksnark_keypair<alt_bn128_pp> keypair = r1cs_ppzksnark_generator<alt_bn128_pp>(constraint_system);
+
+    // //vk写入文件
+    // vkToFile(keypair.vk,"depositvk.txt");
+
+    r1cs_ppzksnark_keypair<alt_bn128_pp> keypair;
+    keypair.pk = deserializeProvingKeyFromFile("/usr/local/prfKey/depositpk.txt");
     // 生成proof
     cout << "Trying to generate proof..." << endl;
 
@@ -427,7 +431,7 @@ bool verifyDepositproof(char *data, char* RT,char* pk, char* cmtb_old,char *snol
     
     alt_bn128_pp::init_public_params();
     r1cs_ppzksnark_keypair<alt_bn128_pp> keypair;
-    keypair.vk = deserializevkFromFile("depositvk.txt");
+    keypair.vk = deserializevkFromFile("/usr/local/prfKey/depositvk.txt");
 
     libsnark::r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof;
     //1111

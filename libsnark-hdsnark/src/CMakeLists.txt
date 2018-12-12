@@ -37,3 +37,103 @@ add_library(
   SHARED
   deposit/depositcgo.cpp
 )
+#########################
+add_executable(
+  mint
+
+  mint/getpvk.cpp
+)
+
+target_link_libraries(
+  mint
+
+  snark
+)
+
+target_include_directories(
+  mint
+
+  PUBLIC
+  ${DEPENDS_DIR}/libsnark
+  ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+#########################
+add_executable(
+  send
+
+  send/getpvk.cpp
+)
+
+target_link_libraries(
+  send
+
+  snark
+)
+
+target_include_directories(
+  send
+
+  PUBLIC
+  ${DEPENDS_DIR}/libsnark
+  ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+#########################
+add_executable(
+  update
+
+  update/getpvk.cpp
+)
+
+target_link_libraries(
+  update
+
+  snark
+)
+
+target_include_directories(
+  update
+
+  PUBLIC
+  ${DEPENDS_DIR}/libsnark
+  ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+#########################
+add_executable(
+  deposit
+
+  deposit/getpvk.cpp
+)
+
+target_link_libraries(
+  deposit
+
+  snark
+)
+
+target_include_directories(
+  deposit
+
+  PUBLIC
+  ${DEPENDS_DIR}/libsnark
+  ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+#########################
+add_executable(
+  redeem
+
+  redeem/getpvk.cpp
+)
+
+target_link_libraries(
+  redeem
+
+  snark
+)
+
+target_include_directories(
+  redeem
+
+  PUBLIC
+  ${DEPENDS_DIR}/libsnark
+  ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)

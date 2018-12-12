@@ -274,17 +274,36 @@ char* genMintproof(uint64_t value,
 
     //初始化参数
     alt_bn128_pp::init_public_params();
-    typedef libff::Fr<alt_bn128_pp> FieldT;
-    protoboard<FieldT> pb;
-    mint_gadget<FieldT> mint(pb);
-    mint.generate_r1cs_constraints();// 生成约束
-    const r1cs_constraint_system<FieldT> constraint_system = pb.get_constraint_system();
-    //std::cout << "Number of R1CS constraints: " << constraint_system.num_constraints() << endl;
+    // typedef libff::Fr<alt_bn128_pp> FieldT;
+    // protoboard<FieldT> pb;
+    // mint_gadget<FieldT> mint(pb);
+    // mint.generate_r1cs_constraints();// 生成约束
+    // const r1cs_constraint_system<FieldT> constraint_system = pb.get_constraint_system();
     
+    //std::cout << "Number of R1CS constraints: " << constraint_system.num_constraints() << endl;
+    // ifstream fvk("mintvk.txt");
+    // ifstream fpk("mintpk.txt");
+    // if (fvk&&fpk){
+    //     cout<<"pkvk已存在"<<endl;
+    // }
+    // else{
+    //     // key pair generation
+    //     r1cs_ppzksnark_keypair<alt_bn128_pp> keypair = r1cs_ppzksnark_generator<alt_bn128_pp>(constraint_system);
+    //     //pk,vk写入文件
+    //     serializeProvingKeyToFile(keypair.pk,"mintpk.txt");
+    //     vkToFile(keypair.vk,"mintvk.txt");
+    // }
+    // r1cs_ppzksnark_keypair<alt_bn128_pp> keypair;
+    // keypair.pk = deserializeProvingKeyFromFile("mintpk.txt");
+
     // key pair generation
-    r1cs_ppzksnark_keypair<alt_bn128_pp> keypair = r1cs_ppzksnark_generator<alt_bn128_pp>(constraint_system);
-    //vk写入文件
-    vkToFile(keypair.vk,"vk.txt");
+    //r1cs_ppzksnark_keypair<alt_bn128_pp> keypair = r1cs_ppzksnark_generator<alt_bn128_pp>(constraint_system);
+    //pk,vk写入文件
+    
+    //vkToFile(keypair.vk,"mintvk.txt");
+
+    r1cs_ppzksnark_keypair<alt_bn128_pp> keypair;
+    keypair.pk = deserializeProvingKeyFromFile("/usr/local/prfKey/mintpk.txt");
     // 生成proof
     cout << "Trying to generate proof..." << endl;
 
@@ -319,7 +338,7 @@ bool verifyMintproof(char *data, char* cmtA_old_string, char* sn_old_string, cha
     
     alt_bn128_pp::init_public_params();
     r1cs_ppzksnark_keypair<alt_bn128_pp> keypair;
-    keypair.vk = deserializevkFromFile("vk.txt");
+    keypair.vk = deserializevkFromFile("/usr/local/prfKey/mintvk.txt");
 
     libsnark::r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof;
     //1111
