@@ -65,7 +65,7 @@ cd ethereum/clique
 nodeA
 1 ../go-ethereum/build/bin/geth --datadir signer/data init clique.json
 
-2 ../go-ethereum/build/bin/geth --datadir signer/data --networkid 55661 --port 2002 --unlock 492f3232b3e2affb484ddebd3bc84c091b68626f --password signer/passwd.txt console(需要exit 后再次执行该命令，下同)
+2 ../go-ethereum/build/bin/geth --datadir signer/data --networkid 55661 --port 2002 --unlock 492f3232b3e2affb484ddebd3bc84c091b68626f --password signer/passwd.txt console
 
 5 admin.nodeInfo.enode
 
