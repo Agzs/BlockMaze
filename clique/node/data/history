@@ -70,3 +70,5 @@ eth.sendDepositTransaction({from:"0x29eec49600049eb192b860121447bfc72fe7ebac",tx
 admin.addPeer("enode://c2520a92adb21df16882024c953e88bb199efda7a10b962278eac5a5ab064be4571a495463d519101d398d64bce4c27da5df09b349a8aa893e11c9e8e853929c@127.0.0.1:2002")
 admin.peers
 eth.sendDepositTransaction({from:"0x29eec49600049eb192b860121447bfc72fe7ebac",txHash:"0xb6b7654cc42cf3b85e86c82079db90a46d329462b97e1f9bbb9a24a9f33439c4",key:""})
+admin.addPeer("enode://5be82fb1ae3cf8972722880e99420a4d9fc0ddf4b472d19168e81ad10c6d4e7a053d6c4f01a1d262b4ecc823b4c1888993df40cf44faf4ed393a5f1abdd0d6bd@127.0.0.1:2002")
+eth.sendMintTransaction({from:"0x492f3232b3e2affb484ddebd3bc84c091b68626f",value:"0x1234"})

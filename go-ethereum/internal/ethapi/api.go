@@ -1338,7 +1338,7 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 	tx.SetZKValue(args.Value.ToInt().Uint64())
 	tx.SetPrice(big.NewInt(0))
 	tx.SetZKAddress(&zktx.ZKTxAddress)
-	SN := zktx.SequenceNumber
+	SN := zktx.SequenceNumberAfter
 
 	//seqNumber := SN.SN
 	tx.SetZKSN(SN.SN) //SN
@@ -1882,7 +1882,7 @@ loop:
 // SendRedeemTransaction creates a Redeem transaction for the given argument, sign it and submit it to the
 // transaction pool.
 func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, args SendTxArgs) (common.Hash, error) {
-	if zktx.Stage == zktx.Redeem {
+	if zktx.Stage == zktx.Send {
 		fmt.Println("cannot send DepositTx after sendTx")
 		return common.Hash{}, nil
 	}

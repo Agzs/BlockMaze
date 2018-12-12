@@ -2862,3 +2862,32 @@ eth.sendSendTransaction({from:"0x492f3232b3e2affb484ddebd3bc84c091b68626f",value
 miner.start()
 miner.stop()
 eth.sendUpdateTransaction({from:"0x492f3232b3e2affb484ddebd3bc84c091b68626f",txHash:"0x7372cd3bae407fb92aeed5f07d385bb746b4b7d14293fe57fcd9b629ebc8d619"})
+admin.nodeInfo.enode
+admin.peers
+eth.sendMintTransaction({from:"0x492f3232b3e2affb484ddebd3bc84c091b68626f",value:"0x1234"})
+miner.start()
+miner.stop()
+eth.sendSendTransaction({from:"0x492f3232b3e2affb484ddebd3bc84c091b68626f",value:"0x123",pubKey:"0xf842a0dfdc52fc4652e878a5ab8b714c493ccf4b8fc1106d457941a25989ce4ee2f5d7a0e600c1f446799b44e9e5d23712176a12dec4f4731e1adc7cc26f74b5e8a3d9c0"})
+eth.sendMintTransaction({from:"0x492f3232b3e2affb484ddebd3bc84c091b68626f",value:"0x1234"})
+miner.start()
+miner.stop()
+eth.sendMintTransaction({from:"0x492f3232b3e2affb484ddebd3bc84c091b68626f",value:"0x1234"})
+miner.start()
+miner.stop()
+txpool.status
+eth.sendMintTransaction({from:"0x492f3232b3e2affb484ddebd3bc84c091b68626f",value:"0x1234"})
+eth.sendMintTransaction({from:"0x492f3232b3e2affb484ddebd3bc84c091b68626f",value:"0x1234"})balance= 16767896
+cmtold= [0 68 240 182 153 205 45 134 108 141 160 32 29 204 42 139 40 189 247 212 127 57 225 62 190 78 83 162 155 112 74 131]
+cmtnew= [130 54 153 177 48 187 0 195 16 38 127 149 20 76 246 51 157 7 1 19 173 109 14 217 87 248 211 217 241 222 211 194]
+eth.getBalance(eth.accounts[0])
+eth.getBalance2(eth.accounts[0])
+{
+  CMT: "0x0044f0b699cd2d866c8da0201dcc2a8b28bdf7d47f39e13ebe4e53a29b704a83",
+  Value: "0x1000000"
+}
+eth.sendMintTransaction({from:"0x492f3232b3e2affb484ddebd3bc84c091b68626f",value:"0x1234"})
+eth.getBalance2(eth.accounts[0])
+miner.start()
+miner.stop()
+eth.getBalance2(eth.accounts[0])
+eth.sendMintTransaction({from:"0x492f3232b3e2affb484ddebd3bc84c091b68626f",value:"0x1234"})
