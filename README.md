@@ -25,7 +25,10 @@
 go version >= 1.10
 ```
 ### How to clone ?
+
 ```
+从共享文件夹中将prfkey文件夹拷贝至/usr/local目录下
+
 cd $GOPATH/src/github.com
 
 git clone https://github.com/Agzs/VNT.git ethereum
