@@ -25,7 +25,10 @@
 go version >= 1.10
 ```
 ### How to clone ?
+
 ```
+从共享文件夹中将prfkey文件夹拷贝至/usr/local目录下
+
 cd $GOPATH/src/github.com
 
 git clone https://github.com/Agzs/VNT.git ethereum
@@ -65,7 +68,7 @@ cd ethereum/clique
 nodeA
 1 ../go-ethereum/build/bin/geth --datadir signer/data init clique.json
 
-2 ../go-ethereum/build/bin/geth --datadir signer/data --networkid 55661 --port 2002 --unlock 492f3232b3e2affb484ddebd3bc84c091b68626f --password signer/passwd.txt console(需要exit 后再次执行该命令，下同)
+2 ../go-ethereum/build/bin/geth --datadir signer/data --networkid 55661 --port 2002 --unlock 492f3232b3e2affb484ddebd3bc84c091b68626f --password signer/passwd.txt console
 
 5 admin.nodeInfo.enode
 
