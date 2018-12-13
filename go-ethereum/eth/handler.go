@@ -679,6 +679,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 				return errResp(ErrDecode, "transaction %d is nil", i)
 			}
 			p.MarkTransaction(tx.Hash())
+			fmt.Println("**** receive remote tx: ", tx.Hash().String())
 		}
 		pm.txpool.AddRemotes(txs)
 

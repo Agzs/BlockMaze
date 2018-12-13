@@ -110,6 +110,7 @@ func Execute(code, input []byte, cfg *Config) ([]byte, *state.StateDB, error) {
 	// set the receiver's (the executing contract) code for execution.
 	cfg.State.SetCode(address, code)
 	// Call the code with the given configuration.
+	fmt.Println("**** call vmenv.Call in Execute() at 113")
 	ret, _, err := vmenv.Call(
 		sender,
 		common.BytesToAddress([]byte("contract")),
@@ -158,6 +159,7 @@ func Call(address common.Address, input []byte, cfg *Config) ([]byte, uint64, er
 
 	sender := cfg.State.GetOrNewStateObject(cfg.Origin)
 	// Call the code with the given configuration.
+	fmt.Println("**** call vmenv.Call in Create() at 162")
 	ret, leftOverGas, err := vmenv.Call(
 		sender,
 		address,

@@ -251,6 +251,7 @@ func (self *worker) update() {
 		select {
 		// Handle ChainHeadEvent
 		case <-self.chainHeadCh:
+			fmt.Println("**********************call commit NewWork at update() 254********************")
 			self.commitNewWork()
 
 		// Handle ChainSideEvent
@@ -274,12 +275,14 @@ func (self *worker) update() {
 					txs[acc] = append(txs[acc], tx)
 				}
 				txset := types.NewTransactionsByPriceAndNonce(self.current.signer, txs)
+				fmt.Println("**********************call commit transactions at update() 277********************")
 				self.current.commitTransactions(self.mux, txset, self.chain, self.coinbase)
 				self.updateSnapshot()
 				self.currentMu.Unlock()
 			} else {
 				// If we're mining, but nothing is being processed, wake on new transactions
 				if self.config.Clique != nil && self.config.Clique.Period == 0 {
+					fmt.Println("**********************call commit NewWork at update() 284********************")
 					self.commitNewWork()
 				}
 			}
@@ -452,6 +455,7 @@ func (self *worker) commitNewWork() {
 		return
 	}
 	txs := types.NewTransactionsByPriceAndNonce(self.current.signer, pending)
+	fmt.Println("**********************call commitTransactions at commitNewWork() ********************")
 	work.commitTransactions(self.mux, txs, self.chain, self.coinbase)
 
 	// compute uncles for the new block.
@@ -604,8 +608,10 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 }
 
 func (env *Work) commitTransaction(tx *types.Transaction, bc *core.BlockChain, coinbase common.Address, gp *core.GasPool) (error, []*types.Log) {
+	fmt.Println("***** commit transaction : ", tx.Hash().String())
 	snap := env.state.Snapshot()
 
+	fmt.Println("***** call ApplyTransaction() in commitTransaction : ", tx.Hash().String())
 	receipt, _, err := core.ApplyTransaction(env.config, bc, &coinbase, gp, env.state, env.header, tx, &env.header.GasUsed, vm.Config{})
 	if err != nil {
 		env.state.RevertToSnapshot(snap)

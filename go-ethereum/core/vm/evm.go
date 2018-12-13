@@ -17,6 +17,7 @@
 package vm
 
 import (
+	"fmt"
 	"math/big"
 	"sync/atomic"
 	"time"
@@ -171,6 +172,11 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 		}
 		evm.StateDB.CreateAccount(addr)
 	}
+	fmt.Println("*****start in call() ******************")
+	fmt.Println("From: ", caller.Address().String())
+	fmt.Println("To: ", to.Address().String())
+	fmt.Println("value: ", value)
+	fmt.Println("********end  in call() ******************")
 	evm.Transfer(evm.StateDB, caller.Address(), to.Address(), value)
 
 	// Initialise a new contract and set the code that is to be used by the EVM.
