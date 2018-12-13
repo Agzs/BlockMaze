@@ -251,8 +251,10 @@ func (self *worker) update() {
 		select {
 		// Handle ChainHeadEvent
 		case <-self.chainHeadCh:
-			self.commitNewWork()
-
+			if atomic.LoadInt32(&self.mining) == 1 {
+				fmt.Println("self.commitNewWork()")
+				self.commitNewWork()
+			}
 		// Handle ChainSideEvent
 		case ev := <-self.chainSideCh:
 			self.uncleMu.Lock()

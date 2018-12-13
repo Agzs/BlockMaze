@@ -112,7 +112,7 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 		}
 		balance := statedb.GetBalance(msg.From())
 		cmtbalance := statedb.GetCMTBalance(msg.From())
-		if err = zktx.VerifyMintProof(&cmtbalance, tx.ZKSN(), tx.ZKCMT(), tx.Value().Uint64(), balance.Uint64(), tx.ZKProof()); err != nil {
+		if err = zktx.VerifyMintProof(&cmtbalance, tx.ZKSN(), tx.ZKCMT(), tx.ZKValue(), balance.Uint64(), tx.ZKProof()); err != nil {
 			fmt.Println("invalid zkproof")
 			return nil, 0, err
 		}
@@ -155,7 +155,7 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 			return nil, 0, errors.New("sn is already used ")
 		}
 		cmtbalance := statedb.GetCMTBalance(msg.From())
-		if err = zktx.VerifyRedeemProof(&cmtbalance, tx.ZKSN(), tx.ZKCMT(), tx.Value().Uint64(), tx.ZKProof()); err != nil {
+		if err = zktx.VerifyRedeemProof(&cmtbalance, tx.ZKSN(), tx.ZKCMT(), tx.ZKValue(), tx.ZKProof()); err != nil {
 			fmt.Println("invalid zkproof")
 			return nil, 0, err
 		}

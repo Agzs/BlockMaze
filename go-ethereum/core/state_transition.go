@@ -237,7 +237,7 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 		st.state.SubBalance(msg.From(), big.NewInt(int64(msg.ZKValue())))
 	}
 	if txCode == types.RedeemTx {
-		st.state.AddBalance(*(msg.To()), big.NewInt(int64(msg.ZKValue())))
+		st.state.AddBalance(msg.From(), big.NewInt(int64(msg.ZKValue())))
 	}
 
 	return ret, st.gasUsed(), vmerr != nil, err

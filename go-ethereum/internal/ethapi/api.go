@@ -1337,6 +1337,7 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 	//tx.SetValue(big.NewInt(0))
 	tx.SetZKValue(args.Value.ToInt().Uint64())
 	tx.SetPrice(big.NewInt(0))
+	tx.SetValue(big.NewInt(0))
 	tx.SetZKAddress(&zktx.ZKTxAddress)
 	SN := zktx.SequenceNumberAfter
 
@@ -1362,6 +1363,9 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 	fmt.Println("cmtold=", SN.CMT)
 	fmt.Println("cmtnew=", newCMT)
 	zkProof := zktx.GenMintProof(SN.Value, SN.Random, newSN, newRandom, SN.CMT, SN.SN, newCMT, newValue, balance.Uint64())
+	if string(zkProof[0:10]) == "0000000000" {
+		return common.Hash{}, errors.New("can't generate proof")
+	}
 	tx.SetZKProof(zkProof) //proof tbd
 
 	zktx.SequenceNumber = zktx.SequenceNumberAfter
@@ -1451,7 +1455,7 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 
 	//check whether last tx is processed successfully
 	_, err = database.Get(append([]byte("cmt"), zktx.SequenceNumber.SN.Bytes()...))
-	if err != nil && *(zktx.SequenceNumberAfter.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
+	if err != nil && *(zktx.SequenceNumber.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
 		if zktx.Stage == zktx.Update {
 			fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
 			return common.Hash{}, nil
@@ -1524,6 +1528,9 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 	//fmt.Println("randomReceiverPK=", randomReceiverPK)
 	//proof tbd
 	zkProof := zktx.GenSendProof(SN.CMT, SN.Value, SN.Random, args.Value.ToInt().Uint64(), randomReceiverPK, SNs, newRs, SN.SN, CMTs)
+	if string(zkProof[0:10]) == "0000000000" {
+		return common.Hash{}, errors.New("can't generate proof")
+	}
 	tx.SetZKProof(zkProof) //proof tbd
 	AUX := zktx.ComputeAUX(randomReceiverPK, args.Value.ToInt().Uint64(), SNs, newRs, SN.SN)
 	fmt.Println("AUX=", AUX)
@@ -1675,6 +1682,9 @@ loop: //得到 cmts
 	//tx.SetPubKey(senderKey.X, senderKey.Y)
 	//kengbi
 	zkProof := zktx.GenUpdateProof(SNs.CMT, SNs.Value, zktx.RandomReceiverPK, SNs.SN, SNs.Random, SNa.SN, SNa.Value, SNa.Random, newSN, newRandom, SNa.CMT, RTcmt.Bytes(), newCMTA, CMTSForMerkle, len(CMTSForMerkle))
+	if string(zkProof[0:10]) == "0000000000" {
+		return common.Hash{}, errors.New("can't generate proof")
+	}
 	tx.SetZKProof(zkProof) //proof tbd
 	var chainID *big.Int
 	if config := s.b.ChainConfig(); config.IsEIP155(s.b.CurrentBlock().Number()) {
@@ -1724,7 +1734,7 @@ func (s *PublicTransactionPoolAPI) SendDepositTransaction(ctx context.Context, a
 
 	//check whether last tx is processed successfully
 	_, err = database.Get(append([]byte("cmt"), zktx.SequenceNumber.SN.Bytes()...))
-	if err != nil && *(zktx.SequenceNumberAfter.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
+	if err != nil && *(zktx.SequenceNumber.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
 		if zktx.Stage == zktx.Update {
 			fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
 			return common.Hash{}, nil
@@ -1852,6 +1862,9 @@ loop:
 	tx.SetPubKey(randomKeyB.X, randomKeyB.Y)
 
 	zkProof := zktx.GenDepositProof(txSend.ZKCMT(), valueS, sns, rs, sna, SNb.Value, SNb.Random, newSN, newRandom, &randomKeyB.PublicKey, nil, SNb.CMT, SNb.SN, newCMTB, CMTSForMerkle)
+	if string(zkProof[0:10]) == "0000000000" {
+		return common.Hash{}, errors.New("can't generate proof")
+	}
 	tx.SetZKProof(zkProof) //proof tbd
 
 	address := crypto.PubkeyToAddress(randomKeyB.PublicKey)
@@ -1900,7 +1913,7 @@ func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, ar
 
 	//check whether last tx is processed successfully
 	_, err = database.Get(append([]byte("cmt"), zktx.SequenceNumber.SN.Bytes()...))
-	if err != nil && *(zktx.SequenceNumberAfter.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
+	if err != nil && *(zktx.SequenceNumber.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
 		if zktx.Stage == zktx.Update {
 			fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
 			return common.Hash{}, nil
@@ -1929,7 +1942,7 @@ func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, ar
 	// Assemble the transaction and sign with the wallet
 	tx := args.toTransaction()
 	tx.SetTxCode(types.RedeemTx)
-	//tx.SetValue(big.NewInt(0))
+	tx.SetValue(big.NewInt(0))
 	tx.SetZKValue(args.Value.ToInt().Uint64())
 	tx.SetPrice(big.NewInt(0))
 	tx.SetZKAddress(&zktx.ZKTxAddress)
@@ -1951,6 +1964,9 @@ func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, ar
 	tx.SetZKCMT(newCMT)                                               //cmt
 
 	zkProof := zktx.GenRedeemProof(SN.Value, SN.Random, newSN, newRandom, SN.CMT, SN.SN, newCMT, newValue)
+	if string(zkProof[0:10]) == "0000000000" {
+		return common.Hash{}, errors.New("can't generate proof")
+	}
 	tx.SetZKProof(zkProof)
 
 	zktx.SequenceNumber = zktx.SequenceNumberAfter

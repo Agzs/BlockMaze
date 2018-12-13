@@ -170,6 +170,7 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 	var SNS zktx.SequenceS
 	if len(SNBytes) != 0 {
 		err := rlp.DecodeBytes(SNBytes, &SNS)
+		fmt.Println("err====================================", err)
 		if err != nil {
 			fmt.Println("decode sns error")
 		}

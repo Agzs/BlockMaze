@@ -606,20 +606,20 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	if err != nil {
 		return err
 	}
-	if tx.Gas() < intrGas {
+	if tx.Code() == types.PublicTx && tx.Gas() < intrGas {
 		return ErrIntrinsicGas
 	}
 	if txCode == types.MintTx {
 		balance := pool.currentState.GetBalance(from)
 		cmtbalance := pool.currentState.GetCMTBalance(from)
-		err = zktx.VerifyMintProof(&cmtbalance, tx.ZKSN(), tx.ZKCMT(), tx.Value().Uint64(), balance.Uint64(), tx.ZKProof()) //TBD
+		err = zktx.VerifyMintProof(&cmtbalance, tx.ZKSN(), tx.ZKCMT(), tx.ZKValue(), balance.Uint64(), tx.ZKProof()) //TBD
 		if err != nil {
 			return err
 		}
 	}
 	if txCode == types.RedeemTx {
 		cmtbalance := pool.currentState.GetCMTBalance(from)
-		err = zktx.VerifyRedeemProof(&cmtbalance, tx.ZKSN(), tx.ZKCMT(), tx.Value().Uint64(), tx.ZKProof()) //TBD
+		err = zktx.VerifyRedeemProof(&cmtbalance, tx.ZKSN(), tx.ZKCMT(), tx.ZKValue(), tx.ZKProof()) //TBD
 		if err != nil {
 			return err
 		}
