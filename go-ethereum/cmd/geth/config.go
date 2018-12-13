@@ -166,7 +166,9 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 	}
 	zktx.SNfile = SNfile
 	rd := bufio.NewReader(zktx.SNfile)
-	SNBytes, _ := rd.ReadBytes('\n')
+	SSNBytes, _ := rd.ReadBytes('\n')
+	SNBytes := SSNBytes[0 : len(SSNBytes)-1]
+
 	var SNS zktx.SequenceS
 	if len(SNBytes) != 0 {
 		err := rlp.DecodeBytes(SNBytes, &SNS)
