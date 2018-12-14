@@ -176,7 +176,7 @@ std::string string_proof_as_hex(libsnark::r1cs_ppzksnark_proof<libff::alt_bn128_
 }
 
 template<typename ppzksnark_ppT>
-r1cs_ppzksnark_proof<ppzksnark_ppT> generate_proof(r1cs_ppzksnark_proving_key<ppzksnark_ppT> proving_key,
+r1cs_ppzksnark_proof<ppzksnark_ppT> generate_deposit_proof(r1cs_ppzksnark_proving_key<ppzksnark_ppT> proving_key,
                                                                     const NoteS& note_s,
                                                                     const Note& note_old,
                                                                     const Note& note,
@@ -448,7 +448,7 @@ char* genDepositproof(uint64_t value,
     // 生成proof
     cout << "Trying to generate proof..." << endl;
 
-    libsnark::r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof = generate_proof<alt_bn128_pp>(keypair.pk, 
+    libsnark::r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof = generate_deposit_proof<alt_bn128_pp>(keypair.pk, 
                                                             note_s,
                                                             note_old,
                                                             note,
