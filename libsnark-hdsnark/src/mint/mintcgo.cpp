@@ -69,6 +69,7 @@ T loadFromFile(std::string path) {
     return obj;
 }
 
+
 void serializeProvingKeyToFile(r1cs_ppzksnark_proving_key<alt_bn128_pp> pk, const char* pk_path){
   writeToFile(pk_path, pk);
 }

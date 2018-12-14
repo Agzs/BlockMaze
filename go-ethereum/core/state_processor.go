@@ -107,7 +107,7 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 	database := DB.TrieDB().DB()
 
 	if tx.TxCode() == types.MintTx {
-		if data, _ := database.Get(append([]byte("cmt"), tx.ZKSN().Bytes()...)); len(data) != 0 { //if sn is already exist,
+		if data, _ := database.Get(append([]byte("cmt"), tx.ZKSN().Bytes()...)); (*(tx.ZKSN()) != common.Hash{}) && len(data) != 0 { //if sn is already exist,
 			return nil, 0, errors.New("sn is already used ")
 		}
 		balance := statedb.GetBalance(msg.From())
@@ -118,7 +118,7 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 		}
 		database.Put(append([]byte("cmt"), tx.ZKSN().Bytes()...), tx.ZKSN().Bytes())
 	} else if tx.TxCode() == types.SendTx {
-		if data, _ := database.Get(append([]byte("cmt"), tx.ZKSN().Bytes()...)); len(data) != 0 { //if sn is already exist,
+		if data, _ := database.Get(append([]byte("cmt"), tx.ZKSN().Bytes()...)); (*(tx.ZKSN()) != common.Hash{}) && len(data) != 0 { //if sn is already exist,
 			return nil, 0, errors.New("sn is already used ")
 		}
 		if err = zktx.VerifySendProof(tx.ZKSN(), tx.ZKCMT(), tx.ZKProof()); err != nil {
@@ -133,7 +133,7 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 			return nil, 0, err
 		}
 	} else if tx.TxCode() == types.DepositTx {
-		if data, _ := database.Get(append([]byte("cmt"), tx.ZKSN().Bytes()...)); len(data) != 0 { //if sn is already exist,
+		if data, _ := database.Get(append([]byte("cmt"), tx.ZKSN().Bytes()...)); (*(tx.ZKSN()) != common.Hash{}) && len(data) != 0 { //if sn is already exist,
 			return nil, 0, errors.New("sn is already used ")
 		}
 		cmtbalance := statedb.GetCMTBalance(msg.From())
@@ -151,7 +151,7 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 		}
 		database.Put(append([]byte("cmt"), tx.ZKSN().Bytes()...), tx.ZKSN().Bytes())
 	} else if tx.TxCode() == types.RedeemTx {
-		if data, _ := database.Get(append([]byte("cmt"), tx.ZKSN().Bytes()...)); len(data) != 0 { //if sn is already exist,
+		if data, _ := database.Get(append([]byte("cmt"), tx.ZKSN().Bytes()...)); (*(tx.ZKSN()) != common.Hash{}) && len(data) != 0 { //if sn is already exist,
 			return nil, 0, errors.New("sn is already used ")
 		}
 		cmtbalance := statedb.GetCMTBalance(msg.From())

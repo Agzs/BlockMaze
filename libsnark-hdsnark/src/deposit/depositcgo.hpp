@@ -7,7 +7,7 @@ extern "C" {
 
 char* genCMT(uint64_t value,char* sn_string,char* r_string);
 char* genCMTS(uint64_t value_s,char* pk_string,char* sn_s_string,char* r_s_string,char *sn_old_string);
-
+char* genRoot(char* cmtS_string,char* cmtarray,int n);
 char* genDepositproof(uint64_t value,
                     uint64_t value_old,
                     char* sn_old_string,

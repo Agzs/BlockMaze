@@ -135,6 +135,8 @@ func newTransaction(nonce uint64, to *common.Address, amount *big.Int, gasLimit 
 		X:            new(big.Int),
 		Y:            new(big.Int),
 		ZKSN:         &common.Hash{},
+		ZKCMT:        &common.Hash{},
+		ZKAdrress:    &common.Address{},
 	}
 	if amount != nil {
 		d.Amount.Set(amount)

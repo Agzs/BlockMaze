@@ -72,7 +72,7 @@ func NewMerkleTree(data [][]byte) *MerkleTree {
 }
 
 func CMTRoot(cmt []*common.Hash) common.Hash {
-	if len(cmt) == 0 {
+	if cmt == nil || len(cmt) == 0 {
 		return emptyRoot
 	}
 	var data [][]byte

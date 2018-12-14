@@ -1640,7 +1640,7 @@ func (s *PublicTransactionPoolAPI) SendUpdateTransaction(ctx context.Context, ar
 
 	//	header, _ := s.b.HeaderByNumber(context.Background(), rpc.LatestBlockNumber) // latest header should always be available
 	latestBlockNumber := block.NumberU64()
-	count := len(block.CMTS())
+	count := len(block2.CMTS())
 loop: //得到 cmts
 	for count < zktx.ZKCMTNODES {
 		if len(cmtBlockNumbers) > int(latestBlockNumber) {
@@ -1750,7 +1750,7 @@ func (s *PublicTransactionPoolAPI) SendDepositTransaction(ctx context.Context, a
 	}
 
 	if args.Nonce == nil {
-		// Hold the addresse's mutex around signing to prevent concurrent assignment of
+		// Hold the addresse's mutex around signing to prevent concurrent assignment ofnil
 		// the same nonce to multiple accounts.
 		s.nonceLock.LockAddr(args.From)
 		defer s.nonceLock.UnlockAddr(args.From)
@@ -1796,7 +1796,7 @@ func (s *PublicTransactionPoolAPI) SendDepositTransaction(ctx context.Context, a
 
 	//	header, _ := s.b.HeaderByNumber(context.Background(), rpc.LatestBlockNumber) // latest header should always be available
 	latestBlockNumber := block.NumberU64()
-	count := len(block.CMTS())
+	count := len(block2.CMTS())
 loop:
 	for count < zktx.ZKCMTNODES {
 		if len(cmtBlockNumbers) > int(latestBlockNumber) {
@@ -1825,7 +1825,7 @@ loop:
 		index := cmtBlockNumbers[i]
 		CMTSForMerkle = append(CMTSForMerkle, BlockToCmt[index]...)
 	}
-
+	fmt.Println("cmtBlocknumber", cmtBlockNumbers)
 	RTcmt := zktx.GenRT(txSend.ZKCMT(), CMTSForMerkle)
 	//RTcmt := merkle.CMTRoot(CMTSForMerkle) //计算rt  go
 	tx.SetRTcmt(RTcmt)
@@ -1853,6 +1853,9 @@ loop:
 	newSN := zktx.NewRandomHash()
 	newRandom := zktx.NewRandomHash()
 	newValue := SNb.Value + valueS
+	fmt.Println("valueold=", SNb.Value)
+	fmt.Println("valuesend=", valueS)
+	fmt.Println("newvalue=", newValue)
 	newCMTB := zktx.GenCMT(newValue, newSN.Bytes(), newRandom.Bytes())
 	tx.SetZKCMT(newCMTB)
 	//	zktx.SequenceNumber = &zktx.Sequence{SN: newSN, CMT: newCMTA, Random: newRandom, Value: newValue}  TBD
@@ -1861,7 +1864,7 @@ loop:
 	//tx.SetPubKey(senderKey.X, senderKey.Y)
 	tx.SetPubKey(randomKeyB.X, randomKeyB.Y)
 
-	zkProof := zktx.GenDepositProof(txSend.ZKCMT(), valueS, sns, rs, sna, SNb.Value, SNb.Random, newSN, newRandom, &randomKeyB.PublicKey, nil, SNb.CMT, SNb.SN, newCMTB, CMTSForMerkle)
+	zkProof := zktx.GenDepositProof(txSend.ZKCMT(), valueS, sns, rs, sna, SNb.Value, SNb.Random, newSN, newRandom, &randomKeyB.PublicKey, RTcmt.Bytes(), SNb.CMT, SNb.SN, newCMTB, CMTSForMerkle)
 	if string(zkProof[0:10]) == "0000000000" {
 		return common.Hash{}, errors.New("can't generate proof")
 	}

@@ -454,6 +454,7 @@ func (self *worker) commitNewWork() {
 		return
 	}
 	txs := types.NewTransactionsByPriceAndNonce(self.current.signer, pending)
+	//fmt.Println("txs[0]", txs)
 	work.commitTransactions(self.mux, txs, self.chain, self.coinbase)
 
 	// compute uncles for the new block.
@@ -463,7 +464,10 @@ func (self *worker) commitNewWork() {
 		cmt       []*common.Hash
 	)
 	for _, tx := range work.txs {
-		cmt = append(cmt, tx.ZKCMT())
+		if tx.Code() == types.SendTx {
+			cmt = append(cmt, tx.ZKCMT())
+		}
+		//	cmt = append(cmt, tx.ZKCMT())
 	}
 	header.CMT = cmt
 	for hash, uncle := range self.possibleUncles {
@@ -526,6 +530,7 @@ func (self *worker) updateSnapshot() {
 }
 
 func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsByPriceAndNonce, bc *core.BlockChain, coinbase common.Address) {
+	fmt.Println("txs[0]", txs)
 	if env.gasPool == nil {
 		env.gasPool = new(core.GasPool).AddGas(env.header.GasLimit)
 	}
@@ -560,6 +565,7 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 		env.state.Prepare(tx.Hash(), common.Hash{}, env.tcount)
 
 		err, logs := env.commitTransaction(tx, bc, coinbase, env.gasPool)
+		fmt.Println("commitTransaction err", err)
 		switch err {
 		case core.ErrGasLimitReached:
 			// Pop the current out-of-gas transaction without shifting in the next from the account
