@@ -1,0 +1,106 @@
+rm -rf node1/data/geth node1/data/SN node2/data/geth node2/data/SN signer1/data/geth signer1/data/SN signer2/data/geth signer2/data/SN 
+
+
+==================================================================
+
+geth --datadir node1/data account new
+
+clear
+
+geth --datadir node1/data init pow.json
+
+geth --datadir node1/data --networkid 55661 --port 2007 --unlock 156669f9f391aa6a77c494ec6bd4a7761a6541b7 --password node1/passwd.txt console
+
+===================================================================
+
+geth --datadir node2/data account new
+
+clear
+
+geth --datadir node2/data init pow.json
+
+geth --datadir node2/data --networkid 55661 --port 2008 --unlock be95e7fc69d14f993bd8dc5f6d9c338c11c64f79 --password node2/passwd.txt console
+
+===================================================================
+
+
+geth --datadir signer1/data account new
+
+clear
+
+geth --datadir signer1/data init pow.json
+
+geth --datadir signer1/data --networkid 55661 --port 2005 --unlock 492f3232b3e2affb484ddebd3bc84c091b68626f --password signer1/passwd.txt console
+
+eth.sendPublicTransaction({from:eth.accounts[0],to:"156669f9f391aa6a77c494ec6bd4a7761a6541b7",value:web3.toWei(0.05, "ether")})
+
+eth.sendPublicTransaction({from:eth.accounts[0],to:"be95e7fc69d14f993bd8dc5f6d9c338c11c64f79",value:web3.toWei(0.05, "ether")})
+
+miner.start()
+
+=================================================================================================
+
+geth --datadir signer2/data account new
+
+clear
+
+geth --datadir signer2/data init pow.json
+
+geth --datadir signer2/data --networkid 55661 --port 2006 --unlock 29eec49600049eb192b860121447bfc72fe7ebac --password signer2/passwd.txt console
+
+
+======================================================================================================
+
+admin.addPeer("enode://90504ba73d0781d0706f7b84789b4d04431ebf3be93c00a4d13b716110179b425f269a42b766a129d0194d53eb4f847eb0b38f141956127b13edf8b08a6c00d0@[::]:2005")
+
+net.peerCount
+
+eth.getBalance(eth.accounts[0])
+
+eth.getBalance(eth.accounts[1])
+
+
+eth.sendPublicTransaction({from:eth.accounts[0],to:"156669f9f391aa6a77c494ec6bd4a7761a6541b7",value:web3.toWei(0.05, "ether")})
+
+
+eth.sendPublicTransaction({from:eth.accounts[0],to:"be95e7fc69d14f993bd8dc5f6d9c338c11c64f79",value:web3.toWei(0.05, "ether")})
+
+miner.start()
+
+eth.sendMintTransaction({from:eth.accounts[0],value:"0x1234"})
+
+eth.getPubKeyRLP(eth.accounts[0],"")
+
+eth.sendSendTransaction({from:eth.accounts[0],value:"0x123",pubKey:"0xf842a016d2db152cd5fde13ae21dab1bfadc57131c64a899d5447b859e85735436ea7fa0e91d5d3624f65f41ab0160b3c9bf5af4b38b2a3f98b7ac00fdc4c35c7d4af66e"})
+
+
+eth.sendUpdateTransaction({from:eth.accounts[0],txHash:"0x7316009a1c27368b661faa9b25b11214ad1d555a22a2270e86ab8774695c7cae"})
+
+eth.sendDepositTransaction({from:eth.accounts[0],txHash:"0x7316009a1c27368b661faa9b25b11214ad1d555a22a2270e86ab8774695c7cae",key:""})
+
+
+txpool.status
+
+
+miner.start()
+
+
+miner.stop()
+
+
+eth.getBalance(eth.accounts[0])
+
+
+eth.getBalance(eth.accounts[1])
+
+
+eth.getBlock()
+
+
+eth.getTransaction("")
+
+
+
+
+
+

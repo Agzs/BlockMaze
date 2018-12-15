@@ -17,6 +17,9 @@ build/_vendor/pkg
 clique/*/data/geth
 clique/*/data/history
 clique/geth.log
+pow/*/data/geth
+pow/*/data/history
+pow/geth.log
 
 #*
 .#*
