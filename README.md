@@ -3,7 +3,8 @@
 
 官方项目汇报：https://www.jinse.com/search/VNT
 
-* clique can run geth using clique consensus algorithm
+* clique can run geth using clique consensus algorithm (PoA)
+* pow can run geth using ethash consensus algorithm (PoW)
 * go-ethereum can build and compile geth
 * libsnark can provide a library for zero-knowledge proof
 
@@ -17,27 +18,30 @@
 
         $ sudo apt-get install build-essential cmake git libgmp3-dev libprocps4-dev python-markdown libboost-all-dev libssl-dev pkg-config
         
-
 * On Ubuntu 14.04 LTS:
 
         $ sudo apt-get install build-essential cmake git libgmp3-dev libprocps3-dev python-markdown libboost-all-dev libssl-dev
 
 go version >= 1.10
 ```
+
+> Note: 从共享文件夹中将prfkey文件夹拷贝至/usr/local目录下!!!
+
 ### How to clone ?
 
 ```
-从共享文件夹中将prfkey文件夹拷贝至/usr/local目录下
 
 cd $GOPATH/src/github.com
 
 git clone https://github.com/Agzs/VNT.git ethereum
 
-git checkout az
+cd ethereum
 
-git branch
+git checkout at
 
-cd ethereum/libsnark-hdsnark
+git branch //确定当前分支为at
+
+cd libsnark-hdsnark
 
 mkdir build && cd build
 
@@ -45,22 +49,28 @@ cmake ..
 
 make
 
-sudo cp ./src/libzk* ./depends/libsnark/libsnark/libsnark.so ./depends/libsnark/depends/libff/libff/libff.so /usr/local/lib
-
-cd ethereum/go-ethereum
+sudo cp -i ./src/libzk* ./depends/libsnark/libsnark/libsnark.so ./depends/libsnark/depends/libff/libff/libff.so /usr/local/lib
+// 提示是否覆盖，输入y，敲回车
 
 sudo gedit ~/.bashrc
 
 将下面一行添加到文件最后，保存
 export LD_LIBRARY_PATH=/usr/local/lib
 
-make
+cd ethereum/go-ethereum
+
+go install -v ./cmd/geth
 
 ```
 
-> Note: 运行geth时，必须指定相对或绝对路径的`geth`，本机可能之前装过`geth`，注意区分
+> Note: 运行geth时，必须指定相对或绝对路径的`geth`，本机可能之前装过`geth`，注意区分; </br>
+不再使用make编译geth，通过go install编译的geth在$GOPATH/bin目录下 </br>
+可以将$GOPATH/bin添加到~/.bashrrc中，然后就可以直接在任何目录下执行geth的指令了 </br>
 
-###简易测试步骤
+### 简易测试步骤
+
+使用go install编译时， 下述的操作步骤的geth路径需要修改，注意！！！ 
+
 1.双节点相连 nodeA 与nodeB互连 在clique文件夹下打开两个终端
 ```
 cd ethereum/clique
