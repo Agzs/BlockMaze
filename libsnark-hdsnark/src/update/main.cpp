@@ -56,7 +56,7 @@ boost::optional<r1cs_ppzksnark_proof<ppzksnark_ppT>> generate_update_proof(r1cs_
 
 // 验证proof
 template<typename ppzksnark_ppT>
-bool verify_proof(r1cs_ppzksnark_verification_key<ppzksnark_ppT> verification_key,
+bool verify_update_proof(r1cs_ppzksnark_verification_key<ppzksnark_ppT> verification_key,
                     r1cs_ppzksnark_proof<ppzksnark_ppT> proof,
                     const uint256& rt,
                     const uint256& cmtA_old,
@@ -233,9 +233,9 @@ bool test_update_gadget_with_instance(
     } else {
         PrintProof(*proof);
 
-        //assert(verify_proof(keypair.vk, *proof));
+        //assert(verify_update_proof(keypair.vk, *proof));
         
-        bool result = verify_proof(keypair.vk, 
+        bool result = verify_update_proof(keypair.vk, 
                                    *proof, 
                                    rt, //wrong_rt
                                    cmtA_old,

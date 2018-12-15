@@ -222,7 +222,7 @@ r1cs_ppzksnark_proof<ppzksnark_ppT> generate_send_proof(r1cs_ppzksnark_proving_k
 
 // 验证proof
 template <typename ppzksnark_ppT>
-bool verify_proof(r1cs_ppzksnark_verification_key<ppzksnark_ppT> verification_key,
+bool verify_send_proof(r1cs_ppzksnark_verification_key<ppzksnark_ppT> verification_key,
                   r1cs_ppzksnark_proof<ppzksnark_ppT> proof,
                   uint256 &sn_old,
                   uint256 &cmtS)
@@ -466,7 +466,7 @@ bool verifySendproof(char *data, char *sn_old_string, char *cmtS_string)
     //3333
     //r1cs_ppzksnark_proof<alt_bn128_pp> proof=deserializeproofFromFile("proof.txt");
 
-    bool result = verify_proof(keypair.vk, proof, sn_old, cmtS);
+    bool result = verify_send_proof(keypair.vk, proof, sn_old, cmtS);
 
     //printf("verify result = %d\n", result);
 

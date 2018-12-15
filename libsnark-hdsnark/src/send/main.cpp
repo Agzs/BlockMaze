@@ -48,7 +48,7 @@ boost::optional<r1cs_ppzksnark_proof<ppzksnark_ppT>> generate_send_proof(r1cs_pp
 
 // 验证proof
 template<typename ppzksnark_ppT>
-bool verify_proof(r1cs_ppzksnark_verification_key<ppzksnark_ppT> verification_key,
+bool verify_send_proof(r1cs_ppzksnark_verification_key<ppzksnark_ppT> verification_key,
                     r1cs_ppzksnark_proof<ppzksnark_ppT> proof,
                     const uint256& sn_old,
                     const uint256& cmtS
@@ -152,12 +152,12 @@ bool test_send_gadget_with_instance(
     } else {
         PrintProof(*proof);
 
-        //assert(verify_proof(keypair.vk, *proof));
+        //assert(verify_send_proof(keypair.vk, *proof));
         // wrong test data
         uint256 wrong_sn_old = uint256S("666");
         uint256 wrong_cmtS = note_old.cm();
         
-        bool result = verify_proof(keypair.vk, 
+        bool result = verify_send_proof(keypair.vk, 
                                    *proof, 
                                    sn_old,
                                    cmtS

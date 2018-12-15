@@ -50,7 +50,7 @@ boost::optional<r1cs_ppzksnark_proof<ppzksnark_ppT>> generate_redeem_proof(r1cs_
 
 // 验证proof
 template<typename ppzksnark_ppT>
-bool verify_proof(r1cs_ppzksnark_verification_key<ppzksnark_ppT> verification_key,
+bool verify_redeem_proof(r1cs_ppzksnark_verification_key<ppzksnark_ppT> verification_key,
                     r1cs_ppzksnark_proof<ppzksnark_ppT> proof,
                     const uint256& cmtA_old,
                     const uint256& sn_old,
@@ -150,7 +150,7 @@ bool test_mint_gadget_with_instance(
     } else {
         PrintProof(*proof);
 
-        //assert(verify_proof(keypair.vk, *proof));
+        //assert(verify_redeem_proof(keypair.vk, *proof));
         // wrong test data
         uint256 wrong_sn_old = uint256S("666");//random_uint256();
         uint64_t wrong_value_s = uint64_t(100);
@@ -158,7 +158,7 @@ bool test_mint_gadget_with_instance(
         uint256 wrong_cmtA_old = note.cm();
         uint256 wrong_cmtA = note_old.cm();
         
-        bool result = verify_proof(keypair.vk, 
+        bool result = verify_redeem_proof(keypair.vk, 
                                    *proof, 
                                    cmtA_old,
                                    sn_old,

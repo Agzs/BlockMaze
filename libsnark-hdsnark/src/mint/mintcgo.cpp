@@ -222,7 +222,7 @@ r1cs_ppzksnark_proof<ppzksnark_ppT> generate_mint_proof(r1cs_ppzksnark_proving_k
 
 // 验证proof
 template <typename ppzksnark_ppT>
-bool verify_proof(r1cs_ppzksnark_verification_key<ppzksnark_ppT> verification_key,
+bool verify_mint_proof(r1cs_ppzksnark_verification_key<ppzksnark_ppT> verification_key,
                   r1cs_ppzksnark_proof<ppzksnark_ppT> proof,
                   uint256 &cmtA_old,
                   uint256 &sn_old,
@@ -474,7 +474,7 @@ bool verifyMintproof(char *data, char *cmtA_old_string, char *sn_old_string, cha
     //3333
     //r1cs_ppzksnark_proof<alt_bn128_pp> proof=deserializeproofFromFile("proof.txt");
 
-    bool result = verify_proof(keypair.vk, proof, cmtA_old, sn_old, cmtA, value_s, balance);
+    bool result = verify_mint_proof(keypair.vk, proof, cmtA_old, sn_old, cmtA, value_s, balance);
 
     //printf("verify result = %d\n", result);
 
