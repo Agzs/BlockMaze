@@ -21,7 +21,7 @@ using namespace std;
 
 // 生成proof
 template<typename ppzksnark_ppT>
-boost::optional<r1cs_ppzksnark_proof<ppzksnark_ppT>> generate_proof(r1cs_ppzksnark_proving_key<ppzksnark_ppT> proving_key,
+boost::optional<r1cs_ppzksnark_proof<ppzksnark_ppT>> generate_redeem_proof(r1cs_ppzksnark_proving_key<ppzksnark_ppT> proving_key,
                                                                     const Note& note_old,
                                                                     const Note& note,
                                                                     uint256 cmtA_old,
@@ -143,7 +143,7 @@ bool test_mint_gadget_with_instance(
     // 生成proof
     cout << "Trying to generate proof..." << endl;
 
-    auto proof = generate_proof<default_r1cs_ppzksnark_pp>(keypair.pk, 
+    auto proof = generate_redeem_proof<default_r1cs_ppzksnark_pp>(keypair.pk, 
                                                             note_old,
                                                             note,
                                                             cmtA_old,

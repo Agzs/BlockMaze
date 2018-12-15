@@ -24,35 +24,38 @@ using namespace libvnt;
 
 #include "circuit/gadget.tcc"
 
-template<typename T>
-void writeToFile(std::string path, T& obj) {
-    std::stringstream ss;
-    ss << obj;
-    std::ofstream fh;
-    fh.open(path, std::ios::binary);
-    ss.rdbuf()->pubseekpos(0, std::ios_base::out);
-    fh << ss.rdbuf();
-    fh.flush();
-    fh.close();
+template <typename T>
+void writeToFile(std::string path, T &obj)
+{
+  std::stringstream ss;
+  ss << obj;
+  std::ofstream fh;
+  fh.open(path, std::ios::binary);
+  ss.rdbuf()->pubseekpos(0, std::ios_base::out);
+  fh << ss.rdbuf();
+  fh.flush();
+  fh.close();
 }
 
-void serializeProvingKeyToFile(r1cs_ppzksnark_proving_key<alt_bn128_pp> pk, const char* pk_path){
+void serializeProvingKeyToFile(r1cs_ppzksnark_proving_key<alt_bn128_pp> pk, const char *pk_path)
+{
   writeToFile(pk_path, pk);
 }
 
-void vkToFile(r1cs_ppzksnark_verification_key<alt_bn128_pp> vk, const char* vk_path){
+void vkToFile(r1cs_ppzksnark_verification_key<alt_bn128_pp> vk, const char *vk_path)
+{
   writeToFile(vk_path, vk);
 }
 
-
-int main(){
-    alt_bn128_pp::init_public_params();
-    typedef libff::Fr<alt_bn128_pp> FieldT;
-    protoboard<FieldT> pb;
-    deposit_gadget<FieldT> deposit(pb);
-    deposit.generate_r1cs_constraints();// 生成约束
-    const r1cs_constraint_system<FieldT> constraint_system = pb.get_constraint_system();
-    r1cs_ppzksnark_keypair<alt_bn128_pp> keypair = r1cs_ppzksnark_generator<alt_bn128_pp>(constraint_system);
-    serializeProvingKeyToFile(keypair.pk,"depositpk.txt");
-    vkToFile(keypair.vk,"depositvk.txt");
+int main()
+{
+  alt_bn128_pp::init_public_params();
+  typedef libff::Fr<alt_bn128_pp> FieldT;
+  protoboard<FieldT> pb;
+  deposit_gadget<FieldT> deposit(pb);
+  deposit.generate_r1cs_constraints(); // 生成约束
+  const r1cs_constraint_system<FieldT> constraint_system = pb.get_constraint_system();
+  r1cs_ppzksnark_keypair<alt_bn128_pp> keypair = r1cs_ppzksnark_generator<alt_bn128_pp>(constraint_system);
+  serializeProvingKeyToFile(keypair.pk, "depositpk.txt");
+  vkToFile(keypair.vk, "depositvk.txt");
 }

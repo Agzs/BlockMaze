@@ -25,7 +25,7 @@ using namespace libvnt;
 
 // 生成proof
 template<typename ppzksnark_ppT>
-boost::optional<r1cs_ppzksnark_proof<ppzksnark_ppT>> generate_proof(r1cs_ppzksnark_proving_key<ppzksnark_ppT> proving_key,
+boost::optional<r1cs_ppzksnark_proof<ppzksnark_ppT>> generate_deposit_proof(r1cs_ppzksnark_proving_key<ppzksnark_ppT> proving_key,
                                                                     const NoteS& note_s,
                                                                     const Note& note_old,
                                                                     const Note& note,
@@ -56,7 +56,7 @@ boost::optional<r1cs_ppzksnark_proof<ppzksnark_ppT>> generate_proof(r1cs_ppzksna
 
 // 验证proof
 template<typename ppzksnark_ppT>
-bool verify_proof(r1cs_ppzksnark_verification_key<ppzksnark_ppT> verification_key,
+bool verify_deposit_proof(r1cs_ppzksnark_verification_key<ppzksnark_ppT> verification_key,
                     r1cs_ppzksnark_proof<ppzksnark_ppT> proof,
                     const uint256& rt,
                     const uint160& pk_recv,
@@ -222,7 +222,7 @@ bool test_deposit_gadget_with_instance(
     // 生成proof
     cout << "Trying to generate proof..." << endl;
 
-    auto proof = generate_proof<default_r1cs_ppzksnark_pp>(keypair.pk, 
+    auto proof = generate_deposit_proof<default_r1cs_ppzksnark_pp>(keypair.pk, 
                                                             note_s,
                                                             note_old,
                                                             note,
@@ -240,9 +240,9 @@ bool test_deposit_gadget_with_instance(
     } else {
         PrintProof(*proof);
 
-        //assert(verify_proof(keypair.vk, *proof));
+        //assert(verify_deposit_proof(keypair.vk, *proof));
         
-        bool result = verify_proof(keypair.vk, 
+        bool result = verify_deposit_proof(keypair.vk, 
                                     *proof, 
                                     rt, //wrong_rt
                                     pk_recv,
