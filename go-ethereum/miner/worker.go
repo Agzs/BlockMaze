@@ -621,6 +621,7 @@ func (env *Work) commitTransaction(tx *types.Transaction, bc *core.BlockChain, c
 
 	receipt, _, err := core.ApplyTransaction(env.config, bc, &coinbase, gp, env.state, env.header, tx, &env.header.GasUsed, vm.Config{})
 	if err != nil {
+		fmt.Println("eerrrrr",err)
 		env.state.RevertToSnapshot(snap)
 		return err, nil
 	}

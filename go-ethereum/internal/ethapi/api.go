@@ -1613,6 +1613,9 @@ func (s *PublicTransactionPoolAPI) SendUpdateTransaction(ctx context.Context, ar
 	zktx.SequenceNumberAfter = &zktx.Sequence{SN: newSN, CMT: newCMTA, Random: newRandom, Value: newValue}
 
 	txSend := s.GetTransactionByHash2(ctx, args.TxHash)
+	if txSend == nil {
+		return common.Hash{}, errors.New("there does not exist a transaction"+args.TxHash.String())
+	}
 	cmt := txSend.ZKCMT()
 	cmtBlockNumberBytes, err := database.Get(append([]byte("cmtblock"), cmt.Bytes()...))
 	if err != nil {
@@ -1769,6 +1772,10 @@ func (s *PublicTransactionPoolAPI) SendDepositTransaction(ctx context.Context, a
 	tx.SetZKAddress(&args.From)
 
 	txSend := s.GetTransactionByHash2(ctx, args.TxHash)
+	if txSend == nil {
+		return common.Hash{}, errors.New("there does not exist a transaction"+args.TxHash.String())
+	}
+	
 	cmt := txSend.ZKCMT()
 	cmtBlockNumberBytes, err := database.Get(append([]byte("cmtblock"), cmt.Bytes()...))
 	if err != nil {
@@ -1876,7 +1883,12 @@ loop:
 		fmt.Println("pubkeyb cat not be used for a second time")
 		return common.Hash{}, nil
 	}
-	signnnnnnn, _ := types.SignTx(tx, types.HomesteadSigner{}, randomKeyB)
+	signnnnnnn, errrrrr := types.SignTx(tx, types.HomesteadSigner{}, randomKeyB)
+
+	if errrrrr != nil {
+		fmt.Println("******", errrrrr)
+		return common.Hash{}, err
+	}
 
 	hash, err := submitTransaction(ctx, s.b, signnnnnnn)
 	if err == nil {

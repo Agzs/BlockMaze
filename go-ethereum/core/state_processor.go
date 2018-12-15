@@ -165,6 +165,7 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 	// Apply the transaction to the current state (included in the env)
 	_, gas, failed, err := ApplyMessage(vmenv, msg, gp)
 	if err != nil {
+		fmt.Println("==============168 err = ", err)
 		return nil, 0, err
 	}
 	if tx.TxCode() == types.SendTx {
@@ -172,8 +173,10 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 	}
 	if tx.TxCode() == types.DepositTx {
 		address, _ := types.ExtractPKBAddress(types.HomesteadSigner{}, tx)
-		_, err = database.Get(append([]byte("randompubkeyb"), address.Bytes()...))
-		if err == nil {
+		fmt.Println("==============176 ExtractPKBAddress")
+		data, err1 := database.Get(append([]byte("randompubkeyb"), address.Bytes()...))
+		fmt.Println("==============178 err", err)
+		if err1 == nil && (len(data)!=0) {
 			return nil, 0, errors.New("cannot use randompubkey for a second time")
 		}
 		database.Put(append([]byte("randompubkeyb"), address.Bytes()...), address.Bytes())
@@ -199,6 +202,6 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 	// Set the receipt logs and create a bloom for filtering
 	receipt.Logs = statedb.GetLogs(tx.Hash())
 	receipt.Bloom = types.CreateBloom(types.Receipts{receipt})
-
+    fmt.Println("==============205 return")
 	return receipt, gas, err
 }
