@@ -115,6 +115,7 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 		}
 		fmt.Println("write sn", tx.ZKSN())
 		statedb.CreateAccount(common.BytesToAddress(tx.ZKSN().Bytes()))
+		statedb.SetNonce(common.BytesToAddress(tx.ZKSN().Bytes()), 1)
 	} else if tx.TxCode() == types.SendTx {
 		if exist := statedb.Exist(common.BytesToAddress(tx.ZKSN().Bytes())); exist == true && (*(tx.ZKSN()) != common.Hash{}) { //if sn is already exist,
 			return nil, 0, errors.New("sn is already used ")
@@ -125,6 +126,7 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 		}
 		fmt.Println("write sn", tx.ZKSN())
 		statedb.CreateAccount(common.BytesToAddress(tx.ZKSN().Bytes()))
+		statedb.SetNonce(common.BytesToAddress(tx.ZKSN().Bytes()), 1)
 	} else if tx.TxCode() == types.UpdateTx {
 		cmtbalance := statedb.GetCMTBalance(msg.From())
 		if err = zktx.VerifyUpdateProof(&cmtbalance, tx.RTcmt(), tx.ZKCMT(), tx.ZKProof()); err != nil {
@@ -150,6 +152,7 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 		}
 		fmt.Println("write sn", tx.ZKSN())
 		statedb.CreateAccount(common.BytesToAddress(tx.ZKSN().Bytes()))
+		statedb.SetNonce(common.BytesToAddress(tx.ZKSN().Bytes()), 1)
 	} else if tx.TxCode() == types.RedeemTx {
 		if exist := statedb.Exist(common.BytesToAddress(tx.ZKSN().Bytes())); exist == true && (*(tx.ZKSN()) != common.Hash{}) { //if sn is already exist,
 			return nil, 0, errors.New("sn is already used ")
@@ -161,6 +164,7 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 		}
 		fmt.Println("write sn", tx.ZKSN())
 		statedb.CreateAccount(common.BytesToAddress(tx.ZKSN().Bytes()))
+		statedb.SetNonce(common.BytesToAddress(tx.ZKSN().Bytes()), 1)
 	}
 
 	// Apply the transaction to the current state (included in the env)
