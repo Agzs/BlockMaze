@@ -1540,7 +1540,7 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 	hash, err := submitTransaction(ctx, s.b, tx)
 	if err == nil {
 		zktx.Stage = zktx.Send
-		SNS := zktx.SequenceS{zktx.SequenceNumber, zktx.SequenceNumberAfter, zktx.Send}
+		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.Send}
 		SNSBytes, err := rlp.EncodeToBytes(SNS)
 		if err != nil {
 			fmt.Println("encode sns error")
