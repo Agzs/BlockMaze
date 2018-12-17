@@ -113,6 +113,7 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 			fmt.Println("invalid zkproof")
 			return nil, 0, err
 		}
+		fmt.Println("write sn", tx.ZKSN())
 		statedb.CreateAccount(common.BytesToAddress(tx.ZKSN().Bytes()))
 	} else if tx.TxCode() == types.SendTx {
 		if exist := statedb.Exist(common.BytesToAddress(tx.ZKSN().Bytes())); exist == true && (*(tx.ZKSN()) != common.Hash{}) { //if sn is already exist,
@@ -122,6 +123,7 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 			fmt.Println("invalid zkproof")
 			return nil, 0, err
 		}
+		fmt.Println("write sn", tx.ZKSN())
 		statedb.CreateAccount(common.BytesToAddress(tx.ZKSN().Bytes()))
 	} else if tx.TxCode() == types.UpdateTx {
 		cmtbalance := statedb.GetCMTBalance(msg.From())
@@ -146,6 +148,7 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 			fmt.Println("invalid zkproof")
 			return nil, 0, err
 		}
+		fmt.Println("write sn", tx.ZKSN())
 		statedb.CreateAccount(common.BytesToAddress(tx.ZKSN().Bytes()))
 	} else if tx.TxCode() == types.RedeemTx {
 		if exist := statedb.Exist(common.BytesToAddress(tx.ZKSN().Bytes())); exist == true && (*(tx.ZKSN()) != common.Hash{}) { //if sn is already exist,
@@ -156,6 +159,7 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 			fmt.Println("invalid zkproof")
 			return nil, 0, err
 		}
+		fmt.Println("write sn", tx.ZKSN())
 		statedb.CreateAccount(common.BytesToAddress(tx.ZKSN().Bytes()))
 	}
 
@@ -172,6 +176,7 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 		if exist := statedb.Exist(address); exist == true {
 			return nil, 0, errors.New("cannot use randompubkey for a second time")
 		}
+		fmt.Println("write address", address)
 		statedb.CreateAccount(address)
 	}
 	// Update the state with pending changes
