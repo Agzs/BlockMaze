@@ -1893,6 +1893,7 @@ loop:
 		fmt.Println("pubkeyb cat not be used for a second time")
 		return common.Hash{}, nil
 	}
+	fmt.Println("randomKeyB:", randomKeyB.D.BitLen())
 	signnnnnnn, errrrrr := types.SignTx(tx, types.HomesteadSigner{}, randomKeyB)
 
 	if errrrrr != nil {
