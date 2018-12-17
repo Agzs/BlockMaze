@@ -251,10 +251,8 @@ func (self *worker) update() {
 		select {
 		// Handle ChainHeadEvent
 		case <-self.chainHeadCh:
-			if atomic.LoadInt32(&self.mining) == 1 {
-				fmt.Println("self.commitNewWork()")
-				self.commitNewWork()
-			}
+			fmt.Println("self.commitNewWork()")
+			self.commitNewWork()
 		// Handle ChainSideEvent
 		case ev := <-self.chainSideCh:
 			self.uncleMu.Lock()
@@ -275,8 +273,8 @@ func (self *worker) update() {
 					acc, _ := types.Sender(self.current.signer, tx)
 					txs[acc] = append(txs[acc], tx)
 				}
-				//txset := types.NewTransactionsByPriceAndNonce(self.current.signer, txs)
-				//	self.current.commitTransactions(self.mux, txset, self.chain, self.coinbase)
+				txset := types.NewTransactionsByPriceAndNonce(self.current.signer, txs)
+				self.current.commitTransactions(self.mux, txset, self.chain, self.coinbase)
 				self.updateSnapshot()
 				self.currentMu.Unlock()
 			} else {
@@ -461,8 +459,8 @@ func (self *worker) commitNewWork() {
 	var (
 		uncles    []*types.Header
 		badUncles []common.Hash
-		cmt       []*common.Hash
 	)
+	var cmt []*common.Hash = make([]*common.Hash, 0)
 	for _, tx := range work.txs {
 		if tx.Code() == types.SendTx {
 			cmt = append(cmt, tx.ZKCMT())
@@ -621,16 +619,10 @@ func (env *Work) commitTransaction(tx *types.Transaction, bc *core.BlockChain, c
 
 	receipt, _, err := core.ApplyTransaction(env.config, bc, &coinbase, gp, env.state, env.header, tx, &env.header.GasUsed, vm.Config{})
 	if err != nil {
-		fmt.Println("eerrrrr",err)
+		fmt.Println("eerrrrr", err)
 		env.state.RevertToSnapshot(snap)
 		return err, nil
 	}
-	/*
-		if tx.TxCode() == types.MintTx || tx.TxCode() == types.UpdateTx || tx.TxCode() == types.DepositTx || tx.TxCode() == types.RedeemTx {
-			zktx.SequenceNumber = zktx.SequenceNumberAfter
-			zktx.SequenceNumberAfter = nil
-		}
-	*/
 	env.txs = append(env.txs, tx)
 	env.receipts = append(env.receipts, receipt)
 

@@ -103,11 +103,8 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 	// about the transaction and calling mechanisms.
 	vmenv := vm.NewEVM(context, statedb, config, cfg)
 
-	DB := statedb.Database()
-	database := DB.TrieDB().DB()
-
 	if tx.TxCode() == types.MintTx {
-		if data, _ := database.Get(append([]byte("cmt"), tx.ZKSN().Bytes()...)); (*(tx.ZKSN()) != common.Hash{}) && len(data) != 0 { //if sn is already exist,
+		if exist := statedb.Exist(common.BytesToAddress(tx.ZKSN().Bytes())); exist == true && (*(tx.ZKSN()) != common.Hash{}) { //if sn is already exist,
 			return nil, 0, errors.New("sn is already used ")
 		}
 		balance := statedb.GetBalance(msg.From())
@@ -116,16 +113,16 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 			fmt.Println("invalid zkproof")
 			return nil, 0, err
 		}
-		database.Put(append([]byte("cmt"), tx.ZKSN().Bytes()...), tx.ZKSN().Bytes())
+		statedb.CreateAccount(common.BytesToAddress(tx.ZKSN().Bytes()))
 	} else if tx.TxCode() == types.SendTx {
-		if data, _ := database.Get(append([]byte("cmt"), tx.ZKSN().Bytes()...)); (*(tx.ZKSN()) != common.Hash{}) && len(data) != 0 { //if sn is already exist,
+		if exist := statedb.Exist(common.BytesToAddress(tx.ZKSN().Bytes())); exist == true && (*(tx.ZKSN()) != common.Hash{}) { //if sn is already exist,
 			return nil, 0, errors.New("sn is already used ")
 		}
 		if err = zktx.VerifySendProof(tx.ZKSN(), tx.ZKCMT(), tx.ZKProof()); err != nil {
 			fmt.Println("invalid zkproof")
 			return nil, 0, err
 		}
-		database.Put(append([]byte("cmt"), tx.ZKSN().Bytes()...), tx.ZKSN().Bytes())
+		statedb.CreateAccount(common.BytesToAddress(tx.ZKSN().Bytes()))
 	} else if tx.TxCode() == types.UpdateTx {
 		cmtbalance := statedb.GetCMTBalance(msg.From())
 		if err = zktx.VerifyUpdateProof(&cmtbalance, tx.RTcmt(), tx.ZKCMT(), tx.ZKProof()); err != nil {
@@ -133,7 +130,7 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 			return nil, 0, err
 		}
 	} else if tx.TxCode() == types.DepositTx {
-		if data, _ := database.Get(append([]byte("cmt"), tx.ZKSN().Bytes()...)); (*(tx.ZKSN()) != common.Hash{}) && len(data) != 0 { //if sn is already exist,
+		if exist := statedb.Exist(common.BytesToAddress(tx.ZKSN().Bytes())); exist == true && (*(tx.ZKSN()) != common.Hash{}) { //if sn is already exist,
 			return nil, 0, errors.New("sn is already used ")
 		}
 		cmtbalance := statedb.GetCMTBalance(msg.From())
@@ -149,9 +146,9 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 			fmt.Println("invalid zkproof")
 			return nil, 0, err
 		}
-		database.Put(append([]byte("cmt"), tx.ZKSN().Bytes()...), tx.ZKSN().Bytes())
+		statedb.CreateAccount(common.BytesToAddress(tx.ZKSN().Bytes()))
 	} else if tx.TxCode() == types.RedeemTx {
-		if data, _ := database.Get(append([]byte("cmt"), tx.ZKSN().Bytes()...)); (*(tx.ZKSN()) != common.Hash{}) && len(data) != 0 { //if sn is already exist,
+		if exist := statedb.Exist(common.BytesToAddress(tx.ZKSN().Bytes())); exist == true && (*(tx.ZKSN()) != common.Hash{}) { //if sn is already exist,
 			return nil, 0, errors.New("sn is already used ")
 		}
 		cmtbalance := statedb.GetCMTBalance(msg.From())
@@ -159,7 +156,7 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 			fmt.Println("invalid zkproof")
 			return nil, 0, err
 		}
-		database.Put(append([]byte("cmt"), tx.ZKSN().Bytes()...), tx.ZKSN().Bytes())
+		statedb.CreateAccount(common.BytesToAddress(tx.ZKSN().Bytes()))
 	}
 
 	// Apply the transaction to the current state (included in the env)
@@ -168,18 +165,14 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 		fmt.Println("==============168 err = ", err)
 		return nil, 0, err
 	}
-	if tx.TxCode() == types.SendTx {
-		database.Put(append([]byte("cmtblock"), tx.ZKCMT().Bytes()...), header.Number.Bytes())
-	}
+
 	if tx.TxCode() == types.DepositTx {
 		address, _ := types.ExtractPKBAddress(types.HomesteadSigner{}, tx)
 		fmt.Println("==============176 ExtractPKBAddress")
-		data, err1 := database.Get(append([]byte("randompubkeyb"), address.Bytes()...))
-		fmt.Println("==============178 err", err)
-		if err1 == nil && (len(data)!=0) {
+		if exist := statedb.Exist(address); exist == true {
 			return nil, 0, errors.New("cannot use randompubkey for a second time")
 		}
-		database.Put(append([]byte("randompubkeyb"), address.Bytes()...), address.Bytes())
+		statedb.CreateAccount(address)
 	}
 	// Update the state with pending changes
 	var root []byte
@@ -202,6 +195,6 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 	// Set the receipt logs and create a bloom for filtering
 	receipt.Logs = statedb.GetLogs(tx.Hash())
 	receipt.Bloom = types.CreateBloom(types.Receipts{receipt})
-    fmt.Println("==============205 return")
+	fmt.Println("==============205 return")
 	return receipt, gas, err
 }

@@ -1294,18 +1294,24 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 		fmt.Println("SNfile does not exist")
 		return common.Hash{}, nil
 	}
-	database := s.b.ChainDb()
+
+	state, _, err := s.b.StateAndHeaderByNumber(ctx, rpc.LatestBlockNumber)
+	if state == nil || err != nil {
+		return common.Hash{}, err
+	}
 
 	//check whether sn can be used
-	_, err := database.Get(append([]byte("cmt"), zktx.SequenceNumberAfter.SN.Bytes()...))
-	if err == nil && *(zktx.SequenceNumberAfter.SN) != *(zktx.InitializeSN().SN) {
+	exist := state.Exist(common.BytesToAddress(zktx.SequenceNumberAfter.SN.Bytes()))
+
+	if exist == true && *(zktx.SequenceNumberAfter.SN) != *(zktx.InitializeSN().SN) {
 		fmt.Println("sn is lost")
 		return common.Hash{}, nil
 	}
 
 	//check whether last tx is processed successfully
-	_, err = database.Get(append([]byte("cmt"), zktx.SequenceNumber.SN.Bytes()...))
-	if err != nil && *(zktx.SequenceNumberAfter.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
+	exist = state.Exist(common.BytesToAddress(zktx.SequenceNumber.SN.Bytes()))
+
+	if exist == false && *(zktx.SequenceNumber.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
 		if zktx.Stage == zktx.Update {
 			fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
 			return common.Hash{}, nil
@@ -1354,10 +1360,6 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 	newCMT := zktx.GenCMT(newValue, newSN.Bytes(), newRandom.Bytes()) //tbd
 	tx.SetZKCMT(newCMT)                                               //cmt
 
-	state, _, err := s.b.StateAndHeaderByNumber(ctx, rpc.LatestBlockNumber)
-	if state == nil || err != nil {
-		return common.Hash{}, err
-	}
 	balance := state.GetBalance(args.From)
 	fmt.Println("balance=", balance)
 	fmt.Println("cmtold=", SN.CMT)
@@ -1444,18 +1446,23 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 		fmt.Println("SNfile does not exist")
 		return common.Hash{}, nil
 	}
-	database := s.b.ChainDb()
+	state, _, err := s.b.StateAndHeaderByNumber(ctx, rpc.LatestBlockNumber)
+	if state == nil || err != nil {
+		return common.Hash{}, err
+	}
 
 	//check whether sn can be used
-	_, err := database.Get(append([]byte("cmt"), zktx.SequenceNumberAfter.SN.Bytes()...))
-	if err == nil && *(zktx.SequenceNumberAfter.SN) != *(zktx.InitializeSN().SN) {
+	exist := state.Exist(common.BytesToAddress(zktx.SequenceNumberAfter.SN.Bytes()))
+
+	if exist == true && *(zktx.SequenceNumberAfter.SN) != *(zktx.InitializeSN().SN) {
 		fmt.Println("sn is lost")
 		return common.Hash{}, nil
 	}
 
 	//check whether last tx is processed successfully
-	_, err = database.Get(append([]byte("cmt"), zktx.SequenceNumber.SN.Bytes()...))
-	if err != nil && *(zktx.SequenceNumber.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
+	exist = state.Exist(common.BytesToAddress(zktx.SequenceNumber.SN.Bytes()))
+
+	if exist == false && *(zktx.SequenceNumber.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
 		if zktx.Stage == zktx.Update {
 			fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
 			return common.Hash{}, nil
@@ -1566,10 +1573,15 @@ func (s *PublicTransactionPoolAPI) SendUpdateTransaction(ctx context.Context, ar
 		fmt.Println("SNfile does not exist")
 		return common.Hash{}, nil
 	}
-	database := s.b.ChainDb()
+	state, _, err := s.b.StateAndHeaderByNumber(ctx, rpc.LatestBlockNumber)
+	if state == nil || err != nil {
+		return common.Hash{}, err
+	}
+
 	//check whether sn can be used
-	_, err := database.Get(append([]byte("cmt"), zktx.SequenceNumberAfter.SN.Bytes()...))
-	if err != nil && *(zktx.SequenceNumberAfter.SN) != *(zktx.InitializeSN().SN) {
+	exist := state.Exist(common.BytesToAddress(zktx.SequenceNumberAfter.SN.Bytes()))
+
+	if exist == false && *(zktx.SequenceNumberAfter.SN) != *(zktx.InitializeSN().SN) {
 		fmt.Println("send sendtx firstly")
 		return common.Hash{}, nil
 	}
@@ -1613,13 +1625,13 @@ func (s *PublicTransactionPoolAPI) SendUpdateTransaction(ctx context.Context, ar
 	if txSend == nil {
 		return common.Hash{}, errors.New("there does not exist a transaction" + args.TxHash.String())
 	}
-	cmt := txSend.ZKCMT()
-	cmtBlockNumberBytes, err := database.Get(append([]byte("cmtblock"), cmt.Bytes()...))
-	if err != nil {
-		return common.Hash{}, err
+
+	RPCtx := s.GetTransactionByHash(ctx, args.TxHash)
+	if RPCtx == nil {
+		return common.Hash{}, errors.New("there does not exist a transaction" + args.TxHash.String())
 	}
 
-	var cmtBlockNumber *big.Int
+	cmtBlockNumber := (*big.Int)(RPCtx.BlockNumber)
 	var cmtBlockNumbers []uint64
 	var CMTSForMerkle []*common.Hash
 	BlockToCmt := make(map[uint64][]*common.Hash)
@@ -1628,8 +1640,6 @@ func (s *PublicTransactionPoolAPI) SendUpdateTransaction(ctx context.Context, ar
 	if block == nil {
 		return common.Hash{}, err
 	}
-
-	rlp.DecodeBytes(cmtBlockNumberBytes, &cmtBlockNumber)
 
 	cmtBlockNumbers = append(cmtBlockNumbers, cmtBlockNumber.Uint64())
 	block2, err := s.b.BlockByNumber(ctx, rpc.BlockNumber(cmtBlockNumber.Uint64()))
@@ -1726,17 +1736,23 @@ func (s *PublicTransactionPoolAPI) SendDepositTransaction(ctx context.Context, a
 		fmt.Println("SNfile does not exist")
 		return common.Hash{}, nil
 	}
-	database := s.b.ChainDb()
+	state, _, err := s.b.StateAndHeaderByNumber(ctx, rpc.LatestBlockNumber)
+	if state == nil || err != nil {
+		return common.Hash{}, err
+	}
+
 	//check whether sn can be used
-	_, err := database.Get(append([]byte("cmt"), zktx.SequenceNumberAfter.SN.Bytes()...))
-	if err == nil && *(zktx.SequenceNumberAfter.SN) != *(zktx.InitializeSN().SN) {
+	exist := state.Exist(common.BytesToAddress(zktx.SequenceNumberAfter.SN.Bytes()))
+
+	if exist == true && *(zktx.SequenceNumberAfter.SN) != *(zktx.InitializeSN().SN) {
 		fmt.Println("sn is lost")
 		return common.Hash{}, nil
 	}
 
 	//check whether last tx is processed successfully
-	_, err = database.Get(append([]byte("cmt"), zktx.SequenceNumber.SN.Bytes()...))
-	if err != nil && *(zktx.SequenceNumber.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
+	exist = state.Exist(common.BytesToAddress(zktx.SequenceNumber.SN.Bytes()))
+
+	if exist == false && *(zktx.SequenceNumber.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
 		if zktx.Stage == zktx.Update {
 			fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
 			return common.Hash{}, nil
@@ -1775,13 +1791,12 @@ func (s *PublicTransactionPoolAPI) SendDepositTransaction(ctx context.Context, a
 		return common.Hash{}, errors.New("there does not exist a transaction" + args.TxHash.String())
 	}
 
-	cmt := txSend.ZKCMT()
-	cmtBlockNumberBytes, err := database.Get(append([]byte("cmtblock"), cmt.Bytes()...))
-	if err != nil {
-		return common.Hash{}, err
+	RPCtx := s.GetTransactionByHash(ctx, args.TxHash)
+	if RPCtx == nil {
+		return common.Hash{}, errors.New("there does not exist a transaction" + args.TxHash.String())
 	}
 
-	var cmtBlockNumber *big.Int
+	cmtBlockNumber := (*big.Int)(RPCtx.BlockNumber)
 	var cmtBlockNumbers []uint64
 	var CMTSForMerkle []*common.Hash
 	BlockToCmt := make(map[uint64][]*common.Hash)
@@ -1790,8 +1805,6 @@ func (s *PublicTransactionPoolAPI) SendDepositTransaction(ctx context.Context, a
 	if block == nil {
 		return common.Hash{}, err
 	}
-
-	rlp.DecodeBytes(cmtBlockNumberBytes, &cmtBlockNumber)
 
 	cmtBlockNumbers = append(cmtBlockNumbers, cmtBlockNumber.Uint64())
 	block2, err := s.b.BlockByNumber(ctx, rpc.BlockNumber(cmtBlockNumber.Uint64()))
@@ -1875,8 +1888,8 @@ loop:
 	tx.SetZKProof(zkProof) //proof tbd
 
 	address := crypto.PubkeyToAddress(randomKeyB.PublicKey)
-	_, err = database.Get(append([]byte("randompubkeyb"), address.Bytes()...))
-	if err == nil {
+	exist = state.Exist(address)
+	if exist == true {
 		fmt.Println("pubkeyb cat not be used for a second time")
 		return common.Hash{}, nil
 	}
@@ -1917,17 +1930,23 @@ func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, ar
 		fmt.Println("SNfile does not exist")
 		return common.Hash{}, nil
 	}
-	database := s.b.ChainDb()
+	state, _, err := s.b.StateAndHeaderByNumber(ctx, rpc.LatestBlockNumber)
+	if state == nil || err != nil {
+		return common.Hash{}, err
+	}
+
 	//check whether sn can be used
-	_, err := database.Get(append([]byte("cmt"), zktx.SequenceNumberAfter.SN.Bytes()...))
-	if err == nil && *(zktx.SequenceNumberAfter.SN) != *(zktx.InitializeSN().SN) {
+	exist := state.Exist(common.BytesToAddress(zktx.SequenceNumberAfter.SN.Bytes()))
+
+	if exist == true && *(zktx.SequenceNumberAfter.SN) != *(zktx.InitializeSN().SN) {
 		fmt.Println("sn is lost")
 		return common.Hash{}, nil
 	}
 
 	//check whether last tx is processed successfully
-	_, err = database.Get(append([]byte("cmt"), zktx.SequenceNumber.SN.Bytes()...))
-	if err != nil && *(zktx.SequenceNumber.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
+	exist = state.Exist(common.BytesToAddress(zktx.SequenceNumber.SN.Bytes()))
+
+	if exist == false && *(zktx.SequenceNumber.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
 		if zktx.Stage == zktx.Update {
 			fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
 			return common.Hash{}, nil
