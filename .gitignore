@@ -14,11 +14,9 @@
 */**/*tx_database*
 */**/*dapps*
 build/_vendor/pkg
-clique/*/data/geth
-clique/*/data/history
+clique/*/data
 clique/geth.log
-pow/*/data/geth
-pow/*/data/history
+pow/*/data
 pow/geth.log
 
 #*
