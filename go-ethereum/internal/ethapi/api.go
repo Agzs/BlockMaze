@@ -1368,8 +1368,6 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 	}
 	tx.SetZKProof(zkProof) //proof tbd
 
-	zktx.SequenceNumber = zktx.SequenceNumberAfter
-	zktx.SequenceNumberAfter = &zktx.Sequence{SN: newSN, CMT: newCMT, Random: newRandom, Value: newValue}
 	//fmt.Println("zktx.seqafter", zktx.SequenceNumberAfter)
 	var chainID *big.Int
 	if config := s.b.ChainConfig(); config.IsEIP155(s.b.CurrentBlock().Number()) {
@@ -1383,6 +1381,8 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 	//return common.Hash{}, nil
 	hash, err := submitTransaction(ctx, s.b, signed)
 	if err == nil {
+		zktx.SequenceNumber = zktx.SequenceNumberAfter
+		zktx.SequenceNumberAfter = &zktx.Sequence{SN: newSN, CMT: newCMT, Random: newRandom, Value: newValue}
 		zktx.Stage = zktx.Mint
 		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.Mint}
 		SNSBytes, err := rlp.EncodeToBytes(SNS)
@@ -1540,7 +1540,7 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 	hash, err := submitTransaction(ctx, s.b, tx)
 	if err == nil {
 		zktx.Stage = zktx.Send
-		SNS := zktx.SequenceS{zktx.Sequence{}, zktx.Sequence{}, zktx.Send}
+		SNS := zktx.SequenceS{zktx.SequenceNumber, zktx.SequenceNumberAfter, zktx.Send}
 		SNSBytes, err := rlp.EncodeToBytes(SNS)
 		if err != nil {
 			fmt.Println("encode sns error")
@@ -1609,12 +1609,9 @@ func (s *PublicTransactionPoolAPI) SendUpdateTransaction(ctx context.Context, ar
 	newCMTA := zktx.GenCMT(newValue, newSN.Bytes(), newRandom.Bytes()) //A 新 cmt
 	tx.SetZKCMT(newCMTA)
 
-	zktx.SequenceNumber = zktx.SequenceNumberAfter
-	zktx.SequenceNumberAfter = &zktx.Sequence{SN: newSN, CMT: newCMTA, Random: newRandom, Value: newValue}
-
 	txSend := s.GetTransactionByHash2(ctx, args.TxHash)
 	if txSend == nil {
-		return common.Hash{}, errors.New("there does not exist a transaction"+args.TxHash.String())
+		return common.Hash{}, errors.New("there does not exist a transaction" + args.TxHash.String())
 	}
 	cmt := txSend.ZKCMT()
 	cmtBlockNumberBytes, err := database.Get(append([]byte("cmtblock"), cmt.Bytes()...))
@@ -1701,6 +1698,8 @@ loop: //得到 cmts
 
 	hash, err := submitTransaction(ctx, s.b, signed)
 	if err == nil {
+		zktx.SequenceNumber = zktx.SequenceNumberAfter
+		zktx.SequenceNumberAfter = &zktx.Sequence{SN: newSN, CMT: newCMTA, Random: newRandom, Value: newValue}
 		zktx.Stage = zktx.Update
 		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.Update}
 		SNSBytes, err := rlp.EncodeToBytes(SNS)
@@ -1773,9 +1772,9 @@ func (s *PublicTransactionPoolAPI) SendDepositTransaction(ctx context.Context, a
 
 	txSend := s.GetTransactionByHash2(ctx, args.TxHash)
 	if txSend == nil {
-		return common.Hash{}, errors.New("there does not exist a transaction"+args.TxHash.String())
+		return common.Hash{}, errors.New("there does not exist a transaction" + args.TxHash.String())
 	}
-	
+
 	cmt := txSend.ZKCMT()
 	cmtBlockNumberBytes, err := database.Get(append([]byte("cmtblock"), cmt.Bytes()...))
 	if err != nil {
@@ -1866,8 +1865,6 @@ loop:
 	newCMTB := zktx.GenCMT(newValue, newSN.Bytes(), newRandom.Bytes())
 	tx.SetZKCMT(newCMTB)
 	//	zktx.SequenceNumber = &zktx.Sequence{SN: newSN, CMT: newCMTA, Random: newRandom, Value: newValue}  TBD
-	zktx.SequenceNumber = zktx.SequenceNumberAfter
-	zktx.SequenceNumberAfter = &zktx.Sequence{SN: newSN, CMT: newCMTB, Random: newRandom, Value: newValue}
 	//tx.SetPubKey(senderKey.X, senderKey.Y)
 	tx.SetPubKey(randomKeyB.X, randomKeyB.Y)
 
@@ -1892,6 +1889,8 @@ loop:
 
 	hash, err := submitTransaction(ctx, s.b, signnnnnnn)
 	if err == nil {
+		zktx.SequenceNumber = zktx.SequenceNumberAfter
+		zktx.SequenceNumberAfter = &zktx.Sequence{SN: newSN, CMT: newCMTB, Random: newRandom, Value: newValue}
 		zktx.Stage = zktx.Deposit
 		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.Deposit}
 		SNSBytes, err := rlp.EncodeToBytes(SNS)
@@ -1984,8 +1983,6 @@ func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, ar
 	}
 	tx.SetZKProof(zkProof)
 
-	zktx.SequenceNumber = zktx.SequenceNumberAfter
-	zktx.SequenceNumberAfter = &zktx.Sequence{SN: newSN, CMT: newCMT, Random: newRandom, Value: newValue}
 	var chainID *big.Int
 	if config := s.b.ChainConfig(); config.IsEIP155(s.b.CurrentBlock().Number()) {
 		chainID = config.ChainID
@@ -1999,6 +1996,8 @@ func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, ar
 	//return submitTransaction(ctx, s.b, signed)
 	hash, err := submitTransaction(ctx, s.b, signed)
 	if err == nil {
+		zktx.SequenceNumber = zktx.SequenceNumberAfter
+		zktx.SequenceNumberAfter = &zktx.Sequence{SN: newSN, CMT: newCMT, Random: newRandom, Value: newValue}
 		zktx.Stage = zktx.Redeem
 		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.Redeem}
 		SNSBytes, err := rlp.EncodeToBytes(SNS)
