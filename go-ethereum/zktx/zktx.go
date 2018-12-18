@@ -243,10 +243,8 @@ func GenCMTS(values uint64, pk *ecdsa.PublicKey, sns []byte, rs []byte, sna []by
 }
 
 //GenRT 返回merkel树的hash  --zy
-func GenRT(CMTS *common.Hash, CMTSForMerkle []*common.Hash) common.Hash {
-	fmt.Println("cmts=", CMTS)
+func GenRT(CMTSForMerkle []*common.Hash) common.Hash {
 	fmt.Println("cmtsmerkel=", CMTSForMerkle)
-	cmtS_c := C.CString(common.ToHex(CMTS[:]))
 	var cmtArray string
 	for i := 0; i < len(CMTSForMerkle); i++ {
 		s := string(common.ToHex(CMTSForMerkle[i][:]))
@@ -254,7 +252,7 @@ func GenRT(CMTS *common.Hash, CMTSForMerkle []*common.Hash) common.Hash {
 	}
 	fmt.Println("cmtarray=", cmtArray)
 	cmtsM := C.CString(cmtArray)
-	rtC := C.genRoot(cmtS_c, cmtsM, C.int(len(CMTSForMerkle))) //--zy
+	rtC := C.genRoot(cmtsM, C.int(len(CMTSForMerkle))) //--zy
 	rtGo := C.GoString(rtC)
 
 	res, _ := hex.DecodeString(rtGo)   //返回32长度 []byte  一个byte代表两位16进制数

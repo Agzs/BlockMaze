@@ -281,12 +281,10 @@ char *genCMTS(uint64_t value_s, char *pk_string, char *sn_s_string, char *r_s_st
     return p;
 }
 
-char *genRoot(char *cmtS_string, char *cmtarray, int n)
+char *genRoot(char *cmtarray, int n)
 {
     cout << "n1=" << n << endl;
-    cout << "cmrs_string" << cmtS_string << endl;
     cout << "cmtarray=" << cmtarray << endl;
-    uint256 cmtS = uint256S(cmtS_string);
     boost::array<uint256, 32> commitments; //16个cmts
     //std::vector<boost::optional<uint256>>& commitments;
     string s = cmtarray;
@@ -295,43 +293,19 @@ char *genRoot(char *cmtS_string, char *cmtarray, int n)
          << endl
          << "s=" << s << endl;
     //cout<<"s="<<s<<endl;
+    ZCIncrementalMerkleTree tree;
+    assert(tree.root() == ZCIncrementalMerkleTree::empty_root());
+
     for (int i = 0; i < n; i++)
     {
         // char *p;
         // s.copy(p,256,i*256);
         // *(p+256)='\0';
         commitments[i] = uint256S(s.substr(i * 66, 66)); //分割cmtarray  0x+64个十六进制数 一共64位
-    }
-    ZCIncrementalMerkleTree tree;
-    assert(tree.root() == ZCIncrementalMerkleTree::empty_root());
-
-    ZCIncrementalWitness wit = tree.witness(); //初始化witness
-    bool find_cmtS = false;
-    for (size_t i = 0; i < n; i++)
-    {
-        if (find_cmtS)
-        {
-            wit.append(commitments[i]);
-        }
-        else
-        {
-            /********************************************
-             * 如果删除else分支，
-             * 将tree.append(commitments[i])放到for循环体中，
-             * 最终得到的rt == wit.root() == tree.root()
-             *********************************************/
-            tree.append(commitments[i]);
-        }
-
-        if (commitments[i] == cmtS)
-        {
-            //在要证明的叶子节点添加到tree后，才算真正初始化wit，下面的root和path才会正确。
-            wit = tree.witness();
-            find_cmtS = true;
-        }
+        tree.append(commitments[i]);
     }
 
-    uint256 rt = wit.root();
+    uint256 rt = tree.root();
     std::string rt_c = rt.ToString();
     cout << "rt_c=" << rt_c << endl;
     //cout<<cmtA_c<<endl;

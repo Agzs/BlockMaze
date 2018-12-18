@@ -1679,7 +1679,7 @@ loop: //得到 cmts
 		index := cmtBlockNumbers[i]
 		CMTSForMerkle = append(CMTSForMerkle, BlockToCmt[index]...)
 	}
-	RTcmt := zktx.GenRT(txSend.ZKCMT(), CMTSForMerkle)
+	RTcmt := zktx.GenRT(CMTSForMerkle)
 	//RTcmt := merkle.CMTRoot(CMTSForMerkle) //计算rt  go
 	tx.SetRTcmt(RTcmt)
 
@@ -1845,7 +1845,7 @@ loop:
 		CMTSForMerkle = append(CMTSForMerkle, BlockToCmt[index]...)
 	}
 	fmt.Println("cmtBlocknumber", cmtBlockNumbers)
-	RTcmt := zktx.GenRT(txSend.ZKCMT(), CMTSForMerkle)
+	RTcmt := zktx.GenRT(CMTSForMerkle)
 	//RTcmt := merkle.CMTRoot(CMTSForMerkle) //计算rt  go
 	tx.SetRTcmt(RTcmt)
 
@@ -1924,7 +1924,7 @@ loop:
 // transaction pool.
 func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, args SendTxArgs) (common.Hash, error) {
 	if zktx.Stage == zktx.Send {
-		fmt.Println("cannot send DepositTx after sendTx")
+		fmt.Println("cannot send Redeem after sendTx")
 		return common.Hash{}, nil
 	}
 	if zktx.SNfile == nil {

@@ -32,7 +32,6 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/merkle"
 	"github.com/ethereum/go-ethereum/metrics"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/zktx"
@@ -580,7 +579,6 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 		PKBAddress, _ := types.ExtractPKBAddress(types.HomesteadSigner{}, tx)
 		x, y := tx.PubKey()
 		pub := ecdsa.PublicKey{Curve: crypto.S256(), X: x, Y: y}
-		fmt.Println(pub)
 		address := crypto.PubkeyToAddress(pub)
 		if address != PKBAddress {
 			return errors.New("invalid publickey for deposit tx")
@@ -656,7 +654,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 			cmtsForMerkle = append(cmtsForMerkle, block.CMTS()...)
 		}
 
-		cmtRoot := merkle.CMTRoot(cmtsForMerkle)
+		cmtRoot := zktx.GenRT(cmtsForMerkle)
 		txCMTroot := tx.RTcmt()
 		if txCMTroot != cmtRoot {
 			return errors.New("invalid CMTRoot")
