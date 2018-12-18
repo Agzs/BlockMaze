@@ -32,6 +32,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/ethereum/go-ethereum/merkle"
 	"github.com/ethereum/go-ethereum/metrics"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/zktx"
@@ -645,30 +646,23 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 			return err
 		}
 	}
-	/*
-		if txCode != types.PublicTx {
-			err = zktx.VerZKProof(tx.ZKProof()) //TBD
-			if err != nil {
-				return err
-			}
+
+	if txCode == types.UpdateTx || txCode == types.DepositTx {
+		var cmtsForMerkle []*common.Hash
+		cmtblocknumbers := tx.CMTBlocks()
+		for i, _ := range cmtblocknumbers {
+			blockNumber := cmtblocknumbers[i]
+			block := pool.chain.GetBlockByNumber(blockNumber)
+			cmtsForMerkle = append(cmtsForMerkle, block.CMTS()...)
 		}
-	*/
-	//if txCode == types.UpdateTx || txCode == types.DepositTx {
-	// var cmtsForMerkle []*common.Hash
-	// cmtblocknumbers := tx.CMTBlocks()
-	// for i, _ := range cmtblocknumbers {
-	// 	blockNumber := cmtblocknumbers[i]
-	// 	block := pool.chain.GetBlockByNumber(blockNumber)
-	// 	cmtsForMerkle = append(cmtsForMerkle, block.CMTS()...)
-	// }
 
-	// cmtRoot := merkle.CMTRoot(cmtsForMerkle)
-	// txCMTroot := tx.RTcmt()
-	// if txCMTroot != cmtRoot {
-	// 	return errors.New("invalid CMTRoot")
-	// }
+		cmtRoot := merkle.CMTRoot(cmtsForMerkle)
+		txCMTroot := tx.RTcmt()
+		if txCMTroot != cmtRoot {
+			return errors.New("invalid CMTRoot")
+		}
 
-	//}
+	}
 	return nil
 }
 
