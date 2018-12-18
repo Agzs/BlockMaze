@@ -286,40 +286,40 @@ char *genCMTS(uint64_t value_s, char *pk_string, char *sn_s_string, char *r_s_st
     return p;
 }
 
-char *genRoot(char *cmtarray, int n)
-{
-    cout << "n1=" << n << endl;
-    cout << "cmtarray=" << cmtarray << endl;
-    boost::array<uint256, 32> commitments; //16个cmts
-    //std::vector<boost::optional<uint256>>& commitments;
-    string s = cmtarray;
-    cout << endl
-         << endl
-         << endl
-         << "s=" << s << endl;
-    //cout<<"s="<<s<<endl;
-    ZCIncrementalMerkleTree tree;
-    assert(tree.root() == ZCIncrementalMerkleTree::empty_root());
+// char *genRoot(char *cmtarray, int n)
+// {
+//     cout << "n1=" << n << endl;
+//     cout << "cmtarray=" << cmtarray << endl;
+//     boost::array<uint256, 32> commitments; //16个cmts
+//     //std::vector<boost::optional<uint256>>& commitments;
+//     string s = cmtarray;
+//     cout << endl
+//          << endl
+//          << endl
+//          << "s=" << s << endl;
+//     //cout<<"s="<<s<<endl;
+//     ZCIncrementalMerkleTree tree;
+//     assert(tree.root() == ZCIncrementalMerkleTree::empty_root());
 
-    for (int i = 0; i < n; i++)
-    {
-        // char *p;
-        // s.copy(p,256,i*256);
-        // *(p+256)='\0';
-        commitments[i] = uint256S(s.substr(i * 66, 66)); //分割cmtarray  0x+64个十六进制数 一共64位
-        tree.append(commitments[i]);
-    }
+//     for (int i = 0; i < n; i++)
+//     {
+//         // char *p;
+//         // s.copy(p,256,i*256);
+//         // *(p+256)='\0';
+//         commitments[i] = uint256S(s.substr(i * 66, 66)); //分割cmtarray  0x+64个十六进制数 一共64位
+//         tree.append(commitments[i]);
+//     }
 
-    uint256 rt = tree.root();
-    std::string rt_c = rt.ToString();
-    cout << "rt_c=" << rt_c << endl;
-    //cout<<cmtA_c<<endl;
-    char *p = new char[65]; //必须使用new开辟空间 不然cgo调用该函数结束全为0   65
-    rt_c.copy(p, 64, 0);
-    *(p + 64) = '\0'; //手动加结束符
-    printf("p=%s\n", p);
-    return p;
-}
+//     uint256 rt = tree.root();
+//     std::string rt_c = rt.ToString();
+//     cout << "rt_c=" << rt_c << endl;
+//     //cout<<cmtA_c<<endl;
+//     char *p = new char[65]; //必须使用new开辟空间 不然cgo调用该函数结束全为0   65
+//     rt_c.copy(p, 64, 0);
+//     *(p + 64) = '\0'; //手动加结束符
+//     printf("p=%s\n", p);
+//     return p;
+// }
 
 //valueBNew_c, valueB_c, SNB_c, RB_c, SNBnew_c, RBnew_c, SNS_c, RS_c, cmtB_c, cmtBnew_c, valueS_c, pk_c, SNA_c, cmtS_c, cmtsM, nC, RT_c
 char *genDepositproof(uint64_t value,

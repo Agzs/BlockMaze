@@ -179,6 +179,8 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 			return nil, 0, errors.New("cannot use randompubkey for a second time")
 		}
 		statedb.CreateAccount(address)
+		statedb.SetNonce(address, 1)
+		statedb.SetBalance(address, big.NewInt(1))
 	}
 	// Update the state with pending changes
 	var root []byte
