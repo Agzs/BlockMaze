@@ -1679,7 +1679,7 @@ loop: //得到 cmts
 		index := cmtBlockNumbers[i]
 		CMTSForMerkle = append(CMTSForMerkle, BlockToCmt[index]...)
 	}
-	RTcmt := zktx.GenRT(SNs.CMT, CMTSForMerkle)
+	RTcmt := zktx.GenRT(CMTSForMerkle)
 	//RTcmt := merkle.CMTRoot(CMTSForMerkle) //计算rt  go
 	tx.SetRTcmt(RTcmt)
 
@@ -1691,7 +1691,7 @@ loop: //得到 cmts
 	// }
 	//tx.SetPubKey(senderKey.X, senderKey.Y)
 	//kengbi
-	zkProof := zktx.GenUpdateProof(SNs.CMT, SNs.Value, zktx.RandomReceiverPK, SNs.SN, SNs.Random, SNa.SN, SNa.Value, SNa.Random, newSN, newRandom, SNa.CMT, RTcmt.Bytes(), newCMTA, CMTSForMerkle, len(CMTSForMerkle))
+	zkProof := zktx.GenUpdateProof(txSend.ZKCMT(), SNs.Value, zktx.RandomReceiverPK, SNs.SN, SNs.Random, SNa.SN, SNa.Value, SNa.Random, newSN, newRandom, SNa.CMT, RTcmt.Bytes(), newCMTA, CMTSForMerkle, len(CMTSForMerkle))
 	if string(zkProof[0:10]) == "0000000000" {
 		return common.Hash{}, errors.New("can't generate proof")
 	}
@@ -1845,7 +1845,7 @@ loop:
 		CMTSForMerkle = append(CMTSForMerkle, BlockToCmt[index]...)
 	}
 	fmt.Println("cmtBlocknumber", cmtBlockNumbers)
-	RTcmt := zktx.GenRT(txSend.ZKCMT(), CMTSForMerkle)
+	RTcmt := zktx.GenRT(CMTSForMerkle)
 	//RTcmt := merkle.CMTRoot(CMTSForMerkle) //计算rt  go
 	tx.SetRTcmt(RTcmt)
 
@@ -1893,6 +1893,7 @@ loop:
 		fmt.Println("pubkeyb cat not be used for a second time")
 		return common.Hash{}, nil
 	}
+	fmt.Println("randomKeyB:", randomKeyB.D.BitLen())
 	signnnnnnn, errrrrr := types.SignTx(tx, types.HomesteadSigner{}, randomKeyB)
 
 	if errrrrr != nil {
@@ -1923,7 +1924,7 @@ loop:
 // transaction pool.
 func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, args SendTxArgs) (common.Hash, error) {
 	if zktx.Stage == zktx.Send {
-		fmt.Println("cannot send DepositTx after sendTx")
+		fmt.Println("cannot send Redeem after sendTx")
 		return common.Hash{}, nil
 	}
 	if zktx.SNfile == nil {

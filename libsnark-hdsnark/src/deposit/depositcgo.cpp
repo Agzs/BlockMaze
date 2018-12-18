@@ -286,66 +286,40 @@ char *genCMTS(uint64_t value_s, char *pk_string, char *sn_s_string, char *r_s_st
     return p;
 }
 
-char *genRoot(char *cmtS_string, char *cmtarray, int n)
-{
-    cout << "n1=" << n << endl;
-    cout << "cmrs_string" << cmtS_string << endl;
-    cout << "cmtarray=" << cmtarray << endl;
-    uint256 cmtS = uint256S(cmtS_string);
-    boost::array<uint256, 32> commitments; //16个cmts
-    //std::vector<boost::optional<uint256>>& commitments;
-    string s = cmtarray;
-    cout << endl
-         << endl
-         << endl
-         << "s=" << s << endl;
-    //cout<<"s="<<s<<endl;
-    for (int i = 0; i < n; i++)
-    {
-        // char *p;
-        // s.copy(p,256,i*256);
-        // *(p+256)='\0';
-        commitments[i] = uint256S(s.substr(i * 66, 66)); //分割cmtarray  0x+64个十六进制数 一共64位
-    }
-    ZCIncrementalMerkleTree tree;
-    assert(tree.root() == ZCIncrementalMerkleTree::empty_root());
+// char *genRoot(char *cmtarray, int n)
+// {
+//     cout << "n1=" << n << endl;
+//     cout << "cmtarray=" << cmtarray << endl;
+//     boost::array<uint256, 32> commitments; //16个cmts
+//     //std::vector<boost::optional<uint256>>& commitments;
+//     string s = cmtarray;
+//     cout << endl
+//          << endl
+//          << endl
+//          << "s=" << s << endl;
+//     //cout<<"s="<<s<<endl;
+//     ZCIncrementalMerkleTree tree;
+//     assert(tree.root() == ZCIncrementalMerkleTree::empty_root());
 
-    ZCIncrementalWitness wit = tree.witness(); //初始化witness
-    bool find_cmtS = false;
-    for (size_t i = 0; i < n; i++)
-    {
-        if (find_cmtS)
-        {
-            wit.append(commitments[i]);
-        }
-        else
-        {
-            /********************************************
-             * 如果删除else分支，
-             * 将tree.append(commitments[i])放到for循环体中，
-             * 最终得到的rt == wit.root() == tree.root()
-             *********************************************/
-            tree.append(commitments[i]);
-        }
+//     for (int i = 0; i < n; i++)
+//     {
+//         // char *p;
+//         // s.copy(p,256,i*256);
+//         // *(p+256)='\0';
+//         commitments[i] = uint256S(s.substr(i * 66, 66)); //分割cmtarray  0x+64个十六进制数 一共64位
+//         tree.append(commitments[i]);
+//     }
 
-        if (commitments[i] == cmtS)
-        {
-            //在要证明的叶子节点添加到tree后，才算真正初始化wit，下面的root和path才会正确。
-            wit = tree.witness();
-            find_cmtS = true;
-        }
-    }
-
-    uint256 rt = wit.root();
-    std::string rt_c = rt.ToString();
-    cout << "rt_c=" << rt_c << endl;
-    //cout<<cmtA_c<<endl;
-    char *p = new char[65]; //必须使用new开辟空间 不然cgo调用该函数结束全为0   65
-    rt_c.copy(p, 64, 0);
-    *(p + 64) = '\0'; //手动加结束符
-    printf("p=%s\n", p);
-    return p;
-}
+//     uint256 rt = tree.root();
+//     std::string rt_c = rt.ToString();
+//     cout << "rt_c=" << rt_c << endl;
+//     //cout<<cmtA_c<<endl;
+//     char *p = new char[65]; //必须使用new开辟空间 不然cgo调用该函数结束全为0   65
+//     rt_c.copy(p, 64, 0);
+//     *(p + 64) = '\0'; //手动加结束符
+//     printf("p=%s\n", p);
+//     return p;
+// }
 
 //valueBNew_c, valueB_c, SNB_c, RB_c, SNBnew_c, RBnew_c, SNS_c, RS_c, cmtB_c, cmtBnew_c, valueS_c, pk_c, SNA_c, cmtS_c, cmtsM, nC, RT_c
 char *genDepositproof(uint64_t value,

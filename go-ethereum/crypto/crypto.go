@@ -176,7 +176,23 @@ func SaveECDSA(file string, key *ecdsa.PrivateKey) error {
 }
 
 func GenerateKey() (*ecdsa.PrivateKey, error) {
-	return ecdsa.GenerateKey(S256(), rand.Reader)
+	return generateKey(S256(), rand.Reader)
+}
+
+func generateKey(c elliptic.Curve, rand io.Reader) (*ecdsa.PrivateKey, error) {
+	uuid := make([]byte, 32)
+	io.ReadFull(rand, uuid)
+
+	priv := new(ecdsa.PrivateKey)
+	priv.PublicKey.Curve = c
+
+	uuid[0] = uuid[0] % 128
+	i := new(big.Int)
+	i = i.SetBytes(uuid)
+	priv.D = i
+	fmt.Println("uuid", uuid)
+	priv.PublicKey.X, priv.PublicKey.Y = c.ScalarBaseMult(uuid)
+	return priv, nil
 }
 
 // ValidateSignatureValues verifies whether the signature values are valid with

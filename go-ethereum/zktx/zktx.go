@@ -243,10 +243,8 @@ func GenCMTS(values uint64, pk *ecdsa.PublicKey, sns []byte, rs []byte, sna []by
 }
 
 //GenRT 返回merkel树的hash  --zy
-func GenRT(CMTS *common.Hash, CMTSForMerkle []*common.Hash) common.Hash {
-	fmt.Println("cmts=", CMTS)
+func GenRT(CMTSForMerkle []*common.Hash) common.Hash {
 	fmt.Println("cmtsmerkel=", CMTSForMerkle)
-	cmtS_c := C.CString(common.ToHex(CMTS[:]))
 	var cmtArray string
 	for i := 0; i < len(CMTSForMerkle); i++ {
 		s := string(common.ToHex(CMTSForMerkle[i][:]))
@@ -254,7 +252,7 @@ func GenRT(CMTS *common.Hash, CMTSForMerkle []*common.Hash) common.Hash {
 	}
 	fmt.Println("cmtarray=", cmtArray)
 	cmtsM := C.CString(cmtArray)
-	rtC := C.genRoot(cmtS_c, cmtsM, C.int(len(CMTSForMerkle))) //--zy
+	rtC := C.genRoot(cmtsM, C.int(len(CMTSForMerkle))) //--zy
 	rtGo := C.GoString(rtC)
 
 	res, _ := hex.DecodeString(rtGo)   //返回32长度 []byte  一个byte代表两位16进制数
@@ -327,7 +325,8 @@ func GenerateKeyForRandomB(R *ecdsa.PublicKey, kB *ecdsa.PrivateKey) *ecdsa.Priv
 	h := sha256.New()
 	h.Write([]byte(tmp))
 	bs := h.Sum(nil)
-
+	bs[0] = bs[0] % 128
+	fmt.Println("private hash:", bs)
 	i := new(big.Int)
 	i = i.SetBytes(bs)
 	//生成公钥
@@ -433,6 +432,7 @@ func GenUpdateProof(CMTS *common.Hash, ValueS uint64, pk *ecdsa.PublicKey, SNS *
 }
 
 func GenDepositProof(CMTS *common.Hash, ValueS uint64, SNS *common.Hash, RS *common.Hash, SNA *common.Hash, ValueB uint64, RB *common.Hash, SNBnew *common.Hash, RBnew *common.Hash, pk *ecdsa.PublicKey, RTcmt []byte, CMTB *common.Hash, SNB *common.Hash, CMTBnew *common.Hash, CMTSForMerkle []*common.Hash) []byte {
+
 	fmt.Println("cmtbold", CMTB)
 	fmt.Println("cmtboldstring", common.ToHex(CMTB[:]))
 	cmtS_c := C.CString(common.ToHex(CMTS[:]))
@@ -512,6 +512,8 @@ func NewRandomPubKey(sA *big.Int, pkB ecdsa.PublicKey) *ecdsa.PublicKey {
 	h := sha256.New()
 	h.Write([]byte(tmp))
 	bs := h.Sum(nil)
+	fmt.Println("private hash:", bs)
+	bs[0] = bs[0] % 128
 	//生成用于加密的公钥H(sA*pkB)P+pkB
 	sx, sy := c.ScalarBaseMult(bs)
 	spkB := new(ecdsa.PublicKey)

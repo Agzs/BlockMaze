@@ -20,6 +20,7 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/consensus"
@@ -113,9 +114,9 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 			fmt.Println("invalid zkproof")
 			return nil, 0, err
 		}
-		fmt.Println("write sn", tx.ZKSN())
 		statedb.CreateAccount(common.BytesToAddress(tx.ZKSN().Bytes()))
 		statedb.SetNonce(common.BytesToAddress(tx.ZKSN().Bytes()), 1)
+		statedb.SetBalance(common.BytesToAddress(tx.ZKSN().Bytes()), big.NewInt(1))
 	} else if tx.TxCode() == types.SendTx {
 		if exist := statedb.Exist(common.BytesToAddress(tx.ZKSN().Bytes())); exist == true && (*(tx.ZKSN()) != common.Hash{}) { //if sn is already exist,
 			return nil, 0, errors.New("sn is already used ")
@@ -124,9 +125,9 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 			fmt.Println("invalid zkproof")
 			return nil, 0, err
 		}
-		fmt.Println("write sn", tx.ZKSN())
 		statedb.CreateAccount(common.BytesToAddress(tx.ZKSN().Bytes()))
 		statedb.SetNonce(common.BytesToAddress(tx.ZKSN().Bytes()), 1)
+		statedb.SetBalance(common.BytesToAddress(tx.ZKSN().Bytes()), big.NewInt(1))
 	} else if tx.TxCode() == types.UpdateTx {
 		cmtbalance := statedb.GetCMTBalance(msg.From())
 		if err = zktx.VerifyUpdateProof(&cmtbalance, tx.RTcmt(), tx.ZKCMT(), tx.ZKProof()); err != nil {
@@ -141,7 +142,6 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 		addr1, err := types.ExtractPKBAddress(types.HomesteadSigner{}, tx) //tbd
 		ppp := ecdsa.PublicKey{crypto.S256(), tx.X(), tx.Y()}
 		addr2 := crypto.PubkeyToAddress(ppp)
-		fmt.Println("ppp=", ppp)
 		if err != nil || addr1 != addr2 {
 			fmt.Println(addr1, addr2)
 			return nil, 0, errors.New("invalid depositTx signature ")
@@ -150,9 +150,9 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 			fmt.Println("invalid zkproof")
 			return nil, 0, err
 		}
-		fmt.Println("write sn", tx.ZKSN())
 		statedb.CreateAccount(common.BytesToAddress(tx.ZKSN().Bytes()))
 		statedb.SetNonce(common.BytesToAddress(tx.ZKSN().Bytes()), 1)
+		statedb.SetBalance(common.BytesToAddress(tx.ZKSN().Bytes()), big.NewInt(1))
 	} else if tx.TxCode() == types.RedeemTx {
 		if exist := statedb.Exist(common.BytesToAddress(tx.ZKSN().Bytes())); exist == true && (*(tx.ZKSN()) != common.Hash{}) { //if sn is already exist,
 			return nil, 0, errors.New("sn is already used ")
@@ -162,26 +162,25 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 			fmt.Println("invalid zkproof")
 			return nil, 0, err
 		}
-		fmt.Println("write sn", tx.ZKSN())
 		statedb.CreateAccount(common.BytesToAddress(tx.ZKSN().Bytes()))
 		statedb.SetNonce(common.BytesToAddress(tx.ZKSN().Bytes()), 1)
+		statedb.SetBalance(common.BytesToAddress(tx.ZKSN().Bytes()), big.NewInt(1))
 	}
 
 	// Apply the transaction to the current state (included in the env)
 	_, gas, failed, err := ApplyMessage(vmenv, msg, gp)
 	if err != nil {
-		fmt.Println("==============168 err = ", err)
 		return nil, 0, err
 	}
 
 	if tx.TxCode() == types.DepositTx {
 		address, _ := types.ExtractPKBAddress(types.HomesteadSigner{}, tx)
-		fmt.Println("==============176 ExtractPKBAddress")
 		if exist := statedb.Exist(address); exist == true {
 			return nil, 0, errors.New("cannot use randompubkey for a second time")
 		}
-		fmt.Println("write address", address)
 		statedb.CreateAccount(address)
+		statedb.SetNonce(address, 1)
+		statedb.SetBalance(address, big.NewInt(1))
 	}
 	// Update the state with pending changes
 	var root []byte
@@ -204,6 +203,7 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 	// Set the receipt logs and create a bloom for filtering
 	receipt.Logs = statedb.GetLogs(tx.Hash())
 	receipt.Bloom = types.CreateBloom(types.Receipts{receipt})
-	fmt.Println("==============205 return")
+	exist1 := statedb.Exist(common.BytesToAddress(tx.ZKSN().Bytes()))
+	fmt.Println("exist", exist1)
 	return receipt, gas, err
 }

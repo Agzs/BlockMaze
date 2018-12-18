@@ -579,7 +579,6 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 		PKBAddress, _ := types.ExtractPKBAddress(types.HomesteadSigner{}, tx)
 		x, y := tx.PubKey()
 		pub := ecdsa.PublicKey{Curve: crypto.S256(), X: x, Y: y}
-		fmt.Println(pub)
 		address := crypto.PubkeyToAddress(pub)
 		if address != PKBAddress {
 			return errors.New("invalid publickey for deposit tx")
@@ -645,30 +644,23 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 			return err
 		}
 	}
-	/*
-		if txCode != types.PublicTx {
-			err = zktx.VerZKProof(tx.ZKProof()) //TBD
-			if err != nil {
-				return err
-			}
+
+	if txCode == types.UpdateTx || txCode == types.DepositTx {
+		var cmtsForMerkle []*common.Hash
+		cmtblocknumbers := tx.CMTBlocks()
+		for i, _ := range cmtblocknumbers {
+			blockNumber := cmtblocknumbers[i]
+			block := pool.chain.GetBlockByNumber(blockNumber)
+			cmtsForMerkle = append(cmtsForMerkle, block.CMTS()...)
 		}
-	*/
-	//if txCode == types.UpdateTx || txCode == types.DepositTx {
-	// var cmtsForMerkle []*common.Hash
-	// cmtblocknumbers := tx.CMTBlocks()
-	// for i, _ := range cmtblocknumbers {
-	// 	blockNumber := cmtblocknumbers[i]
-	// 	block := pool.chain.GetBlockByNumber(blockNumber)
-	// 	cmtsForMerkle = append(cmtsForMerkle, block.CMTS()...)
-	// }
 
-	// cmtRoot := merkle.CMTRoot(cmtsForMerkle)
-	// txCMTroot := tx.RTcmt()
-	// if txCMTroot != cmtRoot {
-	// 	return errors.New("invalid CMTRoot")
-	// }
+		cmtRoot := zktx.GenRT(cmtsForMerkle)
+		txCMTroot := tx.RTcmt()
+		if txCMTroot != cmtRoot {
+			return errors.New("invalid CMTRoot")
+		}
 
-	//}
+	}
 	return nil
 }
 
