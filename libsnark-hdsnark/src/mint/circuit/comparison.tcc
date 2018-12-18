@@ -11,7 +11,7 @@ private:
     std::shared_ptr<disjunction_gadget<FieldT> > all_zeros_test;
     pb_variable<FieldT> not_all_zeros;
 public:
-    const size_t n = 64;
+    const size_t n = 248;
     const pb_linear_combination<FieldT> A;
     const pb_linear_combination<FieldT> B;
 

@@ -76,8 +76,8 @@ public:
             alloc_uint256(zk_unpacked_inputs, sn_old);
             alloc_uint256(zk_unpacked_inputs, cmtA);
 
-            alloc_uint64(zk_unpacked_inputs, this->value_s); 
-            alloc_uint64(zk_unpacked_inputs, this->balance);
+            alloc_uint256_int(zk_unpacked_inputs, this->value_s); 
+            alloc_uint256_int(zk_unpacked_inputs, this->balance);
 
             assert(zk_unpacked_inputs.size() == verifying_input_bit_size()); // 判定输入长度
 
@@ -95,8 +95,8 @@ public:
         ZERO.allocate(this->pb, FMT(this->annotation_prefix, "zero"));
         
         //balance.allocate(pb, 64);
-        value.allocate(pb, 64);
-        value_old.allocate(pb, 64);
+        value.allocate(pb, 256);
+        value_old.allocate(pb, 256);
         //value_s.allocate(pb, 64);
         r.reset(new digest_variable<FieldT>(pb, 256, "random number"));
         r_old.reset(new digest_variable<FieldT>(pb, 256, "old random number"));
@@ -164,8 +164,8 @@ public:
         const Note& note, 
         uint256 cmtA_old_data,
         uint256 cmtA_data,
-        uint64_t v_s, 
-        uint64_t b
+        uint256 v_s, 
+        uint256 b
     ) {
         //(const Note& note_old, const Note& note, uint64_t v_s, uint64_t b)
         ncab->generate_r1cs_witness(note_old, note, v_s, b);
@@ -214,8 +214,8 @@ public:
         const uint256& cmtA_old,
         const uint256& sn_old,
         const uint256& cmtA,
-        uint64_t value_s,
-        uint64_t balance
+        uint256 value_s,
+        uint256 balance
     ) {
         std::vector<bool> verify_inputs;
 
@@ -223,8 +223,8 @@ public:
         insert_uint256(verify_inputs, sn_old);
         insert_uint256(verify_inputs, cmtA);
 
-        insert_uint64(verify_inputs, value_s);
-        insert_uint64(verify_inputs, balance);
+        insert_uint256(verify_inputs, value_s);
+        insert_uint256(verify_inputs, balance);
 
         // printf("============= r1cs_primary_input::witness_map() =================\n");
         // printf(" cmtA_old = [ ");
@@ -253,8 +253,8 @@ public:
         acc += 256; // sn_old
         acc += 256; // cmtA
         
-        acc += 64; // value_s
-        acc += 64; // balance
+        acc += 256; // value_s
+        acc += 256; // balance
 
         return acc;
     }
@@ -279,6 +279,15 @@ public:
         pb_variable_array<FieldT>& integer
     ) {
         integer.allocate(this->pb, 64, "");
+        packed_into.insert(packed_into.end(), integer.begin(), integer.end());
+    }
+
+    // 分配空间，打包追加
+    void alloc_uint256_int(
+        pb_variable_array<FieldT>& packed_into,
+        pb_variable_array<FieldT>& integer
+    ) {
+        integer.allocate(this->pb, 256, "");
         packed_into.insert(packed_into.end(), integer.begin(), integer.end());
     }
 };

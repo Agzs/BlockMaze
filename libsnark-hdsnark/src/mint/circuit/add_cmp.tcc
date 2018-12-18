@@ -8,7 +8,7 @@
 template<typename FieldT>
 class note_gadget_with_comparison_and_addition_for_balance : public note_gadget_with_packing<FieldT> { // 基类和比较类组合，基本的note_gadget和comparison_gadget (value_s)
 public:   
-    pb_variable_array<FieldT> balance; // 64位的value
+    pb_variable_array<FieldT> balance; // 256位的value
     pb_variable<FieldT> balance_packed;
 
     std::shared_ptr<less_comparison_gadget<FieldT> > less_cmp;
@@ -39,8 +39,8 @@ public:
         this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(1, (this->value_old_packed + this->value_s_packed), this->value_packed),
                                  FMT(this->annotation_prefix, " equal"));
 
-        for (size_t i = 0; i < 64; i++) {
-            generate_boolean_r1cs_constraint<FieldT>( // 64位的bool约束
+        for (size_t i = 0; i < 256; i++) {
+            generate_boolean_r1cs_constraint<FieldT>( // 256位的bool约束
                 this->pb,
                 balance[i],
                 "boolean_balance"
@@ -50,10 +50,10 @@ public:
         less_cmp->generate_r1cs_constraints();
     }
     
-    void generate_r1cs_witness(const Note& note_old, const Note& note, uint64_t v_s, uint64_t b) { // 为变量生成约束
+    void generate_r1cs_witness(const Note& note_old, const Note& note, uint256 v_s, uint256 b) { // 为变量生成约束
         note_gadget_with_packing<FieldT>::generate_r1cs_witness(note_old, note, v_s);
 
-        balance.fill_with_bits(this->pb, uint64_to_bool_vector(b));
+        balance.fill_with_bits(this->pb, uint256_to_bool_vector(b));
         this->pb.lc_val(balance_packed) = balance.get_field_element_from_bits_by_order(this->pb);
 
         less_cmp->generate_r1cs_witness();

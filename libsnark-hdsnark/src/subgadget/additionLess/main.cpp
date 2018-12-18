@@ -153,13 +153,13 @@ public:
     //std::shared_ptr<digest_variable<FieldT>> r; // 256位的随机数r
 
     note_gadget_with_packing(protoboard<FieldT> &pb) : gadget<FieldT>(pb) {
-        value.allocate(pb, 64);
+        value.allocate(pb, 256);
         value_packed.allocate(pb);
       
-        value_old.allocate(pb, 64);
+        value_old.allocate(pb, 256);
         value_old_packed.allocate(pb);
 
-        value_s.allocate(pb, 64);
+        value_s.allocate(pb, 256);
         value_s_packed.allocate(pb, "value_s_packed");
       
         //r.reset(new digest_variable<FieldT>(pb, 256, "random number"));
@@ -167,21 +167,21 @@ public:
 
     void generate_r1cs_constraints() { // const Note& note
 
-        for (size_t i = 0; i < 64; i++) {
+        for (size_t i = 0; i < 256; i++) {
             generate_boolean_r1cs_constraint<FieldT>( // 64位的bool约束
                 this->pb,
                 value_old[i],
                 "boolean_value_old"
             );
         }
-        for (size_t i = 0; i < 64; i++) {
+        for (size_t i = 0; i < 256; i++) {
             generate_boolean_r1cs_constraint<FieldT>( // 64位的bool约束
                 this->pb,
                 value_s[i],
                 "boolean_value_s"
             );
         }
-        for (size_t i = 0; i < 64; i++) {
+        for (size_t i = 0; i < 256; i++) {
             generate_boolean_r1cs_constraint<FieldT>( // 64位的bool约束
                 this->pb,
                 value[i],
@@ -192,15 +192,15 @@ public:
         //r->generate_r1cs_constraints(); // 随机数的约束
     }
 
-    void generate_r1cs_witness(uint64_t v, uint64_t v_old, uint64_t v_s) { // 为变量生成约束
+    void generate_r1cs_witness(uint256 v, uint256 v_old, uint256 v_s) { // 为变量生成约束
 
-        value.fill_with_bits(this->pb, uint64_to_bool_vector(v));
+        value.fill_with_bits(this->pb, uint256_to_bool_vector(v));
         this->pb.lc_val(value_packed) = value.get_field_element_from_bits_by_order(this->pb);
         
-        value_old.fill_with_bits(this->pb, uint64_to_bool_vector(v_old));
+        value_old.fill_with_bits(this->pb, uint256_to_bool_vector(v_old));
         this->pb.lc_val(value_old_packed) = value_old.get_field_element_from_bits_by_order(this->pb);
 
-        value_s.fill_with_bits(this->pb, uint64_to_bool_vector(v_s));
+        value_s.fill_with_bits(this->pb, uint256_to_bool_vector(v_s));
         this->pb.lc_val(value_s_packed) = value_s.get_field_element_from_bits_by_order(this->pb);
 
         //r->bits.fill_with_bits(this->pb, uint256_to_bool_vector(rr));
@@ -220,7 +220,7 @@ private:
     std::shared_ptr<disjunction_gadget<FieldT> > all_zeros_test;
     pb_variable<FieldT> not_all_zeros;
 public:
-    const size_t n = 64;
+    const size_t n = 252;
     const pb_linear_combination<FieldT> A;
     const pb_linear_combination<FieldT> B;
 
@@ -321,7 +321,7 @@ public:
     note_gadget_with_comparison_and_addition_for_balance(protoboard<FieldT> &pb) : note_gadget_with_packing<FieldT>(pb) {
         //packThree.reset(new note_gadget_with_packing<FieldT>(pb));
 
-        balance.allocate(pb, 64);
+        balance.allocate(pb, 256);
         balance_packed.allocate(pb, "balance_packed");
 
         less_cmp.reset(new less_comparison_gadget<FieldT>(pb, this->value_s_packed, balance_packed,
@@ -335,7 +335,7 @@ public:
         this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(1, (this->value_old_packed + this->value_s_packed), this->value_packed),
                                  FMT(this->annotation_prefix, " equal"));
 
-        for (size_t i = 0; i < 64; i++) {
+        for (size_t i = 0; i < 256; i++) {
             generate_boolean_r1cs_constraint<FieldT>( // 64位的bool约束
                 this->pb,
                 balance[i],
@@ -346,10 +346,10 @@ public:
         less_cmp->generate_r1cs_constraints();
     }
 
-    void generate_r1cs_witness(uint64_t v, uint64_t v_old, uint64_t v_s, uint64_t b) { // 为变量生成约束
+    void generate_r1cs_witness(uint256 v, uint256 v_old, uint256 v_s, uint256 b) { // 为变量生成约束
         note_gadget_with_packing<FieldT>::generate_r1cs_witness(v, v_old, v_s);
 
-        balance.fill_with_bits(this->pb, uint64_to_bool_vector(b));
+        balance.fill_with_bits(this->pb, uint256_to_bool_vector(b));
         this->pb.lc_val(balance_packed) = balance.get_field_element_from_bits_by_order(this->pb);
 
         less_cmp->generate_r1cs_witness();
@@ -360,10 +360,10 @@ public:
 // 生成proof
 template<typename ppzksnark_ppT>
 boost::optional<r1cs_ppzksnark_proof<ppzksnark_ppT>> generate_proof(r1cs_ppzksnark_proving_key<ppzksnark_ppT> proving_key,
-                                                                    uint64_t value, 
-                                                                    uint64_t value_old, 
-                                                                    uint64_t value_s,
-                                                                    uint64_t balance
+                                                                    uint256 value, 
+                                                                    uint256 value_old, 
+                                                                    uint256 value_s,
+                                                                    uint256 balance
                                                                    )
 {
     typedef Fr<ppzksnark_ppT> FieldT;
@@ -433,10 +433,11 @@ void PrintProof(r1cs_ppzksnark_proof<ppzksnark_ppT> proof)
 
 // test_comparison_gadget_with_instance
 template<typename ppzksnark_ppT> //--Agzs
-bool test_note_gadget_with_comparison_for_balance_with_instance(uint64_t value, 
-                        uint64_t value_old, 
-                        uint64_t value_s,
-                        uint64_t balance
+bool test_note_gadget_with_comparison_for_balance_with_instance(
+                        uint256 value, 
+                        uint256 value_old, 
+                        uint256 value_s,
+                        uint256 balance
                         )
 {
     typedef libff::Fr<ppzksnark_ppT> FieldT;
@@ -490,10 +491,10 @@ int main () {
 
     libff::print_header("#             test comparison gadget with assert()");
 
-    uint64_t value = uint64_t(49168); 
-    uint64_t value_old = uint64_t(32776); 
-    uint64_t value_s = uint64_t(16392);
-    uint64_t balance = uint64_t(30000); // 由于balance是对外公开的，所以blance>0;此处balance设为负数也能验证通过
+    uint256 value = uint256S("0x2"); 
+    uint256 value_old = uint256S("0x1"); 
+    uint256 value_s = uint256S("0x1");
+    uint256 balance = uint256S("0x3"); // 由于balance是对外公开的，所以blance>0;此处balance设为负数也能验证通过
 
     test_note_gadget_with_comparison_for_balance_with_instance<default_r1cs_ppzksnark_pp>(value, value_old, value_s, balance);
 

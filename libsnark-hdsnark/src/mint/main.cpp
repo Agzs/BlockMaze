@@ -26,8 +26,8 @@ boost::optional<r1cs_ppzksnark_proof<ppzksnark_ppT>> generate_mint_proof(r1cs_pp
                                                                     const Note& note,
                                                                     uint256 cmtA_old,
                                                                     uint256 cmtA,
-                                                                    uint64_t value_s,
-                                                                    uint64_t balance
+                                                                    uint256 value_s,
+                                                                    uint256 balance
                                                                    )
 {
     typedef Fr<ppzksnark_ppT> FieldT;
@@ -55,8 +55,8 @@ bool verify_mint_proof(r1cs_ppzksnark_verification_key<ppzksnark_ppT> verificati
                     const uint256& cmtA_old,
                     const uint256& sn_old,
                     const uint256& cmtA,
-                    uint64_t value_s,
-                    uint64_t balance
+                    uint256 value_s,
+                    uint256 balance
                   )
 {
     typedef Fr<ppzksnark_ppT> FieldT;
@@ -100,16 +100,16 @@ void PrintProof(r1cs_ppzksnark_proof<ppzksnark_ppT> proof)
 
 template<typename ppzksnark_ppT> //--Agzs
 bool test_mint_gadget_with_instance(
-                            uint64_t value,
-                            uint64_t value_old,
+                            uint256 value,
+                            uint256 value_old,
                             //uint256 sn_old,
                             //uint256 r_old,
                             //uint256 sn,
                             //uint256 r,
                             //uint256 cmtA_old,
                             //uint256 cmtA,
-                            uint64_t value_s,
-                            uint64_t balance
+                            uint256 value_s,
+                            uint256 balance
                         )
 {
     // Note note_old = Note(value_old, sn_old, r_old);
@@ -133,6 +133,15 @@ bool test_mint_gadget_with_instance(
     typedef libff::Fr<ppzksnark_ppT> FieldT;
 
     protoboard<FieldT> pb;
+
+    cout << "2^64 = " << (FieldT(2)^64) << endl;
+    cout << "2^128 = " << (FieldT(2)^128) << endl;
+    cout << "2^256 = " << (FieldT(2)^256) << endl;
+
+    // cout << "2^64 = " << pb.lc_val(FieldT(2)^64) << endl;
+    // cout << "2^128 = " << pb.lc_val(FieldT(2)^128) << endl;
+    // cout << "2^256 = " << pb.lc_val(FieldT(2)^256) << endl;
+
 
     mint_gadget<FieldT> mint(pb);
     mint.generate_r1cs_constraints();// 生成约束
@@ -166,8 +175,8 @@ bool test_mint_gadget_with_instance(
         //assert(verify_mint_proof(keypair.vk, *proof));
         // wrong test data
         uint256 wrong_sn_old = uint256S("666");//random_uint256();
-        uint64_t wrong_value_s = uint64_t(100);
-        uint64_t wrong_balance = uint64_t(20);
+        uint256 wrong_value_s = uint256S("100");
+        uint256 wrong_balance = uint256S("20");
         uint256 wrong_cmtA_old = note.cm();
         uint256 wrong_cmtA = note_old.cm();
         
@@ -198,10 +207,14 @@ int main () {
 
     libff::print_header("#             testing mint gadget");
 
-    uint64_t value = uint64_t(13); 
-    uint64_t value_old = uint64_t(6); 
-    uint64_t value_s = uint64_t(7);
-    uint64_t balance = uint64_t(30); // 由于balance是对外公开的，所以blance>0;此处balance设为负数也能验证通过
+    uint256 value = uint256S("0x0010000000000000000000000000000000000000000000000000000000000000"); 
+    uint256 value_old = uint256S("0x01"); 
+    uint256 value_s = uint256S("0x000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+    uint256 balance = uint256S("0x0011111111111111111111111111111111111111111111111111111111111111"); // 由于balance是对外公开的，所以blance>0;此处balance设为负数也能验证通过
+    // uint256 value = uint256S("0x00100000000000000000000000000000"); 
+    // uint256 value_old = uint256S("0x0001"); 
+    // uint256 value_s = uint256S("0x000fffffffffffffffffffffffffffff");ffffffffffffffffffffffffffffffff
+    // uint256 balance = uint256S("0x00111111111111111111111111111111");
 
     test_mint_gadget_with_instance<default_r1cs_ppzksnark_pp>(value, value_old, value_s, balance);
 
@@ -209,4 +222,3 @@ int main () {
     
     return 0;
 }
-

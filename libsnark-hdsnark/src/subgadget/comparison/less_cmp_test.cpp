@@ -43,7 +43,7 @@ private:
     std::shared_ptr<disjunction_gadget<FieldT> > all_zeros_test;
     pb_variable<FieldT> not_all_zeros;
 public:
-    const size_t n = 64;
+    const size_t n = 256;
     const pb_linear_combination<FieldT> A;
     const pb_linear_combination<FieldT> B;
 
@@ -219,7 +219,7 @@ bool test_comparison_gadget_with_instance(const size_t a, const size_t b)
      * 1ul<<63 = 1000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 = 9223372036854775808
      * 64个1 = 18446744073709551615
      * *****************************************************************/
-    if (a < 1ul<<n && b < 1ul<<n) // 
+    //if (a < 1ul<<n && b < 1ul<<n) // 
     {
         
         pb.val(A) = FieldT(a);

@@ -13,11 +13,11 @@
 
 class Note {
 public:
-    uint64_t value;
+    uint256 value;
     uint256 sn;
     uint256 r;
 
-    Note(uint64_t value, uint256 sn, uint256 r)
+    Note(uint256 value, uint256 sn, uint256 r)
         : value(value), sn(sn), r(r) {}
 
     // Note() {
@@ -31,9 +31,10 @@ public:
 
         CSHA256 hasher;
 
-        auto value_vec = convertIntToVectorLE(value);
+        //auto value_vec = convertIntToVectorLE(value);
 
-        hasher.Write(&value_vec[0], value_vec.size());
+        //hasher.Write(&value_vec[0], value_vec.size());
+        hasher.Write(value.begin(), 32);
         hasher.Write(sn.begin(), 32);
         hasher.Write(r.begin(), 32);
 

@@ -148,32 +148,32 @@ public:
     pb_variable<FieldT> value_packed;
 
     add_pack_gadget_test(protoboard<FieldT> &pb) : gadget<FieldT>(pb) {
-        value_old.allocate(pb, 64);
+        value_old.allocate(pb, 256);
         value_old_packed.allocate(pb);
 
-        value_s.allocate(pb, 64);
+        value_s.allocate(pb, 256);
         value_s_packed.allocate(pb);
 
-        value.allocate(pb, 64);
+        value.allocate(pb, 256);
         value_packed.allocate(pb);
     }
 
     void generate_r1cs_constraints() { // const Note& note
-        for (size_t i = 0; i < 64; i++) {
+        for (size_t i = 0; i < 256; i++) {
             generate_boolean_r1cs_constraint<FieldT>( // 64位的bool约束
                 this->pb,
                 value_old[i],
                 "boolean_value_old"
             );
         }
-        for (size_t i = 0; i < 64; i++) {
+        for (size_t i = 0; i < 256; i++) {
             generate_boolean_r1cs_constraint<FieldT>( // 64位的bool约束
                 this->pb,
                 value_s[i],
                 "boolean_value_s"
             );
         }
-        for (size_t i = 0; i < 64; i++) {
+        for (size_t i = 0; i < 256; i++) {
             generate_boolean_r1cs_constraint<FieldT>( // 64位的bool约束
                 this->pb,
                 value[i],
@@ -186,35 +186,35 @@ public:
                             FMT(this->annotation_prefix, " equal"));
     }
 
-    void generate_r1cs_witness(uint64_t v_old, uint64_t v_s, uint64_t v) { // 为变量生成约束
+    void generate_r1cs_witness(uint256 v_old, uint256 v_s, uint256 v) { // 为变量生成约束
 
         // std::cout << "****************\n FieldT(v_s) = " << FieldT(v_s) << "\n ****************\n";
         // std::cout << "****************\n FieldT(balance) = " << FieldT(b) << "\n ****************\n";
 
         //printf("****************\n Before this->pb.lc_val(value_s) = %d\n****************\n", this->pb.lc_val(value_s));
-        value_old.fill_with_bits(this->pb, uint64_to_bool_vector(v_old));
+        value_old.fill_with_bits(this->pb, uint256_to_bool_vector(v_old));
         this->pb.lc_val(value_old_packed) = value_old.get_field_element_from_bits_by_order(this->pb);
 
-        value_s.fill_with_bits(this->pb, uint64_to_bool_vector(v_s));
+        value_s.fill_with_bits(this->pb, uint256_to_bool_vector(v_s));
         this->pb.lc_val(value_s_packed) = value_s.get_field_element_from_bits_by_order(this->pb);
 
-        value.fill_with_bits(this->pb, uint64_to_bool_vector(v));
+        value.fill_with_bits(this->pb, uint256_to_bool_vector(v));
         this->pb.lc_val(value_packed) = value.get_field_element_from_bits_by_order(this->pb);
 
         //this->pb.val(value_s_packed) = value_s.get_field_element_from_bits(this->pb);
 
         printf(" value_old = [ ");
-        BOOST_FOREACH(bool vs, uint64_to_bool_vector(v_old)) {
+        BOOST_FOREACH(bool vs, uint256_to_bool_vector(v_old)) {
             printf("%d, ", vs);
         }
 
         printf("]\n value_s = [ ");
-        BOOST_FOREACH(bool vs, uint64_to_bool_vector(v_s)) {
+        BOOST_FOREACH(bool vs, uint256_to_bool_vector(v_s)) {
             printf("%d, ", vs);
         }
 
         printf("]\n value = [ ");
-        BOOST_FOREACH(bool vs, uint64_to_bool_vector(v)) {
+        BOOST_FOREACH(bool vs, uint256_to_bool_vector(v)) {
             printf("%d, ", vs);
         }
         printf("]\n");
@@ -234,9 +234,9 @@ public:
 // 生成proof
 template<typename ppzksnark_ppT>
 boost::optional<r1cs_ppzksnark_proof<ppzksnark_ppT>> generate_proof(r1cs_ppzksnark_proving_key<ppzksnark_ppT> proving_key,
-                                                                    uint64_t value_old,
-                                                                    uint64_t value_s,
-                                                                    uint64_t value
+                                                                    uint256 value_old,
+                                                                    uint256 value_s,
+                                                                    uint256 value
                                                                    )
 {
     typedef Fr<ppzksnark_ppT> FieldT;
@@ -307,9 +307,9 @@ void PrintProof(r1cs_ppzksnark_proof<ppzksnark_ppT> proof)
 // test_comparison_gadget_with_instance
 template<typename ppzksnark_ppT> //--Agzs
 bool test_packADD_gadget_with_instance(
-                        uint64_t value_old,
-                        uint64_t value_s,
-                        uint64_t value
+                        uint256 value_old,
+                        uint256 value_s,
+                        uint256 value
                         )
 {
     typedef libff::Fr<ppzksnark_ppT> FieldT;
@@ -362,9 +362,17 @@ int main () {
 
     libff::print_header("#             test packing gadget with assert()");
 
-    uint64_t value_old = uint64_t(32776);
-    uint64_t value_s = uint64_t(16392);
-    uint64_t value = uint64_t(49168);
+    // uint256 value_old = uint256S("0x1");
+    // uint256 value_s = uint256S("0x1");
+    // uint256 value = uint256S("0x2");
+
+    uint256 value = uint256S("0x00100000000000000000000000000000"); 
+    uint256 value_old = uint256S("0x0001"); 
+    uint256 value_s = uint256S("0x000fffffffffffffffffffffffffffff");
+    //uint256 balance = uint256S("0x00ffffffffffffffffffffffffffffff");
+
+    //0x000fffffffffffffffffffffffffffff
+    //0x00011111111111111111111111111111
 
     test_packADD_gadget_with_instance<default_r1cs_ppzksnark_pp>(value_old, value_s, value);
 

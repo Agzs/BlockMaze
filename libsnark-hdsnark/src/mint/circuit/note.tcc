@@ -46,21 +46,21 @@ public:
 
     void generate_r1cs_constraints() { // const Note& note
 
-        for (size_t i = 0; i < 64; i++) {
+        for (size_t i = 0; i < 256; i++) {
             generate_boolean_r1cs_constraint<FieldT>( // 64位的bool约束
                 this->pb,
                 value_old[i],
                 "boolean_value_old"
             );
         }
-        for (size_t i = 0; i < 64; i++) {
+        for (size_t i = 0; i < 256; i++) {
             generate_boolean_r1cs_constraint<FieldT>( // 64位的bool约束
                 this->pb,
                 value_s[i],
                 "boolean_value_s"
             );
         }
-        for (size_t i = 0; i < 64; i++) {
+        for (size_t i = 0; i < 256; i++) {
             generate_boolean_r1cs_constraint<FieldT>( // 64位的bool约束
                 this->pb,
                 value[i],
@@ -74,14 +74,14 @@ public:
         sn_old->generate_r1cs_constraints(); // 随机数的约束
     }
 
-    void generate_r1cs_witness(const Note& note_old, const Note& note, uint64_t v_s) { // 为变量生成约束
-        value.fill_with_bits(this->pb, uint64_to_bool_vector(note.value));
+    void generate_r1cs_witness(const Note& note_old, const Note& note, uint256 v_s) { // 为变量生成约束
+        value.fill_with_bits(this->pb, uint256_to_bool_vector(note.value));
         this->pb.lc_val(value_packed) = value.get_field_element_from_bits_by_order(this->pb);
         
-        value_old.fill_with_bits(this->pb, uint64_to_bool_vector(note_old.value));
+        value_old.fill_with_bits(this->pb, uint256_to_bool_vector(note_old.value));
         this->pb.lc_val(value_old_packed) = value_old.get_field_element_from_bits_by_order(this->pb);
 
-        value_s.fill_with_bits(this->pb, uint64_to_bool_vector(v_s));
+        value_s.fill_with_bits(this->pb, uint256_to_bool_vector(v_s));
         this->pb.lc_val(value_s_packed) = value_s.get_field_element_from_bits_by_order(this->pb);
 
         r->bits.fill_with_bits(this->pb, uint256_to_bool_vector(note.r));
