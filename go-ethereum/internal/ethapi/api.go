@@ -21,6 +21,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/ecdsa"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"math/big"
@@ -1294,7 +1295,10 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 		fmt.Println("SNfile does not exist")
 		return common.Hash{}, nil
 	}
-
+	if zktx.SequenceNumber == nil || zktx.SequenceNumberAfter == nil {
+		fmt.Println("SequenceNumber or SequenceNumberAfter nil")
+		return common.Hash{}, nil
+	}
 	state, _, err := s.b.StateAndHeaderByNumber(ctx, rpc.LatestBlockNumber)
 	if state == nil || err != nil {
 		return common.Hash{}, err
@@ -1393,10 +1397,11 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 			fmt.Println("encode sns error")
 			return common.Hash{}, nil
 		}
+		SNSString := hex.EncodeToString(SNSBytes)
 		zktx.SNfile.Seek(0, 0) //write in the first line of the file
 		wt := bufio.NewWriter(zktx.SNfile)
-
-		wt.Write(append(SNSBytes, '\n')) //write a line
+		wt.WriteString("\n") //write a line
+		wt.WriteString(SNSString)
 		wt.Flush()
 	}
 	return hash, err
@@ -1444,6 +1449,11 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 	}
 	if zktx.SNfile == nil {
 		fmt.Println("SNfile does not exist")
+		return common.Hash{}, nil
+	}
+
+	if zktx.SequenceNumber == nil || zktx.SequenceNumberAfter == nil {
+		fmt.Println("SequenceNumber or SequenceNumberAfter nil")
 		return common.Hash{}, nil
 	}
 	state, _, err := s.b.StateAndHeaderByNumber(ctx, rpc.LatestBlockNumber)
@@ -1553,9 +1563,11 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 			fmt.Println("encode sns error")
 			return common.Hash{}, nil
 		}
+		SNSString := hex.EncodeToString(SNSBytes)
 		zktx.SNfile.Seek(0, 0) //write in the first line of the file
 		wt := bufio.NewWriter(zktx.SNfile)
-		wt.Write(append(SNSBytes, '\n')) //write a line
+		wt.WriteString("\n") //write a line
+		wt.WriteString(SNSString)
 		wt.Flush()
 	}
 	return hash, err
@@ -1571,6 +1583,10 @@ func (s *PublicTransactionPoolAPI) SendUpdateTransaction(ctx context.Context, ar
 	}
 	if zktx.SNfile == nil {
 		fmt.Println("SNfile does not exist")
+		return common.Hash{}, nil
+	}
+	if zktx.SequenceNumber == nil || zktx.SequenceNumberAfter == nil {
+		fmt.Println("SequenceNumber or SequenceNumberAfter nil")
 		return common.Hash{}, nil
 	}
 	state, _, err := s.b.StateAndHeaderByNumber(ctx, rpc.LatestBlockNumber)
@@ -1717,9 +1733,11 @@ loop: //得到 cmts
 			fmt.Println("encode sns error")
 			return common.Hash{}, nil
 		}
+		SNSString := hex.EncodeToString(SNSBytes)
 		zktx.SNfile.Seek(0, 0) //write in the first line of the file
 		wt := bufio.NewWriter(zktx.SNfile)
-		wt.Write(append(SNSBytes, '\n')) //write a line
+		wt.WriteString("\n") //write a line
+		wt.WriteString(SNSString)
 		wt.Flush()
 	}
 	return hash, err
@@ -1734,6 +1752,10 @@ func (s *PublicTransactionPoolAPI) SendDepositTransaction(ctx context.Context, a
 	}
 	if zktx.SNfile == nil {
 		fmt.Println("SNfile does not exist")
+		return common.Hash{}, nil
+	}
+	if zktx.SequenceNumber == nil || zktx.SequenceNumberAfter == nil {
+		fmt.Println("SequenceNumber or SequenceNumberAfter nil")
 		return common.Hash{}, nil
 	}
 	state, _, err := s.b.StateAndHeaderByNumber(ctx, rpc.LatestBlockNumber)
@@ -1912,9 +1934,11 @@ loop:
 			fmt.Println("encode sns error")
 			return common.Hash{}, nil
 		}
+		SNSString := hex.EncodeToString(SNSBytes)
 		zktx.SNfile.Seek(0, 0) //write in the first line of the file
 		wt := bufio.NewWriter(zktx.SNfile)
-		wt.Write(append(SNSBytes, '\n')) //write a line
+		wt.WriteString("\n") //write a line
+		wt.WriteString(SNSString)
 		wt.Flush()
 	}
 	return hash, err
@@ -2020,14 +2044,17 @@ func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, ar
 		zktx.SequenceNumberAfter = &zktx.Sequence{SN: newSN, CMT: newCMT, Random: newRandom, Value: newValue}
 		zktx.Stage = zktx.Redeem
 		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.Redeem}
+
 		SNSBytes, err := rlp.EncodeToBytes(SNS)
 		if err != nil {
 			fmt.Println("encode sns error")
 			return common.Hash{}, nil
 		}
+		SNSString := hex.EncodeToString(SNSBytes)
 		zktx.SNfile.Seek(0, 0) //write in the first line of the file
 		wt := bufio.NewWriter(zktx.SNfile)
-		wt.Write(append(SNSBytes, '\n')) //write a line
+		wt.WriteString("\n") //write a line
+		wt.WriteString(SNSString)
 		wt.Flush()
 	}
 	return hash, err

@@ -18,6 +18,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -166,15 +167,20 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 	}
 	zktx.SNfile = SNfile
 	rd := bufio.NewReader(zktx.SNfile)
-	SSNBytes, _ := rd.ReadBytes('\n')
-
+	SSNBytesString, err := rd.ReadString('\n')
+	if err != nil {
+		fmt.Println("decode string err")
+	}
 	var SNS zktx.SequenceS
-	if SSNBytes != nil && len(SSNBytes) != 0 {
-		SNBytes := SSNBytes[0 : len(SSNBytes)-1]
-		err := rlp.DecodeBytes(SNBytes, &SNS)
+	if len(SSNBytesString) != 0 {
+		SNSbytes, err := hex.DecodeString(SSNBytesString)
 		fmt.Println("err====================================", err)
 		if err != nil {
-			fmt.Println("decode sns error")
+			fmt.Println("DecodeString  error")
+		}
+		err = rlp.DecodeBytes(SNSbytes, &SNS)
+		if err != nil {
+			fmt.Println("decode SNSbytes error")
 		}
 		zktx.SequenceNumber = &SNS.Suquence1
 		zktx.SequenceNumberAfter = &SNS.Suquence2
