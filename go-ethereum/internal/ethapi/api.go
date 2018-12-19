@@ -1402,7 +1402,6 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 		wt := bufio.NewWriter(zktx.SNfile)
 		
 		wt.WriteString(SNSString)
-		fmt.Println("zzzzzzzzzzzzz",SNSString)
 		wt.WriteString("\n") //write a line
 		wt.Flush()
 	}
