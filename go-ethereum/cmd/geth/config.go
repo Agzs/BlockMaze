@@ -168,13 +168,13 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 	zktx.SNfile = SNfile
 	rd := bufio.NewReader(zktx.SNfile)
 	SSNBytesString2, err := rd.ReadString('\n')
-	
+
 	if err != nil {
 		fmt.Println("err==", err)
 	}
 	var SNS zktx.SequenceS
 	if len(SSNBytesString2) != 0 {
-		SSNBytesString:=SSNBytesString2[0:len(SSNBytesString2)-1]
+		SSNBytesString := SSNBytesString2[0 : len(SSNBytesString2)-1]
 		SNSbytes, err := hex.DecodeString(SSNBytesString)
 		fmt.Println("err====================================", err)
 		if err != nil {
@@ -186,6 +186,7 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 		}
 		zktx.SequenceNumber = &SNS.Suquence1
 		zktx.SequenceNumberAfter = &SNS.Suquence2
+		zktx.SNS = &SNS.SNS
 		zktx.Stage = SNS.Stage
 	}
 	utils.RegisterEthService(stack, &cfg.Eth)

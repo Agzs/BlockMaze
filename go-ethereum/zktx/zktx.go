@@ -48,6 +48,7 @@ type WriteSn struct {
 type SequenceS struct {
 	Suquence1 Sequence
 	Suquence2 Sequence
+	SNS       Sequence
 	Stage     uint8
 }
 

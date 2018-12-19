@@ -1390,7 +1390,7 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 		zktx.SequenceNumber = zktx.SequenceNumberAfter
 		zktx.SequenceNumberAfter = &zktx.Sequence{SN: newSN, CMT: newCMT, Random: newRandom, Value: newValue}
 		zktx.Stage = zktx.Mint
-		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.Mint}
+		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, *zktx.SNS, zktx.Mint}
 		SNSBytes, err := rlp.EncodeToBytes(SNS)
 
 		if err != nil {
@@ -1400,7 +1400,7 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 		SNSString := hex.EncodeToString(SNSBytes)
 		zktx.SNfile.Seek(0, 0) //write in the first line of the file
 		wt := bufio.NewWriter(zktx.SNfile)
-		
+
 		wt.WriteString(SNSString)
 		wt.WriteString("\n") //write a line
 		wt.Flush()
@@ -1558,7 +1558,7 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 	hash, err := submitTransaction(ctx, s.b, tx)
 	if err == nil {
 		zktx.Stage = zktx.Send
-		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.Send}
+		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, *zktx.SNS, zktx.Send}
 		SNSBytes, err := rlp.EncodeToBytes(SNS)
 		if err != nil {
 			fmt.Println("encode sns error")
@@ -1567,7 +1567,7 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 		SNSString := hex.EncodeToString(SNSBytes)
 		zktx.SNfile.Seek(0, 0) //write in the first line of the file
 		wt := bufio.NewWriter(zktx.SNfile)
-		
+
 		wt.WriteString(SNSString)
 		wt.WriteString("\n") //write a line
 		wt.Flush()
@@ -1729,7 +1729,7 @@ loop: //得到 cmts
 		zktx.SequenceNumber = zktx.SequenceNumberAfter
 		zktx.SequenceNumberAfter = &zktx.Sequence{SN: newSN, CMT: newCMTA, Random: newRandom, Value: newValue}
 		zktx.Stage = zktx.Update
-		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.Update}
+		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, *zktx.SNS, zktx.Update}
 		SNSBytes, err := rlp.EncodeToBytes(SNS)
 		if err != nil {
 			fmt.Println("encode sns error")
@@ -1738,7 +1738,7 @@ loop: //得到 cmts
 		SNSString := hex.EncodeToString(SNSBytes)
 		zktx.SNfile.Seek(0, 0) //write in the first line of the file
 		wt := bufio.NewWriter(zktx.SNfile)
-		
+
 		wt.WriteString(SNSString)
 		wt.WriteString("\n") //write a line
 		wt.Flush()
@@ -1931,7 +1931,7 @@ loop:
 		zktx.SequenceNumber = zktx.SequenceNumberAfter
 		zktx.SequenceNumberAfter = &zktx.Sequence{SN: newSN, CMT: newCMTB, Random: newRandom, Value: newValue}
 		zktx.Stage = zktx.Deposit
-		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.Deposit}
+		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, *zktx.SNS, zktx.Deposit}
 		SNSBytes, err := rlp.EncodeToBytes(SNS)
 		if err != nil {
 			fmt.Println("encode sns error")
@@ -1940,7 +1940,7 @@ loop:
 		SNSString := hex.EncodeToString(SNSBytes)
 		zktx.SNfile.Seek(0, 0) //write in the first line of the file
 		wt := bufio.NewWriter(zktx.SNfile)
-		
+
 		wt.WriteString(SNSString)
 		wt.WriteString("\n") //write a line
 		wt.Flush()
@@ -2051,7 +2051,7 @@ func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, ar
 		zktx.SequenceNumber = zktx.SequenceNumberAfter
 		zktx.SequenceNumberAfter = &zktx.Sequence{SN: newSN, CMT: newCMT, Random: newRandom, Value: newValue}
 		zktx.Stage = zktx.Redeem
-		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.Redeem}
+		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, *zktx.SNS, zktx.Redeem}
 
 		SNSBytes, err := rlp.EncodeToBytes(SNS)
 		if err != nil {
@@ -2061,7 +2061,7 @@ func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, ar
 		SNSString := hex.EncodeToString(SNSBytes)
 		zktx.SNfile.Seek(0, 0) //write in the first line of the file
 		wt := bufio.NewWriter(zktx.SNfile)
-		
+
 		wt.WriteString(SNSString)
 		wt.WriteString("\n") //write a line
 		wt.Flush()
