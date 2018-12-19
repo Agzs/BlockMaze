@@ -1390,7 +1390,7 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 		zktx.SequenceNumber = zktx.SequenceNumberAfter
 		zktx.SequenceNumberAfter = &zktx.Sequence{SN: newSN, CMT: newCMT, Random: newRandom, Value: newValue}
 		zktx.Stage = zktx.Mint
-		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.SNS, zktx.RandomReceiverPK,zktx.Mint}
+		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.SNS, nil,nil,zktx.Mint}
 		SNSBytes, err := rlp.EncodeToBytes(SNS)
 
 		if err != nil {
@@ -1558,7 +1558,7 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 	hash, err := submitTransaction(ctx, s.b, tx)
 	if err == nil {
 		zktx.Stage = zktx.Send
-		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.SNS, zktx.RandomReceiverPK, zktx.Send}
+		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.SNS, zktx.RandomReceiverPK.X,zktx.RandomReceiverPK.Y, zktx.Send}
 		SNSBytes, err := rlp.EncodeToBytes(SNS)
 		if err != nil {
 			fmt.Println("encode sns error")
@@ -1729,7 +1729,7 @@ loop: //得到 cmts
 		zktx.SequenceNumber = zktx.SequenceNumberAfter
 		zktx.SequenceNumberAfter = &zktx.Sequence{SN: newSN, CMT: newCMTA, Random: newRandom, Value: newValue}
 		zktx.Stage = zktx.Update
-		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.SNS, zktx.RandomReceiverPK, zktx.Update}
+		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.SNS, nil,nil, zktx.Update}
 		SNSBytes, err := rlp.EncodeToBytes(SNS)
 		if err != nil {
 			fmt.Println("encode sns error")
@@ -1931,7 +1931,7 @@ loop:
 		zktx.SequenceNumber = zktx.SequenceNumberAfter
 		zktx.SequenceNumberAfter = &zktx.Sequence{SN: newSN, CMT: newCMTB, Random: newRandom, Value: newValue}
 		zktx.Stage = zktx.Deposit
-		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.SNS, zktx.RandomReceiverPK, zktx.Deposit}
+		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.SNS, nil,nil, zktx.Deposit}
 		SNSBytes, err := rlp.EncodeToBytes(SNS)
 		if err != nil {
 			fmt.Println("encode sns error")
@@ -2051,7 +2051,7 @@ func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, ar
 		zktx.SequenceNumber = zktx.SequenceNumberAfter
 		zktx.SequenceNumberAfter = &zktx.Sequence{SN: newSN, CMT: newCMT, Random: newRandom, Value: newValue}
 		zktx.Stage = zktx.Redeem
-		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.SNS, zktx.RandomReceiverPK, zktx.Redeem}
+		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.SNS,nil,nil , zktx.Redeem}
 
 		SNSBytes, err := rlp.EncodeToBytes(SNS)
 		if err != nil {

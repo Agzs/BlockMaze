@@ -49,7 +49,8 @@ type SequenceS struct {
 	Suquence1 Sequence
 	Suquence2 Sequence
 	SNS       *Sequence
-	PKB *ecdsa.PublicKey
+	PKBX *big.Int
+	PKBY *big.Int
 	Stage     uint8
 }
 
