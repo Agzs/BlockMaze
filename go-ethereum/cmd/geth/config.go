@@ -18,6 +18,7 @@ package main
 
 import (
 	"bufio"
+	"crypto/ecdsa"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -27,6 +28,7 @@ import (
 	"reflect"
 	"unicode"
 
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/zktx"
 
@@ -187,7 +189,7 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 		zktx.SequenceNumber = &SNS.Suquence1
 		zktx.SequenceNumberAfter = &SNS.Suquence2
 		zktx.SNS = SNS.SNS
-		zktx.RandomReceiverPK = SNS.PKB
+		zktx.RandomReceiverPK = &ecdsa.PublicKey{crypto.S256(), SNS.PKBX, SNS.PKBY}
 		zktx.Stage = SNS.Stage
 	}
 	utils.RegisterEthService(stack, &cfg.Eth)
