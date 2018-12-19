@@ -173,7 +173,7 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 		fmt.Println("err==", err)
 	}
 	var SNS zktx.SequenceS
-	if len(SSNBytesString) != 0 {
+	if len(SSNBytesString2) != 0 {
 		SSNBytesString:=SSNBytesString2[0:len(SSNBytesString2)-1]
 		SNSbytes, err := hex.DecodeString(SSNBytesString)
 		fmt.Println("err====================================", err)
