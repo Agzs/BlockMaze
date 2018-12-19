@@ -1400,8 +1400,10 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 		SNSString := hex.EncodeToString(SNSBytes)
 		zktx.SNfile.Seek(0, 0) //write in the first line of the file
 		wt := bufio.NewWriter(zktx.SNfile)
-		wt.WriteString("\n") //write a line
+		
 		wt.WriteString(SNSString)
+		fmt.Println("zzzzzzzzzzzzz",SNSString)
+		wt.WriteString("\n") //write a line
 		wt.Flush()
 	}
 	return hash, err
@@ -1566,8 +1568,9 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 		SNSString := hex.EncodeToString(SNSBytes)
 		zktx.SNfile.Seek(0, 0) //write in the first line of the file
 		wt := bufio.NewWriter(zktx.SNfile)
-		wt.WriteString("\n") //write a line
+		
 		wt.WriteString(SNSString)
+		wt.WriteString("\n") //write a line
 		wt.Flush()
 	}
 	return hash, err
@@ -1736,8 +1739,9 @@ loop: //得到 cmts
 		SNSString := hex.EncodeToString(SNSBytes)
 		zktx.SNfile.Seek(0, 0) //write in the first line of the file
 		wt := bufio.NewWriter(zktx.SNfile)
-		wt.WriteString("\n") //write a line
+		
 		wt.WriteString(SNSString)
+		wt.WriteString("\n") //write a line
 		wt.Flush()
 	}
 	return hash, err
@@ -1937,8 +1941,9 @@ loop:
 		SNSString := hex.EncodeToString(SNSBytes)
 		zktx.SNfile.Seek(0, 0) //write in the first line of the file
 		wt := bufio.NewWriter(zktx.SNfile)
-		wt.WriteString("\n") //write a line
+		
 		wt.WriteString(SNSString)
+		wt.WriteString("\n") //write a line
 		wt.Flush()
 	}
 	return hash, err
@@ -2057,8 +2062,9 @@ func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, ar
 		SNSString := hex.EncodeToString(SNSBytes)
 		zktx.SNfile.Seek(0, 0) //write in the first line of the file
 		wt := bufio.NewWriter(zktx.SNfile)
-		wt.WriteString("\n") //write a line
+		
 		wt.WriteString(SNSString)
+		wt.WriteString("\n") //write a line
 		wt.Flush()
 	}
 	return hash, err
