@@ -186,7 +186,7 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 		}
 		zktx.SequenceNumber = &SNS.Suquence1
 		zktx.SequenceNumberAfter = &SNS.Suquence2
-		zktx.SNS = &SNS.SNS
+		zktx.SNS = SNS.SNS
 		zktx.Stage = SNS.Stage
 	}
 	utils.RegisterEthService(stack, &cfg.Eth)
