@@ -5,8 +5,9 @@ include_directories(
   ${DEPENDS_DIR}/libsnark/depends/libff
 )
 
-
-
+################
+# 生成链接库
+################
 #shared library
 add_library(
   zk_mint
@@ -37,21 +38,24 @@ add_library(
   SHARED
   deposit/depositcgo.cpp
 )
-#########################
+
+###############################
+# 生成各个gadget的所需的pk，vk
+###############################
 add_executable(
-  mint
+  mint_key
 
   mint/getpvk.cpp
 )
 
 target_link_libraries(
-  mint
+  mint_key
 
   snark
 )
 
 target_include_directories(
-  mint
+  mint_key
 
   PUBLIC
   ${DEPENDS_DIR}/libsnark
@@ -59,19 +63,19 @@ target_include_directories(
 )
 #########################
 add_executable(
-  send
+  send_key
 
   send/getpvk.cpp
 )
 
 target_link_libraries(
-  send
+  send_key
 
   snark
 )
 
 target_include_directories(
-  send
+  send_key
 
   PUBLIC
   ${DEPENDS_DIR}/libsnark
@@ -79,19 +83,19 @@ target_include_directories(
 )
 #########################
 add_executable(
-  update
+  update_key
 
   update/getpvk.cpp
 )
 
 target_link_libraries(
-  update
+  update_key
 
   snark
 )
 
 target_include_directories(
-  update
+  update_key
 
   PUBLIC
   ${DEPENDS_DIR}/libsnark
@@ -99,19 +103,19 @@ target_include_directories(
 )
 #########################
 add_executable(
-  deposit
+  deposit_key
 
   deposit/getpvk.cpp
 )
 
 target_link_libraries(
-  deposit
+  deposit_key
 
   snark
 )
 
 target_include_directories(
-  deposit
+  deposit_key
 
   PUBLIC
   ${DEPENDS_DIR}/libsnark
@@ -119,42 +123,22 @@ target_include_directories(
 )
 #########################
 add_executable(
-  redeem
+  redeem_key
 
   redeem/getpvk.cpp
 )
 
 target_link_libraries(
-  redeem
+  redeem_key
 
   snark
 )
 
 target_include_directories(
-  redeem
+  redeem_key
 
   PUBLIC
   ${DEPENDS_DIR}/libsnark
   ${DEPENDS_DIR}/libsnark/depends/libfqfft
 )
-#########################
-add_executable(
-  aaaa
 
-  deposit/aaaa.cpp
-)
-
-target_link_libraries(
-  aaaa
-
-  snark
-  zk_deposit
-)
-
-target_include_directories(
-  aaaa
-
-  PUBLIC
-  ${DEPENDS_DIR}/libsnark
-  ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
