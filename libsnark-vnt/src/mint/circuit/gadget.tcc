@@ -193,18 +193,6 @@ public:
             uint256_to_bool_vector(cmtA_data)
         );
 
-        // printf("============= generate_r1cs_witness() =================\n");
-        // printf(" cmtA_old = [ ");
-        // BOOST_FOREACH(bool vs, uint256_to_bool_vector(note_old.cm())) {
-        //     printf("%d, ", vs);
-        // }
-
-        // printf("]\n cmtA = [ ");
-        // BOOST_FOREACH(bool vs, uint256_to_bool_vector(note.cm())) {
-        //     printf("%d, ", vs);
-        // }
-        // printf("]\n");
-
         // This happens last, because only by now are all the verifier inputs resolved.
         unpacker->generate_r1cs_witness_from_bits();
     }
@@ -225,19 +213,6 @@ public:
 
         insert_uint64(verify_inputs, value_s);
         insert_uint64(verify_inputs, balance);
-
-        // printf("============= r1cs_primary_input::witness_map() =================\n");
-        // printf(" cmtA_old = [ ");
-        // BOOST_FOREACH(bool vs, uint256_to_bool_vector(cmtA_old)) {
-        //     printf("%d, ", vs);
-        // }
-
-        // printf("]\n cmtA = [ ");
-        // BOOST_FOREACH(bool vs, uint256_to_bool_vector(cmtA)) {
-        //     printf("%d, ", vs);
-        // }
-        // printf("]\n");
-
 
         assert(verify_inputs.size() == verifying_input_bit_size());
         auto verify_field_elements = pack_bit_vector_into_field_element_vector<FieldT>(verify_inputs);

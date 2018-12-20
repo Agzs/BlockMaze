@@ -215,12 +215,10 @@ r1cs_ppzksnark_proof<ppzksnark_ppT> generate_update_proof(r1cs_ppzksnark_proving
 
     update.generate_r1cs_witness(note_s, note_old, note, cmtS, cmtA_old, cmtA, rt, path); // 为新模型的参数生成证明
 
-    cout << "pb.is_satisfied() is " << pb.is_satisfied() << endl;
-
     if (!pb.is_satisfied())
     { // 三元组R1CS是否满足  < A , X > * < B , X > = < C , X >
         //throw std::invalid_argument("Constraint system not satisfied by inputs");
-        cout << "can not generate proof" << endl;
+        cout << "can not generate update proof" << endl;
         return r1cs_ppzksnark_proof<ppzksnark_ppT>();
     }
 
@@ -283,8 +281,6 @@ char *genCMTS(uint64_t value_s, char *pk_string, char *sn_s_string, char *r_s_st
 
 char *genRoot(char *cmtarray, int n)
 {
-    cout << "n1=" << n << endl;
-    cout << "cmtarray=" << cmtarray << endl;
     boost::array<uint256, 32> commitments; //16个cmts
 
     string s = cmtarray;
@@ -382,9 +378,11 @@ char *genUpdateproof(uint64_t value,
     alt_bn128_pp::init_public_params();
 
     r1cs_ppzksnark_keypair<alt_bn128_pp> keypair;
+    cout << "Trying to read update proving key file..." << endl;
+    cout << "Please be patient as this may take about 30 seconds. " << endl;
     keypair.pk = deserializeProvingKeyFromFile("/usr/local/prfKey/updatepk.txt");
     // 生成proof
-    cout << "Trying to generate proof..." << endl;
+    cout << "Trying to generate update proof..." << endl;
 
     libsnark::r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof = generate_update_proof<alt_bn128_pp>(keypair.pk,
                                                                                                     note_s,

@@ -208,11 +208,9 @@ r1cs_ppzksnark_proof<ppzksnark_ppT> generate_mint_proof(r1cs_ppzksnark_proving_k
 
     g.generate_r1cs_witness(note_old, note, cmtA_old, cmtA, value_s, balance); // 为新模型的参数生成证明
 
-    cout << "pb.is_satisfied() is " << pb.is_satisfied() << endl;
-
     if (!pb.is_satisfied())
     { // 三元组R1CS是否满足  < A , X > * < B , X > = < C , X >
-        cout << "can not generate proof" << endl;
+        cout << "can not generate mint proof" << endl;
         return r1cs_ppzksnark_proof<ppzksnark_ppT>();
     }
 
@@ -285,9 +283,11 @@ char *genMintproof(uint64_t value,
     alt_bn128_pp::init_public_params();
     
     r1cs_ppzksnark_keypair<alt_bn128_pp> keypair;
+    cout << "Trying to read mint proving key file..." << endl;
+    cout << "Please be patient as this may take about 20 seconds. " << endl;
     keypair.pk = deserializeProvingKeyFromFile("/usr/local/prfKey/mintpk.txt");
     // 生成proof
-    cout << "Trying to generate proof..." << endl;
+    cout << "Trying to generate mint proof..." << endl;
 
     libsnark::r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof = generate_mint_proof<alt_bn128_pp>(keypair.pk, note_old, note, cmtA_old, cmtA, value_s, balance);
 

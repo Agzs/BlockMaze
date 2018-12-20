@@ -207,12 +207,10 @@ r1cs_ppzksnark_proof<ppzksnark_ppT> generate_send_proof(r1cs_ppzksnark_proving_k
 
     g.generate_r1cs_witness(note_old, notes, cmtA_old, cmtS); // 为新模型的参数生成证明
 
-    cout << "pb.is_satisfied() is " << pb.is_satisfied() << endl;
-
     if (!pb.is_satisfied())
     { // 三元组R1CS是否满足  < A , X > * < B , X > = < C , X >
         //throw std::invalid_argument("Constraint system not satisfied by inputs");
-        cout << "can not generate proof" << endl;
+        cout << "can not generate send proof" << endl;
         return r1cs_ppzksnark_proof<ppzksnark_ppT>();
     }
 
@@ -297,9 +295,11 @@ char *genSendproof(uint64_t value_A,
     alt_bn128_pp::init_public_params();
     
     r1cs_ppzksnark_keypair<alt_bn128_pp> keypair;
+    cout << "Trying to read send proving key file..." << endl;
+    cout << "Please be patient as this may take about 30 seconds. " << endl;
     keypair.pk = deserializeProvingKeyFromFile("/usr/local/prfKey/sendpk.txt");
     // 生成proof
-    cout << "Trying to generate proof..." << endl;
+    cout << "Trying to generate send proof..." << endl;
 
     libsnark::r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof = generate_send_proof<alt_bn128_pp>(keypair.pk, note_old, notes, cmtA, cmtS);
 

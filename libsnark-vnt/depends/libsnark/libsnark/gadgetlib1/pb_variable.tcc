@@ -305,17 +305,13 @@ FieldT pb_linear_combination_array<FieldT>::get_field_element_from_bits_by_order
 {
     FieldT result = FieldT::zero();
 
-    printf("*******************************\nresult = [ ");
     for (size_t i = 0; i < this->size()/8; ++i) {
         for (size_t j = 0; j < 8; ++j) {
             const FieldT v = pb.lc_val((*this)[this->size()-1-i*8-(7-j)]); 
             assert(v == FieldT::zero() || v == FieldT::one());
             result += result + v;
-            std::cout << v << " ";
         }
     }
-    printf("]\n");
-    std::cout << "result = " << result << "\n*******************************\n";
 
     return result;
 }
