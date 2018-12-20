@@ -1344,18 +1344,13 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 	// Assemble the transaction and sign with the wallet
 	tx := args.toTransaction()
 	tx.SetTxCode(types.MintTx)
-	//tx.SetValue(big.NewInt(0))
 	tx.SetZKValue(args.Value.ToInt().Uint64())
 	tx.SetPrice(big.NewInt(0))
 	tx.SetValue(big.NewInt(0))
 	tx.SetZKAddress(&zktx.ZKTxAddress)
+
 	SN := zktx.SequenceNumberAfter
-
-	//seqNumber := SN.SN
 	tx.SetZKSN(SN.SN) //SN
-
-	//tx.SetZKNounce()
-	//tx.SetTxRecepient(&common.ZKTxAddress)
 
 	newSN := zktx.NewRandomHash()
 	newRandom := zktx.NewRandomHash()
@@ -1365,16 +1360,13 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 	tx.SetZKCMT(newCMT)                                               //cmt
 
 	balance := state.GetBalance(args.From)
-	fmt.Println("balance=", balance)
-	fmt.Println("cmtold=", SN.CMT)
-	fmt.Println("cmtnew=", newCMT)
+
 	zkProof := zktx.GenMintProof(SN.Value, SN.Random, newSN, newRandom, SN.CMT, SN.SN, newCMT, newValue, balance.Uint64())
 	if string(zkProof[0:10]) == "0000000000" {
 		return common.Hash{}, errors.New("can't generate proof")
 	}
 	tx.SetZKProof(zkProof) //proof tbd
 
-	//fmt.Println("zktx.seqafter", zktx.SequenceNumberAfter)
 	var chainID *big.Int
 	if config := s.b.ChainConfig(); config.IsEIP155(s.b.CurrentBlock().Number()) {
 		chainID = config.ChainID
@@ -1384,7 +1376,7 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 	if err != nil {
 		return common.Hash{}, err
 	}
-	//return common.Hash{}, nil
+
 	hash, err := submitTransaction(ctx, s.b, signed)
 	if err == nil {
 		zktx.SequenceNumber = zktx.SequenceNumberAfter
@@ -1433,11 +1425,9 @@ func (s *PublicTransactionPoolAPI) GetPubKeyRLP(ctx context.Context, address com
 		Y *big.Int
 	}
 	pubkey := pub{key.X, key.Y}
-	//return rlp.EncodeToBytes(pubkey)
+
 	pp, err := rlp.EncodeToBytes(pubkey)
 
-	// fmt.Println(common.ToHex(pp))
-	// return hexutil.Bytes(string(common.ToHex(pp))), err
 	return common.ToHex(pp), err
 }
 
@@ -1507,13 +1497,10 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 	randomAddress := zktx.NewRandomAddress()
 	tx.SetZKAddress(randomAddress)
 	tx.SetNonce(0)
-	SN := zktx.SequenceNumberAfter
 
-	//eqNumber := SN.SN
+	SN := zktx.SequenceNumberAfter
 	tx.SetZKSN(SN.SN) //SN
 
-	//tx.SetZKNounce()
-	//tx.SetTxRecepient(&common.ZKTxAddress)
 	type pub struct {
 		X *big.Int
 		Y *big.Int
@@ -1521,14 +1508,11 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 	var pubKey pub
 
 	rlp.DecodeBytes(*args.PubKey, &pubKey) //--zy
-	//fmt.Println("err=", err)
-	//fmt.Println("pubkey=", pubKey)
 
 	receiverPubkey := &ecdsa.PublicKey{crypto.S256(), pubKey.X, pubKey.Y}
 
 	R := zktx.GenR()
 	Sa := R.D
-	//Sa := zktx.NewRandomInt()
 
 	randomPK := R.PublicKey
 	tx.SetPubKey(randomPK.X, randomPK.Y)
@@ -1542,16 +1526,14 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 
 	CMTs := zktx.GenCMTS(args.Value.ToInt().Uint64(), randomReceiverPK, SNs.Bytes(), newRs.Bytes(), SN.SN.Bytes()) //tbd
 	tx.SetZKCMT(CMTs)
-	//cmt
-	//fmt.Println("randomReceiverPK=", randomReceiverPK)
-	//proof tbd
+
 	zkProof := zktx.GenSendProof(SN.CMT, SN.Value, SN.Random, args.Value.ToInt().Uint64(), randomReceiverPK, SNs, newRs, SN.SN, CMTs)
 	if string(zkProof[0:10]) == "0000000000" {
 		return common.Hash{}, errors.New("can't generate proof")
 	}
 	tx.SetZKProof(zkProof) //proof tbd
 	AUX := zktx.ComputeAUX(randomReceiverPK, args.Value.ToInt().Uint64(), SNs, newRs, SN.SN)
-	fmt.Println("AUX=", AUX)
+
 	tx.SetAUX(AUX)
 	zktx.SNS = &zktx.Sequence{SN: SNs, CMT: CMTs, Random: newRs, Value: args.Value.ToInt().Uint64()}
 
@@ -1662,11 +1644,8 @@ func (s *PublicTransactionPoolAPI) SendUpdateTransaction(ctx context.Context, ar
 	cmtBlockNumbers = append(cmtBlockNumbers, cmtBlockNumber.Uint64())
 	block2, err := s.b.BlockByNumber(ctx, rpc.BlockNumber(cmtBlockNumber.Uint64()))
 	BlockToCmt[cmtBlockNumber.Uint64()] = block2.CMTS()
-	//CMTSForMerkle = append(CMTSForMerkle, block.CMTS()...)
 
-	//encoded, err := rlp.EncodeToBytes(block)
-
-	//	header, _ := s.b.HeaderByNumber(context.Background(), rpc.LatestBlockNumber) // latest header should always be available
+	// latest header should always be available
 	latestBlockNumber := block.NumberU64()
 	count := len(block2.CMTS())
 loop: //得到 cmts
@@ -1686,7 +1665,6 @@ loop: //得到 cmts
 		}
 		cmts := block.CMTS()
 		BlockToCmt[blockNum] = cmts
-		//	CMTSForMerkle = append(CMTSForMerkle, cmts...)
 		cmtBlockNumbers = append(cmtBlockNumbers, blockNum)
 		count += len(cmts)
 	}
@@ -1698,17 +1676,11 @@ loop: //得到 cmts
 		CMTSForMerkle = append(CMTSForMerkle, BlockToCmt[index]...)
 	}
 	RTcmt := zktx.GenRT(CMTSForMerkle)
-	//RTcmt := merkle.CMTRoot(CMTSForMerkle) //计算rt  go
+
 	tx.SetRTcmt(RTcmt)
 
 	tx.SetCMTBlocks(cmtBlockNumbers)
 
-	//senderKey, err := s.GetKey(ctx, args.From, key)
-	// if err != nil {
-	// 	return common.Hash{}, err
-	// }
-	//tx.SetPubKey(senderKey.X, senderKey.Y)
-	//kengbi
 	zkProof := zktx.GenUpdateProof(txSend.ZKCMT(), SNs.Value, zktx.RandomReceiverPK, SNs.SN, SNs.Random, SNa.SN, SNa.Value, SNa.Random, newSN, newRandom, SNa.CMT, RTcmt.Bytes(), newCMTA, CMTSForMerkle, len(CMTSForMerkle))
 	if string(zkProof[0:10]) == "0000000000" {
 		return common.Hash{}, errors.New("can't generate proof")
@@ -1834,11 +1806,8 @@ func (s *PublicTransactionPoolAPI) SendDepositTransaction(ctx context.Context, a
 	cmtBlockNumbers = append(cmtBlockNumbers, cmtBlockNumber.Uint64())
 	block2, err := s.b.BlockByNumber(ctx, rpc.BlockNumber(cmtBlockNumber.Uint64()))
 	BlockToCmt[cmtBlockNumber.Uint64()] = block2.CMTS()
-	//CMTSForMerkle = append(CMTSForMerkle, block.CMTS()...)
-
-	//encoded, err := rlp.EncodeToBytes(block)
-
-	//	header, _ := s.b.HeaderByNumber(context.Background(), rpc.LatestBlockNumber) // latest header should always be available
+   
+	// latest header should always be available
 	latestBlockNumber := block.NumberU64()
 	count := len(block2.CMTS())
 loop:
@@ -1869,9 +1838,8 @@ loop:
 		index := cmtBlockNumbers[i]
 		CMTSForMerkle = append(CMTSForMerkle, BlockToCmt[index]...)
 	}
-	fmt.Println("cmtBlocknumber", cmtBlockNumbers)
+
 	RTcmt := zktx.GenRT(CMTSForMerkle)
-	//RTcmt := merkle.CMTRoot(CMTSForMerkle) //计算rt  go
 	tx.SetRTcmt(RTcmt)
 
 	tx.SetCMTBlocks(cmtBlockNumbers)
@@ -1886,24 +1854,18 @@ loop:
 	PKB := ecdsa.PublicKey{Curve: keyB.Cureve, X: keyB.X, Y: keyB.Y}
 	KB := ecdsa.PrivateKey{PKB, keyB.PrivateKey}
 	randomKeyB := zktx.GenerateKeyForRandomB(&R, &KB)
-	fmt.Println("randomkeyB=", randomKeyB)
+
 	AUXA := txSend.AUX()
 	valueS, sns, rs, sna := zktx.DecAUX(&randomKeyB.PublicKey, AUXA) //--zy
 
 	SNb := zktx.SequenceNumberAfter
 	tx.SetZKSN(SNb.SN)
-	//SNs := zktx.SNS
 
 	newSN := zktx.NewRandomHash()
 	newRandom := zktx.NewRandomHash()
 	newValue := SNb.Value + valueS
-	fmt.Println("valueold=", SNb.Value)
-	fmt.Println("valuesend=", valueS)
-	fmt.Println("newvalue=", newValue)
 	newCMTB := zktx.GenCMT(newValue, newSN.Bytes(), newRandom.Bytes())
 	tx.SetZKCMT(newCMTB)
-	//	zktx.SequenceNumber = &zktx.Sequence{SN: newSN, CMT: newCMTA, Random: newRandom, Value: newValue}  TBD
-	//tx.SetPubKey(senderKey.X, senderKey.Y)
 	tx.SetPubKey(randomKeyB.X, randomKeyB.Y)
 
 	zkProof := zktx.GenDepositProof(txSend.ZKCMT(), valueS, sns, rs, sna, SNb.Value, SNb.Random, newSN, newRandom, &randomKeyB.PublicKey, RTcmt.Bytes(), SNb.CMT, SNb.SN, newCMTB, CMTSForMerkle)
@@ -1919,14 +1881,14 @@ loop:
 		return common.Hash{}, nil
 	}
 	fmt.Println("randomKeyB:", randomKeyB.D.BitLen())
-	signnnnnnn, errrrrr := types.SignTx(tx, types.HomesteadSigner{}, randomKeyB)
+	signedTx, errSignedTx := types.SignTx(tx, types.HomesteadSigner{}, randomKeyB)
 
-	if errrrrr != nil {
-		fmt.Println("******", errrrrr)
-		return common.Hash{}, err
+	if errSignedTx != nil {
+		fmt.Println("sign depost tx failed: ", errSignedTx)
+		return common.Hash{}, errSignedTx
 	}
 
-	hash, err := submitTransaction(ctx, s.b, signnnnnnn)
+	hash, err := submitTransaction(ctx, s.b, signedTx)
 	if err == nil {
 		zktx.SequenceNumber = zktx.SequenceNumberAfter
 		zktx.SequenceNumberAfter = &zktx.Sequence{SN: newSN, CMT: newCMTB, Random: newRandom, Value: newValue}
@@ -2014,13 +1976,9 @@ func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, ar
 	tx.SetZKAddress(&zktx.ZKTxAddress)
 	SN := zktx.SequenceNumberAfter
 
-	//seqNumber := SN.SN
 	tx.SetZKSN(SN.SN) //SN
 
 	tx.SetZKProof([]byte{}) //proof tbd
-
-	//tx.SetZKNounce()
-	//tx.SetTxRecepient(&common.ZKTxAddress)
 
 	newSN := zktx.NewRandomHash()
 	newRandom := zktx.NewRandomHash()
@@ -2044,8 +2002,7 @@ func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, ar
 	if err != nil {
 		return common.Hash{}, err
 	}
-	//return common.Hash{}, nil
-	//return submitTransaction(ctx, s.b, signed)
+
 	hash, err := submitTransaction(ctx, s.b, signed)
 	if err == nil {
 		zktx.SequenceNumber = zktx.SequenceNumberAfter
@@ -2068,7 +2025,6 @@ func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, ar
 	}
 	return hash, err
 }
-
 //=============================================================================
 
 // SendRawTransaction will add the signed transaction to the transaction pool.

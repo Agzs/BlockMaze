@@ -162,29 +162,27 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 
 	DBdir, _ := filepath.Abs(cfg.Node.DataDir)
 	SNFilePath := filepath.Join(DBdir, "SN")
-	SNfile, err := os.OpenFile(SNFilePath, os.O_RDWR|os.O_CREATE, 0600)
-	fmt.Println("err", err)
-	if err != nil {
-		fmt.Println("OpenFile error")
+	SNfile, errOpenFile := os.OpenFile(SNFilePath, os.O_RDWR|os.O_CREATE, 0600)
+	if errOpenFile != nil {
+		fmt.Println("OpenFile error: ", errOpenFile)
 	}
 	zktx.SNfile = SNfile
 	rd := bufio.NewReader(zktx.SNfile)
-	SSNBytesString2, err := rd.ReadString('\n')
+	SSNBytesString2, errReading := rd.ReadString('\n')
 
-	if err != nil {
-		fmt.Println("err==", err)
+	if errReading != nil {
+		fmt.Println("Readiong string error: ", errReading)
 	}
 	var SNS zktx.SequenceS
 	if len(SSNBytesString2) != 0 {
 		SSNBytesString := SSNBytesString2[0 : len(SSNBytesString2)-1]
-		SNSbytes, err := hex.DecodeString(SSNBytesString)
-		fmt.Println("err====================================", err)
-		if err != nil {
-			fmt.Println("DecodeString  error")
+		SNSbytes, errDecodeString := hex.DecodeString(SSNBytesString)
+		if errDecodeString != nil {
+			fmt.Println("Decode string  error: ", errDecodeString)
 		}
-		err = rlp.DecodeBytes(SNSbytes, &SNS)
-		if err != nil {
-			fmt.Println("decode SNSbytes error")
+		errDecodeBytes := rlp.DecodeBytes(SNSbytes, &SNS)
+		if errDecodeBytes != nil {
+			fmt.Println("Decode SNSbytes error: ", errDecodeBytes)
 		}
 		zktx.SequenceNumber = &SNS.Suquence1
 		zktx.SequenceNumberAfter = &SNS.Suquence2

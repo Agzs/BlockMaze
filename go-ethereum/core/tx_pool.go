@@ -1008,7 +1008,6 @@ func (pool *TxPool) promoteExecutables(accounts []common.Address) {
 			queuedNofundsCounter.Inc(1)
 		}
 		// Gather all executable transactions and promote them
-		fmt.Println(addr, pool.pendingState.GetNonce(addr))
 		for _, tx := range list.Ready(pool.pendingState.GetNonce(addr)) {
 			hash := tx.Hash()
 			if pool.promoteTx(addr, hash, tx) {

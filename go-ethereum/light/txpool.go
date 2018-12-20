@@ -436,7 +436,7 @@ func (self *TxPool) Add(ctx context.Context, tx *types.Transaction) error {
 	if err := self.add(ctx, tx); err != nil {
 		return err
 	}
-	//fmt.Println("Send", tx.Hash())
+
 	self.relay.Send(types.Transactions{tx})
 
 	self.chainDb.Put(tx.Hash().Bytes(), data)

@@ -190,7 +190,6 @@ func generateKey(c elliptic.Curve, rand io.Reader) (*ecdsa.PrivateKey, error) {
 	i := new(big.Int)
 	i = i.SetBytes(uuid)
 	priv.D = i
-	fmt.Println("uuid", uuid)
 	priv.PublicKey.X, priv.PublicKey.Y = c.ScalarBaseMult(uuid)
 	return priv, nil
 }

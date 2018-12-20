@@ -119,11 +119,6 @@ web3._extend({
 			params: 1
 		}),
 		new web3._extend.Method({
-			name: 'genProof',
-			call: 'admin_genProof',
-			params: 3
-		}),
-		new web3._extend.Method({
 			name: 'removePeer',
 			call: 'admin_removePeer',
 			params: 1

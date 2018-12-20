@@ -211,13 +211,6 @@ func (in *Interpreter) Run(contract *Contract, input []byte) (ret []byte, err er
 		// execute the operation
 		res, err := operation.execute(&pc, in.evm, contract, mem, stack)
 
-		// fmt.Println("================== start =================")
-		// mem.Print()
-		// stack.Print()
-		// fmt.Println(op)
-		// fmt.Println(res)
-		// fmt.Println("================= end =======================")
-
 		// verifyPool is a build flag. Pool verification makes sure the integrity
 		// of the integer pool by comparing values to a default value.
 		if verifyPool {

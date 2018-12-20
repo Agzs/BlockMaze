@@ -171,7 +171,6 @@ func concatKDF(hash hash.Hash, z, s1 []byte, kdLen int) (k []byte, err error) {
 
 	reps := ((kdLen + 7) * 8) / (hash.BlockSize() * 8)
 	if big.NewInt(int64(reps)).Cmp(big2To32M1) > 0 {
-		fmt.Println(big2To32M1)
 		return nil, ErrKeyDataTooLong
 	}
 

@@ -251,7 +251,6 @@ func (self *worker) update() {
 		select {
 		// Handle ChainHeadEvent
 		case <-self.chainHeadCh:
-			fmt.Println("self.commitNewWork()")
 			self.commitNewWork()
 		// Handle ChainSideEvent
 		case ev := <-self.chainSideCh:
@@ -452,7 +451,6 @@ func (self *worker) commitNewWork() {
 		return
 	}
 	txs := types.NewTransactionsByPriceAndNonce(self.current.signer, pending)
-	//fmt.Println("txs[0]", txs)
 	work.commitTransactions(self.mux, txs, self.chain, self.coinbase)
 
 	// compute uncles for the new block.
@@ -465,7 +463,6 @@ func (self *worker) commitNewWork() {
 		if tx.Code() == types.SendTx {
 			cmt = append(cmt, tx.ZKCMT())
 		}
-		//	cmt = append(cmt, tx.ZKCMT())
 	}
 	header.CMT = cmt
 	for hash, uncle := range self.possibleUncles {
@@ -528,7 +525,6 @@ func (self *worker) updateSnapshot() {
 }
 
 func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsByPriceAndNonce, bc *core.BlockChain, coinbase common.Address) {
-	fmt.Println("txs[0]", txs)
 	if env.gasPool == nil {
 		env.gasPool = new(core.GasPool).AddGas(env.header.GasLimit)
 	}
@@ -563,7 +559,6 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 		env.state.Prepare(tx.Hash(), common.Hash{}, env.tcount)
 
 		err, logs := env.commitTransaction(tx, bc, coinbase, env.gasPool)
-		fmt.Println("commitTransaction err", err)
 		switch err {
 		case core.ErrGasLimitReached:
 			// Pop the current out-of-gas transaction without shifting in the next from the account
@@ -619,7 +614,6 @@ func (env *Work) commitTransaction(tx *types.Transaction, bc *core.BlockChain, c
 
 	receipt, _, err := core.ApplyTransaction(env.config, bc, &coinbase, gp, env.state, env.header, tx, &env.header.GasUsed, vm.Config{})
 	if err != nil {
-		fmt.Println("eerrrrr", err)
 		env.state.RevertToSnapshot(snap)
 		return err, nil
 	}

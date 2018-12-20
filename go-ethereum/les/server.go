@@ -285,10 +285,10 @@ func (s *requestCostStats) getCurrentList() RequestCostList {
 	defer s.lock.Unlock()
 
 	list := make(RequestCostList, len(reqList))
-	//fmt.Println("RequestCostList")
+
 	for idx, code := range reqList {
 		b, m := s.stats[code].calc()
-		//fmt.Println(code, s.stats[code].cnt, b/1000000, m/1000000)
+
 		if m < 0 {
 			b += m
 			m = 0

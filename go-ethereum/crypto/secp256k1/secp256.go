@@ -38,7 +38,6 @@ import "C"
 
 import (
 	"errors"
-	"fmt"
 	"math/big"
 	"unsafe"
 )
@@ -73,12 +72,10 @@ func Sign(msg []byte, seckey []byte) ([]byte, error) {
 		return nil, ErrInvalidMsgLen
 	}
 	if len(seckey) != 32 {
-		fmt.Println("ErrInvalidKey len", len(seckey))
 		return nil, ErrInvalidKey
 	}
 	seckeydata := (*C.uchar)(unsafe.Pointer(&seckey[0]))
 	if C.secp256k1_ec_seckey_verify(context, seckeydata) != 1 {
-		fmt.Println("ErrInvalidKey secp256k1_ec_seckey_verify ")
 		return nil, ErrInvalidKey
 	}
 

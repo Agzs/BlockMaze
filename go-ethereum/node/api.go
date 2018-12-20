@@ -17,17 +17,13 @@
 package node
 
 import (
-	"bytes"
 	"context"
-	"encoding/hex"
 	"fmt"
-	"net"
 	"strings"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/metrics"
 	"github.com/ethereum/go-ethereum/p2p"
 	"github.com/ethereum/go-ethereum/p2p/discover"
@@ -44,166 +40,6 @@ type PrivateAdminAPI struct {
 // of the node itself.
 func NewPrivateAdminAPI(node *Node) *PrivateAdminAPI {
 	return &PrivateAdminAPI{node: node}
-}
-
-//////////////////////////
-//  connect libsnark
-//////////////////////////
-func checkGenConnection(conn net.Conn, err error) bool {
-	if err != nil {
-		log.Warn(err.Error())
-		fmt.Printf("error %v connecting, please check hdsnark\n", conn)
-		return false
-	}
-	fmt.Printf("connected with %v\n", conn)
-	return true
-}
-
-func localGenConnection(inputData []byte) ([]byte, uint32) {
-	conn, err := net.Dial("tcp", "127.0.0.1:8032")
-	if !checkGenConnection(conn, err) {
-		return nil, 0
-	}
-
-	conn.Write(inputData) // send original data
-
-	receiveData := make([]byte, 2048)
-
-	indexEnd, err := conn.Read(receiveData)
-
-	if err != nil {
-		log.Warn(err.Error())
-		return nil, 0
-	}
-
-	// var result uint32
-	// resIndex := (int)(unsafe.Sizeof(result))
-	// result = uint32(binary.LittleEndian.Uint32(receiveData[0:resIndex]))
-
-	result := (uint32)(receiveData[0] - 48)
-	for i := 1; i < 4; i++ {
-		result = 10*result + (uint32)(receiveData[i]-48)
-	}
-
-	proofLen := 1152
-	proof := make([]byte, proofLen)
-	proof = receiveData[4:indexEnd]
-
-	// fmt.Printf("receive proof: ")
-	// fmt.Println(proof)
-	// fmt.Printf("receive result: ")
-	// fmt.Println(result)
-
-	defer conn.Close()
-	return proof, result
-}
-
-// GenProof returns a proof and result.
-func (api *PrivateAdminAPI) GenProof(secretData []byte, hashData []byte, pubParas []byte) (bool, error) {
-	// Make sure the server is running, fail otherwise
-	server := api.node.Server()
-	if server == nil {
-		return false, ErrNodeStopped
-	}
-
-	// hashData := sha256.Sum256(secretData)
-	// hashCoeff := sha256.Sum256(pubParas)
-
-	// Try to add the url as a static peer and return
-	fmt.Println("sending these data to libsnark to gennerate proof!!!")
-	// fmt.Printf("hashData: ")
-	// fmt.Println(hashData)
-	// fmt.Printf("secretData: ")
-	// fmt.Println(secretData)
-	// fmt.Printf("hashCoeff: ")
-	// fmt.Println(hashCoeff)
-	// fmt.Printf("pubParas: ")
-	// fmt.Println(pubParas)
-
-	var buffer bytes.Buffer   // Buffer can be write and read with byte
-	messageID := []byte{0, 0} // 00 represents original data
-
-	buffer.Write(messageID)
-	buffer.Write(hashData[:])
-	buffer.Write(secretData)
-	// buffer.Write(hashCoeff[:])
-	// insert pubParas len
-	newPubParas := make([]byte, 0, len(pubParas)+1)
-	newPubParas = append(newPubParas, byte(len(pubParas)))
-	for i := 0; i < len(pubParas); i++ {
-		newPubParas = append(newPubParas, pubParas[i])
-	}
-	fmt.Println(newPubParas)
-	//copy(newPubParas[1:], pubParas)
-	buffer.Write(newPubParas)
-	// buffer.Write(pubParas)
-	inputData := buffer.Bytes()
-
-	fmt.Printf("inputData: ")
-	fmt.Println(inputData)
-
-	// //============================================
-	// // former return for test.
-	// fmt.Printf("coeff len is %d\n", len(pubParas))
-	// fmt.Printf("secretData len is %d\n", len(secretData))
-	
-	// resultByte := 0
-	// for i := 0; i < len(pubParas); i++{
-	// 	resultByte += int(secretData[i]) * int(pubParas[i])
-	// 	// fmt.Println(resultByte)
-	// }
-	// fmt.Printf("Result = %d\n", resultByte)
-
-	// fmt.Printf("h_data_bv = ")
-	// PrintByteArray(hashData[:])
-	// fmt.Printf("tuple_data_bv = ")
-	// PrintByteArray(secretData)
-	// fmt.Printf("data_coeff_bv = ")
-	// PrintByteArray(pubParas)
-	// fmt.Printf("premium_bv = int_list_to_bits({%d, %d}, 8);\n", resultByte/256, resultByte%256)
-
-	// return true, nil
-	// ////////////////////////////////
-
-	proof := make([]byte, 0, 1152)
-	proof, result := localGenConnection(inputData)
-
-	if len(proof) == 0 {
-		return false, nil
-	}
-
-	fmt.Println("receive data: \n\n")
-	fmt.Printf("proof = \"0x%s\"\n", hex.EncodeToString(proof))
-	//fmt.Printf("proof = ")
-	//PrintByteArray(proof)
-	// fmt.Println(proof)
-
-	fmt.Printf("premium = %d\n", result)
-	// resArray := make([]byte, 0, 2)
-	// resArray = append(resArray, (byte)(result/256), (byte)(result%256))
-	// fmt.Printf("premium = ")
-	// PrintByteArray(resArray)
-	// fmt.Println(result)
-
-	fmt.Printf("hashData = \"0x%s\"\n", hex.EncodeToString(hashData))
-	// fmt.Println(hashData)
-	// PrintByteArray(hashData[:])
-
-	fmt.Printf("coeff = \"0x%s\"\n\n", hex.EncodeToString(newPubParas))
-	// fmt.Printf("hashCoeff = ")
-	// fmt.Println(hashCoeff)
-	// PrintByteArray(hashCoeff[:])
-
-	return true, nil
-}
-
-func PrintByteArray(data []byte) {
-	fmt.Printf("int_list_to_bits({%d", data[0])
-	lenData := len(data)
-	for i := 1; i < lenData-1; i++ {
-		fmt.Printf(", %d", data[i])
-	}
-	fmt.Printf(", %d}, 8);\n", data[lenData-1])
 }
 
 // AddPeer requests connecting to a remote node, and also maintaining the new

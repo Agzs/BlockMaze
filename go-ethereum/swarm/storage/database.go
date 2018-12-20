@@ -51,7 +51,7 @@ func (db *LDBDatabase) Put(key []byte, value []byte) {
 
 	err := db.db.Put(key, value, nil)
 	if err != nil {
-		fmt.Println("Error put", err)
+		fmt.Println("Error put: ", err)
 	}
 }
 

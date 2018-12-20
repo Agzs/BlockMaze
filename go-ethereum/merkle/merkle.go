@@ -117,17 +117,3 @@ func QuickSortUint64(values []uint64) {
 	quickSort(values, 0, len(values)-1)
 
 }
-
-/*
-func main() {
-	var (
-		h1 = common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000")
-		h2 = common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000111")
-		h3 = common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000222")
-	)
-	tx_hashes := []*common.Hash{&h1, &h2, &h3}
-
-	mTree := CMTRoot(tx_hashes)
-	fmt.Printf("Result: 0x%x\n", mTree)
-}
-*/

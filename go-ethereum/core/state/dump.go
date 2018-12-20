@@ -74,7 +74,7 @@ func (self *StateDB) RawDump() Dump {
 func (self *StateDB) Dump() []byte {
 	json, err := json.MarshalIndent(self.RawDump(), "", "    ")
 	if err != nil {
-		fmt.Println("dump err", err)
+		fmt.Println("dump err: ", err)
 	}
 
 	return json

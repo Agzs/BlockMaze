@@ -118,7 +118,6 @@ func (h *storageJSON) UnmarshalText(text []byte) error {
 	}
 	offset := len(h) - len(text)/2 // pad on the left
 	if _, err := hex.Decode(h[offset:], text); err != nil {
-		fmt.Println(err)
 		return fmt.Errorf("invalid hex storage key/value %q", text)
 	}
 	return nil
@@ -234,7 +233,6 @@ func (g *Genesis) ToBlock(db ethdb.Database) *types.Block {
 			statedb.SetState(addr, key, value)
 		}
 		statedb.SetCMT(addr, zktx.GenCMT(0, common.Hash{}.Bytes(), common.Hash{}.Bytes()))
-		//fmt.Println("zzzzzzzzzzzzzzzzzzzzkkkkkkkkkkkkkkkkkkkkkkkkkkkkk", addr, zktx.SequenceNumber.CMT, statedb.GetCMTBalance(addr))
 	}
 	root := statedb.IntermediateRoot(false)
 	head := &types.Header{
