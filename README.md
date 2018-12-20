@@ -71,7 +71,7 @@ go version >= 1.10
 Note: 运行geth时，必须指定相对或绝对路径的geth，本机可能之前装过geth，注意区分; 不再使用make编译geth，通过go install编译的geth在$GOBIN目录下。
 
 
-三、github版编译
+### 三、github版编译
 
 首先，将prfKey文件夹拷贝至/usr/local目录下，并查看是否有读写的权限
 ```
@@ -116,7 +116,7 @@ go install -v ./cmd/geth
 不再使用make编译geth，通过go install编译的geth在$GOPATH/bin目录下 </br>
 可以将$GOPATH/bin添加到~/.bashrrc中，然后就可以直接在任何目录下执行geth的指令了 </br>
 
-四、操作步骤
+### 四、操作步骤
 ```
 // 节点连接
 admin.nodeInfo.enode
