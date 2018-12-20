@@ -14,10 +14,10 @@
 */**/*tx_database*
 */**/*dapps*
 build/_vendor/pkg
-clique/*/data
-clique/geth.log
-pow/*/data
-pow/geth.log
+test/clique/*/data
+test/clique/geth.log
+test/pow/*/data
+test/pow/geth.log
 
 #*
 .#*
