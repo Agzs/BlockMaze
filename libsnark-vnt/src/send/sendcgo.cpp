@@ -237,7 +237,6 @@ bool verify_send_proof(r1cs_ppzksnark_verification_key<ppzksnark_ppT> verificati
     return r1cs_ppzksnark_verifier_strong_IC<ppzksnark_ppT>(verification_key, input, proof);
 }
 
-//func GenCMT(value uint64, sn []byte, r []byte)
 char *genCMT(uint64_t value, char *sn_string, char *r_string)
 {
     uint256 sn = uint256S(sn_string);
@@ -245,17 +244,16 @@ char *genCMT(uint64_t value, char *sn_string, char *r_string)
     Note note = Note(value, sn, r);
     uint256 cmtA = note.cm();
     std::string cmtA_c = cmtA.ToString();
-    //cout<<cmtA_c<<endl;
+
     char *p = new char[67]; //必须使用new开辟空间 不然cgo调用该函数结束全为0
     cmtA_c.copy(p, 66, 0);
     *(p + 67) = '\0'; //手动加结束符
-    //printf("p=%s",p);
+
     return p;
 }
 
 char *genCMTS(uint64_t value_s, char *pk_string, char *sn_s_string, char *r_s_string, char *sn_old_string)
 {
-    printf("pkcccccc=%s", pk_string);
     uint160 pk = uint160S(pk_string);
     uint256 sn_s = uint256S(sn_s_string);
     uint256 r_s = uint256S(r_s_string);
@@ -264,11 +262,11 @@ char *genCMTS(uint64_t value_s, char *pk_string, char *sn_s_string, char *r_s_st
     uint256 cmtS = notes.cm();
 
     std::string cmtS_c = cmtS.ToString();
-    //cout<<cmtA_c<<endl;
+
     char *p = new char[67]; //必须使用new开辟空间 不然cgo调用该函数结束全为0
     cmtS_c.copy(p, 66, 0);
     *(p + 66) = '\0'; //手动加结束符
-    //printf("p=%s",p);
+
     return p;
 }
 
@@ -282,16 +280,6 @@ char *genSendproof(uint64_t value_A,
                    uint64_t value_s,
                    char *pk_string)
 {
-    printf("value_A=%ld\n", value_A);
-    printf("value_s=%ld\n", value_s);
-
-    printf("sn_s_string=%s\n", sn_s_string);
-    printf("r_s_string=%s\n", r_s_string);
-    printf("sn_string=%s\n", sn_string);
-    printf("r_string=%s\n", r_string);
-    printf("cmt_s_string=%s\n", cmt_s_string);
-    printf("cmtA_string=%s\n", cmtA_string);
-
     //从字符串转uint256
     uint256 sn_s = uint256S(sn_s_string);
     uint256 r_s = uint256S(r_s_string);
@@ -304,21 +292,10 @@ char *genSendproof(uint64_t value_A,
     //计算sha256
     Note note_old = Note(value_A, sn, r);
     NoteS notes = NoteS(value_s, pk, sn_s, r_s, sn);
-    //uint256 cmtS = notes.cm();
 
     //初始化参数
     alt_bn128_pp::init_public_params();
-    // typedef libff::Fr<alt_bn128_pp> FieldT;
-    // protoboard<FieldT> pb;
-    // send_gadget<FieldT> send(pb);
-    // send.generate_r1cs_constraints();// 生成约束
-    // const r1cs_constraint_system<FieldT> constraint_system = pb.get_constraint_system();
-    // //std::cout << "Number of R1CS constraints: " << constraint_system.num_constraints() << endl;
-
-    // // key pair generation
-    // r1cs_ppzksnark_keypair<alt_bn128_pp> keypair = r1cs_ppzksnark_generator<alt_bn128_pp>(constraint_system);
-    // //vk写入文件
-    // vkToFile(keypair.vk,"sendvk.txt");
+    
     r1cs_ppzksnark_keypair<alt_bn128_pp> keypair;
     keypair.pk = deserializeProvingKeyFromFile("/usr/local/prfKey/sendpk.txt");
     // 生成proof
@@ -328,10 +305,7 @@ char *genSendproof(uint64_t value_A,
 
     //proof转字符串
     std::string proof_string = string_proof_as_hex(proof);
-    //cout<<"proof_string="<<proof_string<<endl;
-    //cout<<"\n\n\n\nlen(proof_string)="<<proof_string.size()<<"\n\n\n\n"<<endl;
 
-    //string转char （只能这种 str.data和str.c_str()不行）
     char *p = new char[1153];
     proof_string.copy(p, 1152, 0);
     *(p + 1152) = '\0';
@@ -341,10 +315,6 @@ char *genSendproof(uint64_t value_A,
 
 bool verifySendproof(char *data, char *sn_old_string, char *cmtS_string)
 {
-    printf("proof=%s\n", data);
-    printf("sn_old_string=%s\n", sn_old_string);
-    printf("cmtS_string=%s\n", cmtS_string);
-
     uint256 sn_old = uint256S(sn_old_string);
     uint256 cmtS = uint256S(cmtS_string);
 
@@ -353,7 +323,7 @@ bool verifySendproof(char *data, char *sn_old_string, char *cmtS_string)
     keypair.vk = deserializevkFromFile("/usr/local/prfKey/sendvk.txt");
 
     libsnark::r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof;
-    //1111
+    
     uint8_t A_g_x[64];
     uint8_t A_g_y[64];
     uint8_t A_h_x[64];
@@ -457,18 +427,7 @@ bool verifySendproof(char *data, char *sn_old_string, char *cmtS_string)
     proof.g_K.X = k_x;
     proof.g_K.Y = k_y;
 
-    //2222
-    // std::string pro_s(pro);
-    // std::stringstream ss;
-    // ss.str(pro_s);
-    // ss >> proof;
-
-    //3333
-    //r1cs_ppzksnark_proof<alt_bn128_pp> proof=deserializeproofFromFile("proof.txt");
-
     bool result = verify_send_proof(keypair.vk, proof, sn_old, cmtS);
-
-    //printf("verify result = %d\n", result);
 
     if (!result)
     {
@@ -482,38 +441,3 @@ bool verifySendproof(char *data, char *sn_old_string, char *cmtS_string)
     return result;
 }
 
-// int main(){
-//     uint64_t value = uint64_t(13);
-//     uint64_t value_old = uint64_t(20);
-//     uint64_t value_s = uint64_t(7);
-
-//     uint256 sn_old = uint256S("123456");//random_uint256();
-//     char* sn_old_string="123456";
-
-//     uint256 r_old = uint256S("123456");//random_uint256();
-//     char* r_old_string="123456";
-
-//     Note note_old = Note(value_old, sn_old, r_old);
-//     uint256 cmtA_old = note_old.cm();
-
-//     uint256 sn = uint256S("123");//random_uint256();
-//     char* sn_string="123";
-
-//     uint256 r = uint256S("123");//random_uint256();
-//     char* r_string="123";
-
-//     Note note = Note(value, sn, r);
-//     uint256 cmtA = note.cm();
-
-//     char *p=new char[1154];
-
-//     // genMintproof(uint64_t value,uint64_t value_old, char* sn_old_string, char* r_old_string, char* sn_string,char* r_string, char* cmtA_old_string,
-//     //             char* cmtA_string,uint64_t value_s,uint64_t balance)
-//     p=genRedeemproof(value,value_old,sn_old,r_old,sn,r,cmtA_old,cmtA,value_s);
-
-//     printf("%s\n\n\n\n\n%d\n\n\n",p,strlen(p));
-
-//     verifyRedeemproof(p,cmtA_old,sn_old,cmtA,value_s, balance);
-
-//     return 0;
-// }

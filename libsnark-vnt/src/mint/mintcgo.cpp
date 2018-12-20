@@ -251,11 +251,11 @@ char *genCMT(uint64_t value, char *sn_string, char *r_string)
     Note note = Note(value, sn, r);
     uint256 cmtA = note.cm();
     std::string cmtA_c = cmtA.ToString();
-    //cout<<cmtA_c<<endl;
+
     char *p = new char[65]; //必须使用new开辟空间 不然cgo调用该函数结束全为0
     cmtA_c.copy(p, 64, 0);
     *(p + 64) = '\0'; //手动加结束符
-    //printf("p=%s",p);
+
     return p;
 }
 
@@ -270,18 +270,6 @@ char *genMintproof(uint64_t value,
                    uint64_t value_s,
                    uint64_t balance)
 {
-    printf("value=%ld\n", value);
-    printf("value_old=%ld\n", value_old);
-    printf("value_s=%ld\n", value_s);
-    printf("balance=%ld\n", balance);
-
-    printf("sn_old_string=%s\n", sn_old_string);
-    printf("r_old_string=%s\n", r_old_string);
-    printf("sn_string=%s\n", sn_string);
-    printf("r_string=%s\n", r_string);
-    printf("cmtA_old_string=%s\n", cmtA_old_string);
-    printf("cmtA_string=%s\n", cmtA_string);
-
     //从字符串转uint256
     uint256 sn_old = uint256S(sn_old_string);
     uint256 r_old = uint256S(r_old_string);
@@ -295,34 +283,7 @@ char *genMintproof(uint64_t value,
 
     //初始化参数
     alt_bn128_pp::init_public_params();
-    // typedef libff::Fr<alt_bn128_pp> FieldT;
-    // protoboard<FieldT> pb;
-    // mint_gadget<FieldT> mint(pb);
-    // mint.generate_r1cs_constraints();// 生成约束
-    // const r1cs_constraint_system<FieldT> constraint_system = pb.get_constraint_system();
-
-    //std::cout << "Number of R1CS constraints: " << constraint_system.num_constraints() << endl;
-    // ifstream fvk("mintvk.txt");
-    // ifstream fpk("mintpk.txt");
-    // if (fvk&&fpk){
-    //     cout<<"pkvk已存在"<<endl;
-    // }
-    // else{
-    //     // key pair generation
-    //     r1cs_ppzksnark_keypair<alt_bn128_pp> keypair = r1cs_ppzksnark_generator<alt_bn128_pp>(constraint_system);
-    //     //pk,vk写入文件
-    //     serializeProvingKeyToFile(keypair.pk,"mintpk.txt");
-    //     vkToFile(keypair.vk,"mintvk.txt");
-    // }
-    // r1cs_ppzksnark_keypair<alt_bn128_pp> keypair;
-    // keypair.pk = deserializeProvingKeyFromFile("mintpk.txt");
-
-    // key pair generation
-    //r1cs_ppzksnark_keypair<alt_bn128_pp> keypair = r1cs_ppzksnark_generator<alt_bn128_pp>(constraint_system);
-    //pk,vk写入文件
-
-    //vkToFile(keypair.vk,"mintvk.txt");
-
+    
     r1cs_ppzksnark_keypair<alt_bn128_pp> keypair;
     keypair.pk = deserializeProvingKeyFromFile("/usr/local/prfKey/mintpk.txt");
     // 生成proof
@@ -332,10 +293,7 @@ char *genMintproof(uint64_t value,
 
     //proof转字符串
     std::string proof_string = string_proof_as_hex(proof);
-    //cout<<"proof_string="<<proof_string<<endl;
-    //cout<<"\n\n\n\nlen(proof_string)="<<proof_string.size()<<"\n\n\n\n"<<endl;
 
-    //string转char （只能这种 str.data和str.c_str()不行）
     char *p = new char[1153];
     proof_string.copy(p, 1152, 0);
     *(p + 1152) = '\0';
@@ -345,13 +303,6 @@ char *genMintproof(uint64_t value,
 
 bool verifyMintproof(char *data, char *cmtA_old_string, char *sn_old_string, char *cmtA_string, uint64_t value_s, uint64_t balance)
 {
-    printf("value_s=%ld\n", value_s);
-    printf("balance=%ld\n", balance);
-    printf("proof=%s\n", data);
-    printf("sn_old_string=%s\n", sn_old_string);
-    printf("cmtA_old_string=%s\n", cmtA_old_string);
-    printf("cmtA_string=%s\n", cmtA_string);
-
     uint256 sn_old = uint256S(sn_old_string);
     uint256 cmtA_old = uint256S(cmtA_old_string);
     uint256 cmtA = uint256S(cmtA_string);
@@ -361,7 +312,7 @@ bool verifyMintproof(char *data, char *cmtA_old_string, char *sn_old_string, cha
     keypair.vk = deserializevkFromFile("/usr/local/prfKey/mintvk.txt");
 
     libsnark::r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof;
-    //1111
+
     uint8_t A_g_x[64];
     uint8_t A_g_y[64];
     uint8_t A_h_x[64];
@@ -465,18 +416,7 @@ bool verifyMintproof(char *data, char *cmtA_old_string, char *sn_old_string, cha
     proof.g_K.X = k_x;
     proof.g_K.Y = k_y;
 
-    //2222
-    // std::string pro_s(pro);
-    // std::stringstream ss;
-    // ss.str(pro_s);
-    // ss >> proof;
-
-    //3333
-    //r1cs_ppzksnark_proof<alt_bn128_pp> proof=deserializeproofFromFile("proof.txt");
-
     bool result = verify_mint_proof(keypair.vk, proof, cmtA_old, sn_old, cmtA, value_s, balance);
-
-    //printf("verify result = %d\n", result);
 
     if (!result)
     {
@@ -489,39 +429,3 @@ bool verifyMintproof(char *data, char *cmtA_old_string, char *sn_old_string, cha
 
     return result;
 }
-
-// int main(){
-//     uint64_t value = uint64_t(13);
-//     uint64_t value_old = uint64_t(6);
-//     uint64_t value_s = uint64_t(7);
-//     uint64_t balance = uint64_t(30);
-//     uint256 sn_old = uint256S("123456");//random_uint256();
-//     char* sn_old_string="123456";
-
-//     uint256 r_old = uint256S("123456");//random_uint256();
-//     char* r_old_string="123456";
-
-//     Note note_old = Note(value_old, sn_old, r_old);
-//     uint256 cmtA_old = note_old.cm();
-
-//     uint256 sn = uint256S("123");//random_uint256();
-//     char* sn_string="123";
-
-//     uint256 r = uint256S("123");//random_uint256();
-//     char* r_string="123";
-
-//     Note note = Note(value, sn, r);
-//     uint256 cmtA = note.cm();
-
-//     char *p=new char[1154];
-
-//     // genMintproof(uint64_t value,uint64_t value_old, char* sn_old_string, char* r_old_string, char* sn_string,char* r_string, char* cmtA_old_string,
-//     //             char* cmtA_string,uint64_t value_s,uint64_t balance)
-//     p=genMintproof(value,value_old,sn_old_string,r_old_string,sn_string,r_string,cmtA_old,cmtA,value_s,balance);
-
-//     printf("%s\n\n\n\n\n%d\n\n\n",p,strlen(p));
-
-//     verifyMintproof(p,cmtA_old,sn_old,cmtA,value_s, balance);
-
-//     return 0;
-// }

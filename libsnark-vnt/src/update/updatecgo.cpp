@@ -255,11 +255,11 @@ char *genCMT(uint64_t value, char *sn_string, char *r_string)
     Note note = Note(value, sn, r);
     uint256 cmtA = note.cm();
     std::string cmtA_c = cmtA.ToString();
-    //cout<<cmtA_c<<endl;
+
     char *p = new char[67]; //必须使用new开辟空间 不然cgo调用该函数结束全为0
     cmtA_c.copy(p, 66, 0);
     *(p + 66) = '\0'; //手动加结束符
-    //printf("p=%s",p);
+
     return p;
 }
 
@@ -273,11 +273,11 @@ char *genCMTS(uint64_t value_s, char *pk_string, char *sn_s_string, char *r_s_st
     uint256 cmtS = notes.cm();
 
     std::string cmtS_c = cmtS.ToString();
-    //cout<<cmtA_c<<endl;
+
     char *p = new char[67]; //必须使用new开辟空间 不然cgo调用该函数结束全为0
     cmtS_c.copy(p, 66, 0);
     *(p + 66) = '\0'; //手动加结束符
-    //printf("p=%s",p);
+
     return p;
 }
 
@@ -286,33 +286,25 @@ char *genRoot(char *cmtarray, int n)
     cout << "n1=" << n << endl;
     cout << "cmtarray=" << cmtarray << endl;
     boost::array<uint256, 32> commitments; //16个cmts
-    //std::vector<boost::optional<uint256>>& commitments;
+
     string s = cmtarray;
-    cout << endl
-         << endl
-         << endl
-         << "s=" << s << endl;
-    //cout<<"s="<<s<<endl;
+
     ZCIncrementalMerkleTree tree;
     assert(tree.root() == ZCIncrementalMerkleTree::empty_root());
 
     for (int i = 0; i < n; i++)
     {
-        // char *p;
-        // s.copy(p,256,i*256);
-        // *(p+256)='\0';
         commitments[i] = uint256S(s.substr(i * 66, 66)); //分割cmtarray  0x+64个十六进制数 一共64位
         tree.append(commitments[i]);
     }
 
     uint256 rt = tree.root();
     std::string rt_c = rt.ToString();
-    cout << "rt_c=" << rt_c << endl;
-    //cout<<cmtA_c<<endl;
+
     char *p = new char[65]; //必须使用new开辟空间 不然cgo调用该函数结束全为0   65
     rt_c.copy(p, 64, 0);
     *(p + 64) = '\0'; //手动加结束符
-    printf("p=%s\n", p);
+
     return p;
 }
 
@@ -333,22 +325,6 @@ char *genUpdateproof(uint64_t value,
                      int n,
                      char *RT)
 {
-    cout << "n2=" << n << endl;
-
-    printf("value=%ld\n", value);
-    printf("value_old=%ld\n", value_old);
-
-    printf("sn_old_string=%s\n", sn_old_string);
-    printf("r_old_string=%s\n", r_old_string);
-    printf("sn_string=%s\n", sn_string);
-    printf("r_string=%s\n", r_string);
-    printf("sns_string=%s\n", sns_string);
-    printf("rs_string=%s\n", rs_string);
-    printf("cmtA_old_string=%s\n", cmtA_old_string);
-    printf("cmtA_string=%s\n", cmtA_string);
-    printf("pk_string=%s\n", pk_string);
-    printf("cmtS_string=%s\n", cmtS_string);
-
     uint256 sn_old = uint256S(sn_old_string);
     uint256 r_old = uint256S(r_old_string);
     uint256 sn = uint256S(sn_string);
@@ -361,27 +337,17 @@ char *genUpdateproof(uint64_t value,
     uint256 cmtS = uint256S(cmtS_string);
 
     Note note_old = Note(value_old, sn_old, r_old);
-    //uint256 cmtA_old = note_old.cm();
 
     NoteS note_s = NoteS(value_s, pk, sns, rs, sn_old);
-    //uint256 cmtS = note_s.cm();
 
     Note note = Note(value, sn, r);
-    //uint256 cmtA = note.cm();
 
     boost::array<uint256, 32> commitments; //16个cmts
-    //std::vector<boost::optional<uint256>>& commitments;
-    printf("cmtarray=%s\n", cmtarray);
+
     string sss = cmtarray;
-    cout << endl
-         << endl
-         << endl
-         << "sss=" << sss << endl;
+
     for (int i = 0; i < n; i++)
     {
-        // char *p;
-        // s.copy(p,256,i*256);
-        // *(p+256)='\0';
         commitments[i] = uint256S(sss.substr(i * 66, 66)); //分割cmtarray  0x+64个十六进制数 一共66位
     }
 
@@ -398,11 +364,6 @@ char *genUpdateproof(uint64_t value,
         }
         else
         {
-            /********************************************
-             * 如果删除else分支，
-             * 将tree.append(commitments[i])放到for循环体中，
-             * 最终得到的rt == wit.root() == tree.root()
-             *********************************************/
             tree.append(commitments[i]);
         }
 
@@ -417,27 +378,9 @@ char *genUpdateproof(uint64_t value,
     auto path = wit.path();
     uint256 rt = wit.root();
 
-    cout << "tree.root = 0x" << tree.root().ToString() << endl;
-    cout << "wit.root = 0x" << wit.root().ToString() << endl;
-
     //初始化参数
     alt_bn128_pp::init_public_params();
 
-    // typedef libff::Fr<alt_bn128_pp> FieldT;
-
-    // protoboard<FieldT> pb;
-
-    // update_gadget<FieldT> update(pb);
-    // update.generate_r1cs_constraints();// 生成约束
-
-    // // check conatraints
-    // const r1cs_constraint_system<FieldT> constraint_system = pb.get_constraint_system();
-    // std::cout << "Number of R1CS constraints: " << constraint_system.num_constraints() << endl;
-
-    // // key pair generation
-    // r1cs_ppzksnark_keypair<alt_bn128_pp> keypair = r1cs_ppzksnark_generator<alt_bn128_pp>(constraint_system);
-    // //vk写入文件
-    // vkToFile(keypair.vk,"updatevk.txt");
     r1cs_ppzksnark_keypair<alt_bn128_pp> keypair;
     keypair.pk = deserializeProvingKeyFromFile("/usr/local/prfKey/updatepk.txt");
     // 生成proof
@@ -456,10 +399,7 @@ char *genUpdateproof(uint64_t value,
 
     //proof转字符串
     std::string proof_string = string_proof_as_hex(proof);
-    //cout<<"proof_string="<<proof_string<<endl;
-    //cout<<"\n\n\n\nlen(proof_string)="<<proof_string.size()<<"\n\n\n\n"<<endl;
 
-    //string转char （只能这种 str.data和str.c_str()不行）
     char *p = new char[1153];
     proof_string.copy(p, 1152, 0);
     *(p + 1152) = '\0';
@@ -469,11 +409,6 @@ char *genUpdateproof(uint64_t value,
 
 bool verifyUpdateproof(char *data, char *RT, char *cmta_old, char *cmta)
 {
-    printf("proof=%s\n", data);
-    printf("rt=%s\n", RT);
-    printf("cmtA_old=%s\n", cmta_old);
-    printf("cmtA=%s\n", cmta);
-
     uint256 rt = uint256S(RT);
     uint256 cmtA_old = uint256S(cmta_old);
     uint256 cmtA = uint256S(cmta);
@@ -483,7 +418,7 @@ bool verifyUpdateproof(char *data, char *RT, char *cmta_old, char *cmta)
     keypair.vk = deserializevkFromFile("/usr/local/prfKey/updatevk.txt");
 
     libsnark::r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof;
-    //1111
+
     uint8_t A_g_x[64];
     uint8_t A_g_y[64];
     uint8_t A_h_x[64];
@@ -587,22 +522,11 @@ bool verifyUpdateproof(char *data, char *RT, char *cmta_old, char *cmta)
     proof.g_K.X = k_x;
     proof.g_K.Y = k_y;
 
-    //2222
-    // std::string pro_s(pro);
-    // std::stringstream ss;
-    // ss.str(pro_s);
-    // ss >> proof;
-
-    //3333
-    //r1cs_ppzksnark_proof<alt_bn128_pp> proof=deserializeproofFromFile("proof.txt");
-
     bool result = verify_proof(keypair.vk,
                                proof,
                                rt, //wrong_rt
                                cmtA_old,
                                cmtA);
-
-    //printf("verify result = %d\n", result);
 
     if (!result)
     {
@@ -615,39 +539,3 @@ bool verifyUpdateproof(char *data, char *RT, char *cmta_old, char *cmta)
 
     return result;
 }
-
-// int main(){
-//     uint64_t value = uint64_t(13);
-//     uint64_t value_old = uint64_t(20);
-//     uint64_t value_s = uint64_t(7);
-
-//     uint256 sn_old = uint256S("123456");//random_uint256();
-//     char* sn_old_string="123456";
-
-//     uint256 r_old = uint256S("123456");//random_uint256();
-//     char* r_old_string="123456";
-
-//     Note note_old = Note(value_old, sn_old, r_old);
-//     uint256 cmtA_old = note_old.cm();
-
-//     uint256 sn = uint256S("123");//random_uint256();
-//     char* sn_string="123";
-
-//     uint256 r = uint256S("123");//random_uint256();
-//     char* r_string="123";
-
-//     Note note = Note(value, sn, r);
-//     uint256 cmtA = note.cm();
-
-//     char *p=new char[1154];
-
-//     // genMintproof(uint64_t value,uint64_t value_old, char* sn_old_string, char* r_old_string, char* sn_string,char* r_string, char* cmtA_old_string,
-//     //             char* cmtA_string,uint64_t value_s,uint64_t balance)
-//     p=genRedeemproof(value,value_old,sn_old,r_old,sn,r,cmtA_old,cmtA,value_s);
-
-//     printf("%s\n\n\n\n\n%d\n\n\n",p,strlen(p));
-
-//     verifyRedeemproof(p,cmtA_old,sn_old,cmtA,value_s, balance);
-
-//     return 0;
-// }

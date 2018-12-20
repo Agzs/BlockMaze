@@ -112,22 +112,6 @@ void IncrementalMerkleTree<Depth, Hash>::append(Hash obj) {
                 break;
             }
         }
-
-        /** 假定 Depth = 5
-         *  left   right  combined      parents 0, 1, 2, 3
-         *  === append(cmt1), append(cmt2) ===
-         *  cmt1   cmt2     none         none, none, none, none  #size=0
-         *  === append(cmt3), append(cmt4) ===
-         *  cmt3   cmt4    h12           h12, none, none, none   #size=1
-         *  === append(cmt5), append(cmt6) ===
-         *  cmt5   cmt6    h34,h14       none, h14, none, none   #size=2
-         *  === append(cmt7), append(cmt8) ===
-         *  cmt7   cmt8    h56           h56, h14, none, none    #size=2,     is_complete if depth = 3
-         *  === append(cmt9) ===
-         *  cmt9   none    h78,h58,h18   none, none, h18, none   #size=3
-         * 
-         * Parents的vector，第一项是hash两个叶子，第二项是hash四个叶子，第i项是hash 2^i个叶子
-        */
     }
 }
 
@@ -220,17 +204,6 @@ Hash IncrementalMerkleTree<Depth, Hash>::root(size_t depth,
         d++;
     }
 
-    /** 假定 Depth = 5
-     *  combine_left   combine_right   root      parents0, 1, 2, 3
-     *    cmt7             cmt8        h78       h56, h14, none, none  // hash 7 8
-     *    cmt7             cmt8        h58       h56, h14, none, none  // for d=1
-     *    cmt7             cmt8        h18       h56, h14, none, none  // for d=2
-     *    cmt7             cmt8        h18_d3    h56, h14, none, none  // d=3, while语句，填充
-     *    cmt7             cmt8      h18_d3_d4   h56, h14, none, none  // d=4, while语句，填充
-     *  d3 = hash(h0,h0,h0,h0,h0,h0,h0,h0)
-     *  d4 = hash(h0,h0,h0,h0,h0,h0,h0,h0,h0,h0,h0,h0,h0,h0,h0,h0)
-    */
-
     return root;
 }
 
@@ -247,10 +220,6 @@ MerklePath IncrementalMerkleTree<Depth, Hash>::path(std::deque<Hash> filler_hash
     std::vector<Hash> path;
     std::vector<bool> index;
 
-    /*  left   right    parents0, 1, 2, 3
-     *  cmt7   cmt8     h56, h14, none, none 
-     * 当前最新的节点为右节点cmt8
-     */
     if (right) { // 验证右节点在merkle树上
         index.push_back(true);
         path.push_back(*left);

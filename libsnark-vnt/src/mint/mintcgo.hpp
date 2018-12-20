@@ -10,18 +10,12 @@ extern "C"
 
    char *genMintproof(uint64_t value,
                       uint64_t value_old,
-                      //    uint256 sn_old,
                       char *sn_old_string,
-                      //    uint256 r_old,
                       char *r_old_string,
-                      //    uint256 sn,
                       char *sn_string,
-                      //    uint256 r,
                       char *r_string,
-                      //    uint256 cmtA_old,
-                      char *cmtA_old_string, //111
-                      //    uint256 cmtA,
-                      char *cmtA_string, //111
+                      char *cmtA_old_string, 
+                      char *cmtA_string, 
                       uint64_t value_s,
                       uint64_t balance);
 

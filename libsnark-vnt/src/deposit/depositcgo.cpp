@@ -260,11 +260,10 @@ char *genCMT(uint64_t value, char *sn_string, char *r_string)
     Note note = Note(value, sn, r);
     uint256 cmtA = note.cm();
     std::string cmtA_c = cmtA.ToString();
-    //cout<<cmtA_c<<endl;
     char *p = new char[67]; //必须使用new开辟空间 不然cgo调用该函数结束全为0
     cmtA_c.copy(p, 66, 0);
     *(p + 66) = '\0'; //手动加结束符
-    //printf("p=%s",p);
+
     return p;
 }
 
@@ -278,50 +277,13 @@ char *genCMTS(uint64_t value_s, char *pk_string, char *sn_s_string, char *r_s_st
     uint256 cmtS = notes.cm();
 
     std::string cmtS_c = cmtS.ToString();
-    //cout<<cmtA_c<<endl;
     char *p = new char[67]; //必须使用new开辟空间 不然cgo调用该函数结束全为0
     cmtS_c.copy(p, 66, 0);
     *(p + 66) = '\0'; //手动加结束符
-    //printf("p=%s",p);
+
     return p;
 }
 
-// char *genRoot(char *cmtarray, int n)
-// {
-//     cout << "n1=" << n << endl;
-//     cout << "cmtarray=" << cmtarray << endl;
-//     boost::array<uint256, 32> commitments; //16个cmts
-//     //std::vector<boost::optional<uint256>>& commitments;
-//     string s = cmtarray;
-//     cout << endl
-//          << endl
-//          << endl
-//          << "s=" << s << endl;
-//     //cout<<"s="<<s<<endl;
-//     ZCIncrementalMerkleTree tree;
-//     assert(tree.root() == ZCIncrementalMerkleTree::empty_root());
-
-//     for (int i = 0; i < n; i++)
-//     {
-//         // char *p;
-//         // s.copy(p,256,i*256);
-//         // *(p+256)='\0';
-//         commitments[i] = uint256S(s.substr(i * 66, 66)); //分割cmtarray  0x+64个十六进制数 一共64位
-//         tree.append(commitments[i]);
-//     }
-
-//     uint256 rt = tree.root();
-//     std::string rt_c = rt.ToString();
-//     cout << "rt_c=" << rt_c << endl;
-//     //cout<<cmtA_c<<endl;
-//     char *p = new char[65]; //必须使用new开辟空间 不然cgo调用该函数结束全为0   65
-//     rt_c.copy(p, 64, 0);
-//     *(p + 64) = '\0'; //手动加结束符
-//     printf("p=%s\n", p);
-//     return p;
-// }
-
-//valueBNew_c, valueB_c, SNB_c, RB_c, SNBnew_c, RBnew_c, SNS_c, RS_c, cmtB_c, cmtBnew_c, valueS_c, pk_c, SNA_c, cmtS_c, cmtsM, nC, RT_c
 char *genDepositproof(uint64_t value,
                       uint64_t value_old,
                       char *sn_old_string,
@@ -340,24 +302,6 @@ char *genDepositproof(uint64_t value,
                       int n,
                       char *RT)
 {
-
-    cout << "n=" << n << endl;
-    printf("value=%ld\n", value);
-    printf("value_old=%ld\n", value_old);
-    printf("value_s=%ld\n", value_s);
-    printf("sn_A_oldstring=%s\n", sn_A_oldstring);
-
-    printf("sn_old_string=%s\n", sn_old_string);
-    printf("r_old_string=%s\n", r_old_string);
-    printf("sn_string=%s\n", sn_string);
-    printf("r_string=%s\n", r_string);
-    printf("sns_string=%s\n", sns_string);
-    printf("rs_string=%s\n", rs_string);
-    printf("cmtB_old_string=%s\n", cmtB_old_string);
-    printf("cmtB_string=%s\n", cmtB_string);
-    printf("pk_string=%s\n", pk_string);
-    printf("cmtS_string=%s\n", cmtS_string);
-
     uint256 sn_old = uint256S(sn_old_string);
     uint256 r_old = uint256S(r_old_string);
     uint256 sn = uint256S(sn_string);
@@ -371,34 +315,18 @@ char *genDepositproof(uint64_t value,
     uint256 cmtS = uint256S(cmtS_string);
 
     Note note_old = Note(value_old, sn_old, r_old);
-    cout << "cmtboldtosting====" << note_old.cm().ToString() << endl;
-    //uint256 cmtB_old = note_old.cm();
 
     NoteS note_s = NoteS(value_s, pk_recv, sn_s, r_s, sn_A_old);
-    cout << "cmtstosting===" << note_s.cm().ToString() << endl;
-    //uint256 cmtS = note_s.cm();
 
     Note note = Note(value, sn, r);
-    cout << "cmtbnewtosting===" << note.cm().ToString() << endl;
-    //uint256 cmtB = note.cm();
 
     boost::array<uint256, 32> commitments; //16个cmts
-    //std::vector<boost::optional<uint256>>& commitments;
-    printf("cmtarray=%s\n", cmtarray);
     string sss = cmtarray;
-    cout << endl
-         << endl
-         << endl
-         << "sss=" << sss << endl;
+
     for (int i = 0; i < n; i++)
     {
-        // char *p;
-        // s.copy(p,256,i*256);
-        // *(p+256)='\0';
         commitments[i] = uint256S(sss.substr(i * 66, 66)); //分割cmtarray  0x+64个十六进制数 一共66位
     }
-    cout << "n=" << n << "commitments[0]===" << commitments[0].ToString() << endl;
-    cout << "commitments[1]===" << commitments[1].ToString() << endl;
 
     ZCIncrementalMerkleTree tree;
     assert(tree.root() == ZCIncrementalMerkleTree::empty_root());
@@ -432,29 +360,9 @@ char *genDepositproof(uint64_t value,
     auto path = wit.path();
     uint256 rt = wit.root();
 
-    cout << "tree.root = 0x" << tree.root().ToString() << endl;
-    cout << "wit.root = 0x" << wit.root().ToString() << endl;
-
     //初始化参数
     alt_bn128_pp::init_public_params();
 
-    // typedef libff::Fr<alt_bn128_pp> FieldT;
-
-    // protoboard<FieldT> pb;
-
-    // deposit_gadget<FieldT> deposit(pb);
-    // deposit.generate_r1cs_constraints();// 生成约束
-
-    // // check conatraints
-    // const r1cs_constraint_system<FieldT> constraint_system = pb.get_constraint_system();
-    // std::cout << "Number of R1CS constraints: " << constraint_system.num_constraints() << endl;
-
-    // // key pair generation
-    // r1cs_ppzksnark_keypair<alt_bn128_pp> keypair = r1cs_ppzksnark_generator<alt_bn128_pp>(constraint_system);
-
-    // //vk写入文件
-    // vkToFile(keypair.vk,"depositvk.txt");
-    cout << "---------------------------------------" << endl;
     r1cs_ppzksnark_keypair<alt_bn128_pp> keypair;
     keypair.pk = deserializeProvingKeyFromFile("/usr/local/prfKey/depositpk.txt");
     // 生成proof
@@ -472,10 +380,7 @@ char *genDepositproof(uint64_t value,
 
     //proof转字符串
     std::string proof_string = string_proof_as_hex(proof);
-    //cout<<"proof_string="<<proof_string<<endl;
-    //cout<<"\n\n\n\nlen(proof_string)="<<proof_string.size()<<"\n\n\n\n"<<endl;
 
-    //string转char （只能这种 str.data和str.c_str()不行）
     char *p = new char[1153];
     proof_string.copy(p, 1152, 0);
     *(p + 1152) = '\0';
@@ -485,12 +390,6 @@ char *genDepositproof(uint64_t value,
 
 bool verifyDepositproof(char *data, char *RT, char *pk, char *cmtb_old, char *snold, char *cmtb)
 {
-    printf("proof=%s\n", data);
-    printf("rt=%s\n", RT);
-    printf("pk=%s\n", pk);
-    printf("cmtB_old=%s\n", cmtb_old);
-    printf("cmtB=%s\n", cmtb);
-
     uint256 rt = uint256S(RT);
     uint160 pk_recv = uint160S(pk);
     uint256 cmtB_old = uint256S(cmtb_old);
@@ -502,7 +401,7 @@ bool verifyDepositproof(char *data, char *RT, char *pk, char *cmtb_old, char *sn
     keypair.vk = deserializevkFromFile("/usr/local/prfKey/depositvk.txt");
 
     libsnark::r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof;
-    //1111
+
     uint8_t A_g_x[64];
     uint8_t A_g_y[64];
     uint8_t A_h_x[64];
@@ -606,15 +505,6 @@ bool verifyDepositproof(char *data, char *RT, char *pk, char *cmtb_old, char *sn
     proof.g_K.X = k_x;
     proof.g_K.Y = k_y;
 
-    //2222
-    // std::string pro_s(pro);
-    // std::stringstream ss;
-    // ss.str(pro_s);
-    // ss >> proof;
-
-    //3333
-    //r1cs_ppzksnark_proof<alt_bn128_pp> proof=deserializeproofFromFile("proof.txt");
-
     bool result = verify_deposit_proof(keypair.vk,
                                        proof,
                                        rt,
@@ -622,8 +512,6 @@ bool verifyDepositproof(char *data, char *RT, char *pk, char *cmtb_old, char *sn
                                        cmtB_old,
                                        sn_old,
                                        cmtB);
-
-    //printf("verify result = %d\n", result);
 
     if (!result)
     {
