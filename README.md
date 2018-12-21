@@ -63,6 +63,9 @@ go version >= 1.10
 ```
 
 5、编译以太坊
+> Note: 由于`cmts`将被组织为`merkle tree`, 考虑效率问题，`libsnark`中将其树高设为`5`,叶子节点数为`2^5=32`，</br>
+   `go-ethereum`测试时可将`go-ethereum/zktx/zktx.go`中的`ZKCMTNODES`设为`1`, 实际使用时，`ZKCMTNODES`设为`20`即可。
+
 ```
    cd ethereum/go-ethereum
 
@@ -77,6 +80,9 @@ Note: 运行geth时，必须指定相对或绝对路径的geth，本机可能之
 ```
 sudo cp -r prfKey /usr/local
 ```
+
+> Note: 由于`cmts`将被组织为`merkle tree`, 考虑效率问题，`libsnark`中将其树高设为`5`,叶子节点数为`2^5=32`，</br>
+   `go-ethereum`测试时可将`go-ethereum/zktx/zktx.go`中的`ZKCMTNODES`设为`1`, 实际使用时，`ZKCMTNODES`设为`20`即可。
 
 然后执行以下命令
 ```
