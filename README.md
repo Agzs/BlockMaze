@@ -46,7 +46,7 @@ go version >= 1.10
 
 4、编译`libsnark`，并设置动态库
 ```
-   cd ethereum/libsnark
+   cd ethereum/libsnark-vnt
    
    mkdir build && cd build
 
@@ -123,6 +123,7 @@ go install -v ./cmd/geth
 可以将$GOPATH/bin添加到~/.bashrrc中，然后就可以直接在任何目录下执行geth的指令了 </br>
 
 ### 四、操作步骤
+> Note: 执行零知识操作的账户的明文余额不得超过64bits
 ```
 // 节点连接
 admin.nodeInfo.enode
