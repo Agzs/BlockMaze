@@ -27,7 +27,10 @@ go version >= 1.10
 
 ### 二、压缩版编译
 
-1、将项目源码拷贝到 `$GOPATH/src/github.com`
+1、将项目源码拷贝到 `$GOPATH/src/github.com`目录，解压到ethereum文件夹下
+```
+tar -xzvf VNT-libsnark.tar.gz ethereum
+```
 
 2、项目路径为`$GOPATH/src/github.com/ethereum/`，项目目录为：
 ```
@@ -54,7 +57,7 @@ go version >= 1.10
 
    make
 
-   sudo cp ./src/libzk* ./depends/libsnark/libsnark/libsnark.so ./depends/libsnark/depends/libff/libff/libff.so /usr/local/lib
+   sudo cp -i ./src/libzk* ./depends/libsnark/libsnark/libsnark.so ./depends/libsnark/depends/libff/libff/libff.so /usr/local/lib
 
    sudo gedit ~/.bashrc
 
@@ -71,8 +74,12 @@ go version >= 1.10
 
    go install -v ./cmd/geth
 ```
-Note: 运行geth时，必须指定相对或绝对路径的geth，本机可能之前装过geth，注意区分; 不再使用make编译geth，通过go install编译的geth在$GOBIN目录下。
 
+> Note: 运行上述指令时，可能提示权限不够，使用`sudo`提示找不到命令，可参考[博客](https://www.cnblogs.com/chr-wonder/p/8464224.html) </br>
+必须设置`env_keep` 中的`Defaults  env_keep="GOPATH"` </br>
+运行geth时，必须指定相对或绝对路径的`geth`，本机可能之前装过`geth`，注意区分; </br>
+不再使用make编译geth，通过go install编译的geth在$GOPATH/bin目录下 </br>
+可以将$GOPATH/bin添加到~/.bashrc中，然后就可以直接在任何目录下执行geth的指令了 </br>
 
 ### 三、github版编译
 
@@ -117,10 +124,11 @@ cd ethereum/go-ethereum
 go install -v ./cmd/geth
 
 ```
-
-> Note: 运行geth时，必须指定相对或绝对路径的`geth`，本机可能之前装过`geth`，注意区分; </br>
+> Note: 运行上述指令时，可能提示权限不够，使用`sudo`提示找不到命令，可参考[博客](https://www.cnblogs.com/chr-wonder/p/8464224.html) </br>
+必须设置`env_keep` 中的`Defaults  env_keep="GOPATH"` </br>
+运行geth时，必须指定相对或绝对路径的`geth`，本机可能之前装过`geth`，注意区分; </br>
 不再使用make编译geth，通过go install编译的geth在$GOPATH/bin目录下 </br>
-可以将$GOPATH/bin添加到~/.bashrrc中，然后就可以直接在任何目录下执行geth的指令了 </br>
+可以将$GOPATH/bin添加到~/.bashrc中，然后就可以直接在任何目录下执行geth的指令了 </br>
 
 ### 四、操作步骤
 > Note: 执行零知识操作的账户的明文余额不得超过64bits
