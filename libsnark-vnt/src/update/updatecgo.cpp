@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <iostream>
 
+#include<sys/time.h>
+
 #include <boost/optional.hpp>
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
@@ -377,10 +379,19 @@ char *genUpdateproof(uint64_t value,
     //初始化参数
     alt_bn128_pp::init_public_params();
 
+    struct timeval t1, t2;
+    double timeuse;
+    gettimeofday(&t1,NULL);
+
     r1cs_ppzksnark_keypair<alt_bn128_pp> keypair;
-    cout << "Trying to read update proving key file..." << endl;
-    cout << "Please be patient as this may take about 30 seconds. " << endl;
+    //cout << "Trying to read update proving key file..." << endl;
+    //cout << "Please be patient as this may take about 65 seconds. " << endl;
     keypair.pk = deserializeProvingKeyFromFile("/usr/local/prfKey/updatepk.txt");
+
+    gettimeofday(&t2,NULL);
+    timeuse = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
+    printf("\n\n reading update pk Use Time:%fs\n\n",timeuse);
+
     // 生成proof
     cout << "Trying to generate update proof..." << endl;
 
@@ -412,8 +423,17 @@ bool verifyUpdateproof(char *data, char *RT, char *cmta_old, char *cmta)
     uint256 cmtA = uint256S(cmta);
 
     alt_bn128_pp::init_public_params();
+
+    struct timeval t1, t2;
+    double timeuse;
+    gettimeofday(&t1,NULL);
+
     r1cs_ppzksnark_keypair<alt_bn128_pp> keypair;
     keypair.vk = deserializevkFromFile("/usr/local/prfKey/updatevk.txt");
+
+    gettimeofday(&t2,NULL);
+    timeuse = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
+    printf("\n\n reading update vk Use Time:%fs\n\n",timeuse);
 
     libsnark::r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof;
 

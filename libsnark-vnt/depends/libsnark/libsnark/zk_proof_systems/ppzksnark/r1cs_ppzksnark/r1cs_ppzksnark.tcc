@@ -706,7 +706,7 @@ bool r1cs_ppzksnark_online_verifier_strong_IC(const r1cs_ppzksnark_processed_ver
     else
     {
         result = r1cs_ppzksnark_online_verifier_weak_IC(pvk, primary_input, proof);
-        printf("================ r1cs_ppzksnark_online_verifier_strong_IC, result = %d ===============\n", result);
+        //printf("================ r1cs_ppzksnark_online_verifier_strong_IC, result = %d ===============\n", result);
     }
 
     libff::leave_block("Call to r1cs_ppzksnark_online_verifier_strong_IC");
@@ -722,7 +722,7 @@ bool r1cs_ppzksnark_verifier_strong_IC(const r1cs_ppzksnark_verification_key<ppT
     r1cs_ppzksnark_processed_verification_key<ppT> pvk = r1cs_ppzksnark_verifier_process_vk<ppT>(vk);
     bool result = r1cs_ppzksnark_online_verifier_strong_IC<ppT>(pvk, primary_input, proof);
     libff::leave_block("Call to r1cs_ppzksnark_verifier_strong_IC");
-    printf("================ r1cs_ppzksnark_verifier_strong_IC, result = %d ===============\n", result);
+    //printf("================ r1cs_ppzksnark_verifier_strong_IC, result = %d ===============\n", result);
 
     return result;
 }

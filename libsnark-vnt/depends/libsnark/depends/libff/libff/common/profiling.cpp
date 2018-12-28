@@ -244,90 +244,90 @@ void op_profiling_enter(const std::string &msg)
 
 void enter_block(const std::string &msg, const bool indent)
 {
-    if (inhibit_profiling_counters)
-    {
-        return;
-    }
+//     if (inhibit_profiling_counters)
+//     {
+//         return;
+//     }
 
-    block_names.emplace_back(msg);
-    long long t = get_nsec_time();
-    enter_times[msg] = t;
-    long long cpu_t = get_nsec_cpu_time();
-    enter_cpu_times[msg] = cpu_t;
+//     block_names.emplace_back(msg);
+//     long long t = get_nsec_time();
+//     enter_times[msg] = t;
+//     long long cpu_t = get_nsec_cpu_time();
+//     enter_cpu_times[msg] = cpu_t;
 
-    if (inhibit_profiling_info)
-    {
-        return;
-    }
+//     if (inhibit_profiling_info)
+//     {
+//         return;
+//     }
 
-#ifdef MULTICORE
-#pragma omp critical
-#endif
-    {
-        op_profiling_enter(msg);
+// #ifdef MULTICORE
+// #pragma omp critical
+// #endif
+//     {
+//         op_profiling_enter(msg);
 
-        print_indent();
-        printf("(enter) %-35s\t", msg.c_str());
-        print_times_from_last_and_start(t, t, cpu_t, cpu_t);
-        printf("\n");
-        fflush(stdout);
+//         print_indent();
+//         printf("(enter) %-35s\t", msg.c_str());
+//         print_times_from_last_and_start(t, t, cpu_t, cpu_t);
+//         printf("\n");
+//         fflush(stdout);
 
-        if (indent)
-        {
-            ++indentation;
-        }
-    }
+//         if (indent)
+//         {
+//             ++indentation;
+//         }
+//     }
 }
 
 void leave_block(const std::string &msg, const bool indent)
 {
-    if (inhibit_profiling_counters)
-    {
-        return;
-    }
+//     if (inhibit_profiling_counters)
+//     {
+//         return;
+//     }
 
-#ifndef MULTICORE
-    assert(*(--block_names.end()) == msg);
-#endif
-    block_names.pop_back();
+// #ifndef MULTICORE
+//     assert(*(--block_names.end()) == msg);
+// #endif
+//     block_names.pop_back();
 
-    ++invocation_counts[msg];
+//     ++invocation_counts[msg];
 
-    long long t = get_nsec_time();
-    last_times[msg] = (t - enter_times[msg]);
-    cumulative_times[msg] += (t - enter_times[msg]);
+//     long long t = get_nsec_time();
+//     last_times[msg] = (t - enter_times[msg]);
+//     cumulative_times[msg] += (t - enter_times[msg]);
 
-    long long cpu_t = get_nsec_cpu_time();
-    last_cpu_times[msg] = (cpu_t - enter_cpu_times[msg]);
+//     long long cpu_t = get_nsec_cpu_time();
+//     last_cpu_times[msg] = (cpu_t - enter_cpu_times[msg]);
 
-#ifdef PROFILE_OP_COUNTS
-    for (std::pair<std::string, long long*> p : op_data_points)
-    {
-        cumulative_op_counts[std::make_pair(msg, p.first)] += *(p.second)-op_counts[std::make_pair(msg, p.first)];
-    }
-#endif
+// #ifdef PROFILE_OP_COUNTS
+//     for (std::pair<std::string, long long*> p : op_data_points)
+//     {
+//         cumulative_op_counts[std::make_pair(msg, p.first)] += *(p.second)-op_counts[std::make_pair(msg, p.first)];
+//     }
+// #endif
 
-    if (inhibit_profiling_info)
-    {
-        return;
-    }
+//     if (inhibit_profiling_info)
+//     {
+//         return;
+//     }
 
-#ifdef MULTICORE
-#pragma omp critical
-#endif
-    {
-        if (indent)
-        {
-            --indentation;
-        }
+// #ifdef MULTICORE
+// #pragma omp critical
+// #endif
+//     {
+//         if (indent)
+//         {
+//             --indentation;
+//         }
 
-        print_indent();
-        printf("(leave) %-35s\t", msg.c_str());
-        print_times_from_last_and_start(t, enter_times[msg], cpu_t, enter_cpu_times[msg]);
-        print_op_profiling(msg);
-        printf("\n");
-        fflush(stdout);
-    }
+//         print_indent();
+//         printf("(leave) %-35s\t", msg.c_str());
+//         print_times_from_last_and_start(t, enter_times[msg], cpu_t, enter_cpu_times[msg]);
+//         print_op_profiling(msg);
+//         printf("\n");
+//         fflush(stdout);
+//     }
 }
 
 void print_mem(const std::string &s)

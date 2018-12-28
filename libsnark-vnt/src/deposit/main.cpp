@@ -11,6 +11,8 @@
 #include "libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_gadget.hpp"
 #include "libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_read_gadget.hpp"
 
+#include<sys/time.h>
+
 #include "Note.h"
 #include "IncrementalMerkleTree.hpp"
 
@@ -113,7 +115,8 @@ bool test_deposit_gadget_with_instance(
                             //uint256 r,
                             //uint256 cmtB_old,
                             //uint256 cmtB,
-                            uint64_t value_s
+                            uint64_t value_s,
+                            r1cs_ppzksnark_keypair<ppzksnark_ppT> keypair
                         )
 {
     // Note note_old = Note(value_old, sn_old, r_old);
@@ -207,20 +210,24 @@ bool test_deposit_gadget_with_instance(
    
     typedef libff::Fr<ppzksnark_ppT> FieldT;
 
-    protoboard<FieldT> pb;
+    // protoboard<FieldT> pb;
 
-    deposit_gadget<FieldT> deposit(pb);
-    deposit.generate_r1cs_constraints();// 生成约束
+    // deposit_gadget<FieldT> deposit(pb);
+    // deposit.generate_r1cs_constraints();// 生成约束
 
-    // check conatraints
-    const r1cs_constraint_system<FieldT> constraint_system = pb.get_constraint_system();
-    std::cout << "Number of R1CS constraints: " << constraint_system.num_constraints() << endl;
+    // // check conatraints
+    // const r1cs_constraint_system<FieldT> constraint_system = pb.get_constraint_system();
+    // std::cout << "Number of R1CS constraints: " << constraint_system.num_constraints() << endl;
     
-    // key pair generation
-    r1cs_ppzksnark_keypair<ppzksnark_ppT> keypair = r1cs_ppzksnark_generator<ppzksnark_ppT>(constraint_system);
+    // // key pair generation
+    // r1cs_ppzksnark_keypair<ppzksnark_ppT> keypair = r1cs_ppzksnark_generator<ppzksnark_ppT>(constraint_system);
 
     // 生成proof
     cout << "Trying to generate proof..." << endl;
+    
+    struct timeval gen_start, gen_end;
+    double depositTimeUse;
+    gettimeofday(&gen_start,NULL);
 
     auto proof = generate_deposit_proof<default_r1cs_ppzksnark_pp>(keypair.pk, 
                                                             note_s,
@@ -233,15 +240,23 @@ bool test_deposit_gadget_with_instance(
                                                             path //wrong_path
                                                             );
 
+    gettimeofday(&gen_end,NULL);
+    depositTimeUse = gen_end.tv_sec - gen_start.tv_sec + (gen_end.tv_usec - gen_start.tv_usec)/1000000.0;
+    printf("\n\nGen Depoist Proof Use Time:%fs\n\n", depositTimeUse);
+
     // verify proof
     if (!proof) {
         printf("generate deposit proof fail!!!\n");
         return false;
     } else {
-        PrintProof(*proof);
+        //PrintProof(*proof);
 
         //assert(verify_deposit_proof(keypair.vk, *proof));
-        
+
+        struct timeval ver_start, ver_end;
+        double depositVerTimeUse;
+        gettimeofday(&ver_start, NULL);
+
         bool result = verify_deposit_proof(keypair.vk, 
                                     *proof, 
                                     rt, //wrong_rt
@@ -250,6 +265,10 @@ bool test_deposit_gadget_with_instance(
                                     sn_old,
                                     cmtB
                                    );
+
+        gettimeofday(&ver_end, NULL);
+        depositVerTimeUse = ver_end.tv_sec - ver_start.tv_sec + (ver_end.tv_usec - ver_start.tv_usec)/1000000.0;
+        printf("\n\nVer Deposit Proof Use Time:%fs\n\n", depositVerTimeUse);
 
         //printf("verify result = %d\n", result);
          
@@ -263,8 +282,38 @@ bool test_deposit_gadget_with_instance(
     }
 }
 
-int main () {
+template<typename ppzksnark_ppT>
+r1cs_ppzksnark_keypair<ppzksnark_ppT> Setup() {
     default_r1cs_ppzksnark_pp::init_public_params();
+    
+    typedef libff::Fr<ppzksnark_ppT> FieldT;
+
+    protoboard<FieldT> pb;
+
+    deposit_gadget<FieldT> deposit(pb);
+    deposit.generate_r1cs_constraints();// 生成约束
+
+    // check conatraints
+    const r1cs_constraint_system<FieldT> constraint_system = pb.get_constraint_system();
+    std::cout << "Number of R1CS constraints: " << constraint_system.num_constraints() << endl;
+    
+    // key pair generation
+    r1cs_ppzksnark_keypair<ppzksnark_ppT> keypair = r1cs_ppzksnark_generator<ppzksnark_ppT>(constraint_system);
+
+    return keypair;
+}
+
+int main () {
+    struct timeval t1, t2;
+    double timeuse;
+    gettimeofday(&t1,NULL);
+
+    //default_r1cs_ppzksnark_pp::init_public_params();
+    r1cs_ppzksnark_keypair<default_r1cs_ppzksnark_pp> keypair = Setup<default_r1cs_ppzksnark_pp>();
+
+    gettimeofday(&t2,NULL);
+    timeuse = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
+    printf("\n\Depoist Use Time:%fs\n\n",timeuse);
 
     libff::print_header("#             testing deposit gadget");
 
@@ -272,7 +321,7 @@ int main () {
     uint64_t value_old = uint64_t(255); 
     uint64_t value_s = uint64_t(9);
 
-    test_deposit_gadget_with_instance<default_r1cs_ppzksnark_pp>(value, value_old, value_s);
+    test_deposit_gadget_with_instance<default_r1cs_ppzksnark_pp>(value, value_old, value_s, keypair);
 
     // Note. cmake can not compile the assert()  --Agzs
     

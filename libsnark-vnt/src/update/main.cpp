@@ -11,6 +11,8 @@
 #include "libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_gadget.hpp"
 #include "libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_read_gadget.hpp"
 
+#include<sys/time.h>
+
 #include "Note.h"
 #include "IncrementalMerkleTree.hpp"
 
@@ -109,7 +111,8 @@ bool test_update_gadget_with_instance(
                             //uint256 r,
                             //uint256 cmtA_old,
                             //uint256 cmtA,
-                            uint64_t value_s
+                            uint64_t value_s,
+                            r1cs_ppzksnark_keypair<ppzksnark_ppT> keypair
                         )
 {
     // Note note_old = Note(value_old, sn_old, r_old);
@@ -198,6 +201,82 @@ bool test_update_gadget_with_instance(
 
     cout << "wit.wrong_root = 0x" << wrong_rt.ToString() << endl;
    
+    // typedef libff::Fr<ppzksnark_ppT> FieldT;
+
+    // protoboard<FieldT> pb;
+
+    // update_gadget<FieldT> update(pb);
+    // update.generate_r1cs_constraints();// 生成约束
+
+    // // check conatraints
+    // const r1cs_constraint_system<FieldT> constraint_system = pb.get_constraint_system();
+    // std::cout << "Number of R1CS constraints: " << constraint_system.num_constraints() << endl;
+    
+    // // key pair generation
+    // r1cs_ppzksnark_keypair<ppzksnark_ppT> keypair = r1cs_ppzksnark_generator<ppzksnark_ppT>(constraint_system);
+
+    // 生成proof
+    cout << "Trying to generate proof..." << endl;
+
+    struct timeval gen_start, gen_end;
+    double updateTimeUse;
+    gettimeofday(&gen_start,NULL);
+    
+    auto proof = generate_update_proof<default_r1cs_ppzksnark_pp>(keypair.pk, 
+                                                            note_s,
+                                                            note_old,
+                                                            note,
+                                                            cmtS,
+                                                            cmtA_old,
+                                                            cmtA,
+                                                            rt, //wrong_rt
+                                                            path //wrong_path
+                                                            );
+
+    gettimeofday(&gen_end,NULL);
+    updateTimeUse = gen_end.tv_sec - gen_start.tv_sec + (gen_end.tv_usec - gen_start.tv_usec)/1000000.0;
+    printf("\n\nGen Update Proof Use Time:%fs\n\n", updateTimeUse);
+
+    // verify proof
+    if (!proof) {
+        printf("generate update proof fail!!!\n");
+        return false;
+    } else {
+        //PrintProof(*proof);
+
+        //assert(verify_update_proof(keypair.vk, *proof));
+
+        struct timeval ver_start, ver_end;
+        double updateVerTimeUse;
+        gettimeofday(&ver_start, NULL);
+
+        bool result = verify_update_proof(keypair.vk, 
+                                   *proof, 
+                                   rt, //wrong_rt
+                                   cmtA_old,
+                                   cmtA
+                                   );
+
+        gettimeofday(&ver_end, NULL);
+        updateVerTimeUse = ver_end.tv_sec - ver_start.tv_sec + (ver_end.tv_usec - ver_start.tv_usec)/1000000.0;
+        printf("\n\nVer Update Proof Use Time:%fs\n\n", updateVerTimeUse);
+
+        printf("verify result = %d\n", result);
+         
+        if (!result){
+            cout << "Verifying update proof unsuccessfully!!!" << endl;
+        } else {
+            cout << "Verifying update proof successfully!!!" << endl;
+        }
+        
+        return result;
+    }
+}
+
+template<typename ppzksnark_ppT>
+r1cs_ppzksnark_keypair<ppzksnark_ppT> Setup() {
+    default_r1cs_ppzksnark_pp::init_public_params();
+    
     typedef libff::Fr<ppzksnark_ppT> FieldT;
 
     protoboard<FieldT> pb;
@@ -212,50 +291,20 @@ bool test_update_gadget_with_instance(
     // key pair generation
     r1cs_ppzksnark_keypair<ppzksnark_ppT> keypair = r1cs_ppzksnark_generator<ppzksnark_ppT>(constraint_system);
 
-    // 生成proof
-    cout << "Trying to generate proof..." << endl;
-
-    auto proof = generate_update_proof<default_r1cs_ppzksnark_pp>(keypair.pk, 
-                                                            note_s,
-                                                            note_old,
-                                                            note,
-                                                            cmtS,
-                                                            cmtA_old,
-                                                            cmtA,
-                                                            rt, //wrong_rt
-                                                            path //wrong_path
-                                                            );
-
-    // verify proof
-    if (!proof) {
-        printf("generate update proof fail!!!\n");
-        return false;
-    } else {
-        PrintProof(*proof);
-
-        //assert(verify_update_proof(keypair.vk, *proof));
-        
-        bool result = verify_update_proof(keypair.vk, 
-                                   *proof, 
-                                   rt, //wrong_rt
-                                   cmtA_old,
-                                   cmtA
-                                   );
-
-        printf("verify result = %d\n", result);
-         
-        if (!result){
-            cout << "Verifying update proof unsuccessfully!!!" << endl;
-        } else {
-            cout << "Verifying update proof successfully!!!" << endl;
-        }
-        
-        return result;
-    }
+    return keypair;
 }
 
 int main () {
-    default_r1cs_ppzksnark_pp::init_public_params();
+    struct timeval t1, t2;
+    double timeuse;
+    gettimeofday(&t1,NULL);
+
+    //default_r1cs_ppzksnark_pp::init_public_params();
+    r1cs_ppzksnark_keypair<default_r1cs_ppzksnark_pp> keypair = Setup<default_r1cs_ppzksnark_pp>();
+
+    gettimeofday(&t2,NULL);
+    timeuse = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
+    printf("\n\nUpdate Use Time:%fs\n\n",timeuse);
 
     libff::print_header("#             testing update gadget");
 
@@ -263,7 +312,7 @@ int main () {
     uint64_t value_old = uint64_t(22); 
     uint64_t value_s = uint64_t(8);
 
-    test_update_gadget_with_instance<default_r1cs_ppzksnark_pp>(value, value_old, value_s);
+    test_update_gadget_with_instance<default_r1cs_ppzksnark_pp>(value, value_old, value_s, keypair);
 
     // Note. cmake can not compile the assert()  --Agzs
     

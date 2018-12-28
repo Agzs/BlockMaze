@@ -608,6 +608,8 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	if tx.Code() == types.PublicTx && tx.Gas() < intrGas {
 		return ErrIntrinsicGas
 	}
+
+	verProofStart := time.Now()
 	if txCode == types.MintTx {
 		balance := pool.currentState.GetBalance(from)
 		cmtbalance := pool.currentState.GetCMTBalance(from)
@@ -644,6 +646,9 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 			return err
 		}
 	}
+	verProofEnd := time.Now()
+	fmt.Println("***** Verify transaction Cost Time (ms): ", verProofEnd.Sub(verProofStart).Nanoseconds() / 1000000)
+
 
 	if txCode == types.UpdateTx || txCode == types.DepositTx {
 		var cmtsForMerkle []*common.Hash

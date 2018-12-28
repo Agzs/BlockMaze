@@ -1,4 +1,4 @@
-rm -rf signer1/data/geth signer1/data/SN signer2/data/geth signer2/data/SN signer3/data/geth signer3/data/SN signer4/data/geth signer4/data/SN 
+rm -rf signer1/data/geth signer1/data/SN signer2/data/geth signer2/data/SN signer3/data/geth signer3/data/SN signer4/data/geth signer4/data/SN signer*.log
 
 
 ==================================================================
@@ -9,8 +9,16 @@ clear
 
 geth --datadir signer1/data init pow.json
 
-geth --datadir signer1/data --networkid 55661 --port 2007 --unlock 699101a9bb56372c6c426eccb7a5953b57a2daaa --password signer1/passwd.txt console
+geth --datadir signer1/data --networkid 55661 --port 2007 --unlock b1176ad0de2dc7c2b42f31546479e0682b440795 --password signer1/passwd.txt console 2>> signer1debug.log
 
+eth.sendPublicTransaction({from:eth.accounts[0],to:"156669f9f391aa6a77c494ec6bd4a7761a6541b7",value:web3.toWei(0.05, "ether")})
+
+eth.sendPublicTransaction({from:eth.accounts[0],to:"be95e7fc69d14f993bd8dc5f6d9c338c11c64f79",value:web3.toWei(0.05, "ether")})
+
+miner.start()
+
+
+tail -f signer1debug.log
 ===================================================================
 
 geth --datadir signer2/data account new
@@ -19,8 +27,10 @@ clear
 
 geth --datadir signer2/data init pow.json
 
-geth --datadir signer2/data --networkid 55661 --port 2008 --unlock be95e7fc69d14f993bd8dc5f6d9c338c11c64f79 --password signer2/passwd.txt console
+geth --datadir signer2/data --networkid 55661 --port 2008 --unlock 34c09031d03b935c569def72ae8116357bda3169 --password signer2/passwd.txt console 2>> signer2debug.log
 
+
+tail -f signer2debug.log
 ===================================================================
 
 
@@ -30,13 +40,9 @@ clear
 
 geth --datadir signer3/data init pow.json
 
-geth --datadir signer3/data --networkid 55661 --port 2005 --unlock 492f3232b3e2affb484ddebd3bc84c091b68626f --password signer3/passwd.txt console
+geth --datadir signer3/data --networkid 55661 --port 2005 --unlock 88874231c5db3d6e9afa5a57effa981bc06d16c9 --password signer3/passwd.txt console 2>> signer3debug.log
 
-eth.sendPublicTransaction({from:eth.accounts[0],to:"156669f9f391aa6a77c494ec6bd4a7761a6541b7",value:web3.toWei(0.05, "ether")})
 
-eth.sendPublicTransaction({from:eth.accounts[0],to:"be95e7fc69d14f993bd8dc5f6d9c338c11c64f79",value:web3.toWei(0.05, "ether")})
-
-miner.start()
 
 =================================================================================================
 
@@ -47,7 +53,6 @@ clear
 geth --datadir signer4/data init pow.json
 
 geth --datadir signer4/data --networkid 55661 --port 2006 --unlock 29eec49600049eb192b860121447bfc72fe7ebac --password signer4/passwd.txt console
-
 
 ======================================================================================================
 
@@ -71,13 +76,15 @@ eth.sendMintTransaction({from:eth.accounts[0],value:"0x1234"})
 
 eth.getPubKeyRLP(eth.accounts[0],"")
 
-eth.sendSendTransaction({from:eth.accounts[0],value:"0x123",pubKey:"0xf842a016d2db152cd5fde13ae21dab1bfadc57131c64a899d5447b859e85735436ea7fa0e91d5d3624f65f41ab0160b3c9bf5af4b38b2a3f98b7ac00fdc4c35c7d4af66e"})
+eth.sendSendTransaction({from:eth.accounts[0],value:"0x123",pubKey:"0xf842a0c9e20642d6e367a0ce02f066edffc72ae4e3d09e9e7c1aea4e41df52620c7764a06f0029a171693dd44383c3f791f5aa0616a268bdb9989eeccef4cae5099b3efb"})
 
 
-eth.sendUpdateTransaction({from:eth.accounts[0],txHash:"0x7316009a1c27368b661faa9b25b11214ad1d555a22a2270e86ab8774695c7cae"})
+eth.sendUpdateTransaction({from:eth.accounts[0],txHash:"0x523d73b6ca49473e1f6b1f72b89adaa0eb3710fd1f74c621db2a255c0f7d0141"})
 
-eth.sendDepositTransaction({from:eth.accounts[0],txHash:"0x7316009a1c27368b661faa9b25b11214ad1d555a22a2270e86ab8774695c7cae",key:""})
+eth.sendDepositTransaction({from:eth.accounts[0],txHash:"0x523d73b6ca49473e1f6b1f72b89adaa0eb3710fd1f74c621db2a255c0f7d0141",key:""})
 
+
+eth.sendRedeemTransaction({from:eth.accounts[0], value:"0x123"})
 
 txpool.status
 

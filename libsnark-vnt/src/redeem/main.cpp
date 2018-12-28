@@ -9,6 +9,8 @@
 #include "libsnark/common/default_types/r1cs_ppzksnark_pp.hpp"
 #include <libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_gadget.hpp>
 
+#include<sys/time.h>
+
 #include "Note.h"
 
 using namespace libsnark;
@@ -96,7 +98,7 @@ void PrintProof(r1cs_ppzksnark_proof<ppzksnark_ppT> proof)
 }
 
 template<typename ppzksnark_ppT> //--Agzs
-bool test_mint_gadget_with_instance(
+bool test_redeem_gadget_with_instance(
                             uint64_t value,
                             uint64_t value_old,
                             //uint256 sn_old,
@@ -105,7 +107,8 @@ bool test_mint_gadget_with_instance(
                             //uint256 r,
                             //uint256 cmtA_old,
                             //uint256 cmtA,
-                            uint64_t value_s
+                            uint64_t value_s,
+                            r1cs_ppzksnark_keypair<ppzksnark_ppT> keypair
                         )
 {
     // Note note_old = Note(value_old, sn_old, r_old);
@@ -126,6 +129,85 @@ bool test_mint_gadget_with_instance(
 
     //printf("value_old+value_s = %zu\n", value_old+value_s);
     
+    // typedef libff::Fr<ppzksnark_ppT> FieldT;
+
+    // protoboard<FieldT> pb;
+
+    // redeem_gadget<FieldT> redeem(pb);
+    // redeem.generate_r1cs_constraints();// 生成约束
+
+    // // check conatraints
+    // const r1cs_constraint_system<FieldT> constraint_system = pb.get_constraint_system();
+    // std::cout << "Number of R1CS constraints: " << constraint_system.num_constraints() << endl;
+    
+    // // key pair generation
+    // r1cs_ppzksnark_keypair<ppzksnark_ppT> keypair = r1cs_ppzksnark_generator<ppzksnark_ppT>(constraint_system);
+
+    // 生成proof
+    cout << "Trying to generate proof..." << endl;
+
+    struct timeval gen_start, gen_end;
+    double redeemTimeUse;
+    gettimeofday(&gen_start,NULL);
+
+    auto proof = generate_redeem_proof<default_r1cs_ppzksnark_pp>(keypair.pk, 
+                                                            note_old,
+                                                            note,
+                                                            cmtA_old,
+                                                            cmtA,
+                                                            value_s
+                                                            );
+
+    gettimeofday(&gen_end,NULL);
+    redeemTimeUse = gen_end.tv_sec - gen_start.tv_sec + (gen_end.tv_usec - gen_start.tv_usec)/1000000.0;
+    printf("\n\nGen Redeem Proof Use Time:%fs\n\n", redeemTimeUse);
+
+    // verify proof
+    if (!proof) {
+        printf("generate redeem proof fail!!!\n");
+        return false;
+    } else {
+        //PrintProof(*proof);
+
+        //assert(verify_redeem_proof(keypair.vk, *proof));
+        // wrong test data
+        uint256 wrong_sn_old = uint256S("666");//random_uint256();
+        uint64_t wrong_value_s = uint64_t(8);
+        uint256 wrong_cmtA_old = note.cm();
+        uint256 wrong_cmtA = note_old.cm();
+
+        struct timeval ver_start, ver_end;
+        double redeemVerTimeUse;
+        gettimeofday(&ver_start, NULL);
+        
+        bool result = verify_redeem_proof(keypair.vk, 
+                                   *proof, 
+                                   cmtA_old,
+                                   sn_old,
+                                   cmtA,
+                                   value_s
+                                   );
+
+        gettimeofday(&ver_end, NULL);
+        redeemVerTimeUse = ver_end.tv_sec - ver_start.tv_sec + (ver_end.tv_usec - ver_start.tv_usec)/1000000.0;
+        printf("\n\nVer Redeem Proof Use Time:%fs\n\n", redeemVerTimeUse);
+
+       // printf("verify result = %d\n", result);
+         
+        if (!result){
+            cout << "Verifying redeem proof unsuccessfully!!!" << endl;
+        } else {
+            cout << "Verifying redeem proof successfully!!!" << endl;
+        }
+        
+        return result;
+    }
+}
+
+template<typename ppzksnark_ppT>
+r1cs_ppzksnark_keypair<ppzksnark_ppT> Setup() {
+    default_r1cs_ppzksnark_pp::init_public_params();
+    
     typedef libff::Fr<ppzksnark_ppT> FieldT;
 
     protoboard<FieldT> pb;
@@ -140,53 +222,21 @@ bool test_mint_gadget_with_instance(
     // key pair generation
     r1cs_ppzksnark_keypair<ppzksnark_ppT> keypair = r1cs_ppzksnark_generator<ppzksnark_ppT>(constraint_system);
 
-    // 生成proof
-    cout << "Trying to generate proof..." << endl;
-
-    auto proof = generate_redeem_proof<default_r1cs_ppzksnark_pp>(keypair.pk, 
-                                                            note_old,
-                                                            note,
-                                                            cmtA_old,
-                                                            cmtA,
-                                                            value_s
-                                                            );
-
-    // verify proof
-    if (!proof) {
-        printf("generate redeem proof fail!!!\n");
-        return false;
-    } else {
-        PrintProof(*proof);
-
-        //assert(verify_redeem_proof(keypair.vk, *proof));
-        // wrong test data
-        uint256 wrong_sn_old = uint256S("666");//random_uint256();
-        uint64_t wrong_value_s = uint64_t(8);
-        uint256 wrong_cmtA_old = note.cm();
-        uint256 wrong_cmtA = note_old.cm();
-        
-        bool result = verify_redeem_proof(keypair.vk, 
-                                   *proof, 
-                                   cmtA_old,
-                                   sn_old,
-                                   cmtA,
-                                   value_s
-                                   );
-
-       // printf("verify result = %d\n", result);
-         
-        if (!result){
-            cout << "Verifying redeem proof unsuccessfully!!!" << endl;
-        } else {
-            cout << "Verifying redeem proof successfully!!!" << endl;
-        }
-        
-        return result;
-    }
+    return keypair;
 }
 
 int main () {
-    default_r1cs_ppzksnark_pp::init_public_params();
+    struct timeval t1, t2;
+    double timeuse;
+    gettimeofday(&t1,NULL);
+
+    //default_r1cs_ppzksnark_pp::init_public_params();
+    r1cs_ppzksnark_keypair<default_r1cs_ppzksnark_pp> keypair = Setup<default_r1cs_ppzksnark_pp>();
+
+    gettimeofday(&t2,NULL);
+    timeuse = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
+    printf("\n\nRedeem Use Time:%fs\n\n",timeuse);
+
     //test_r1cs_gg_ppzksnark<default_r1cs_gg_ppzksnark_pp>(1000, 100);
 
     libff::print_header("#             testing redeem gadget");
@@ -195,7 +245,7 @@ int main () {
     uint64_t value_old = uint64_t(20); 
     uint64_t value_s = uint64_t(7);
 
-    test_mint_gadget_with_instance<default_r1cs_ppzksnark_pp>(value, value_old, value_s);
+    test_redeem_gadget_with_instance<default_r1cs_ppzksnark_pp>(value, value_old, value_s, keypair);
 
     // Note. cmake can not compile the assert()  --Agzs
     
