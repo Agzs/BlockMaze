@@ -55,6 +55,7 @@ import (
 
 const (
 	defaultGasPrice = 50 * params.Shannon
+	PubKeySize = 68
 )
 
 // PublicEthereumAPI provides an API to access Ethereum related information.
@@ -1428,6 +1429,8 @@ func (s *PublicTransactionPoolAPI) GetPubKeyRLP(ctx context.Context, address com
 
 	pp, err := rlp.EncodeToBytes(pubkey)
 
+	//fmt.Println("*****pubKey size: ", len(pp));
+
 	return common.ToHex(pp), err
 }
 
@@ -1500,6 +1503,10 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 
 	SN := zktx.SequenceNumberAfter
 	tx.SetZKSN(SN.SN) //SN
+
+    if (len(*args.PubKey) != PubKeySize) {
+		return common.Hash{}, errors.New("invalid receiver pubkey")
+	}
 
 	type pub struct {
 		X *big.Int

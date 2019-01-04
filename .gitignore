@@ -18,6 +18,7 @@ test/clique/*/data
 test/clique/geth.log
 test/pow/*/data
 test/pow/geth.log
+*debug.log
 
 #*
 .#*
