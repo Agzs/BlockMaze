@@ -735,11 +735,42 @@ type tempError interface {
 	Temporary() bool
 }
 
+//=> for self enode. --Agzs 11.20
+var IsSelfNode *string = nil
+
+func localAddr() string {
+	conn, err := net.Dial("udp", "baidu.com:80")
+	if err != nil {
+		log.Warn(err.Error())
+		return ""
+	}
+	defer conn.Close()
+	return conn.LocalAddr().String()
+}
+
+
+
 // listenLoop runs in its own goroutine and accepts
 // inbound connections.
 func (srv *Server) listenLoop() {
 	defer srv.loopWG.Done()
-	srv.log.Info("RLPx listener up", "self", srv.makeSelf(srv.listener, srv.ntab))
+	//srv.log.Info("RLPx listener up", "self", srv.makeSelf(srv.listener, srv.ntab))
+	//================> --Agzs 11.20
+	if IsSelfNode == nil {
+		node := srv.makeSelf(srv.listener, srv.ntab)
+		Host := localAddr()
+		host, _, err := net.SplitHostPort(Host)
+		if err != nil {
+			log.Warn("invalid host: %v", err)
+		}
+		node.IP = net.ParseIP(host)
+		str := node.String()
+		IsSelfNode = &str
+		log.Info("RLPx listener up", "self", node)
+	} else {
+		log.Info("RLPx listener up", "self", srv.makeSelf(srv.listener, srv.ntab))
+	}
+	//================> --Agzs
 
 	tokens := defaultMaxPendingPeers
 	if srv.MaxPendingPeers > 0 {
