@@ -52,11 +52,21 @@ clear
 
 geth --datadir signer4/data init pow.json
 
-geth --datadir signer4/data --networkid 55661 --port 2006 --unlock 29eec49600049eb192b860121447bfc72fe7ebac --password signer4/passwd.txt console
+geth --datadir signer4/data --networkid 55661 --port 2006 --unlock bcc3ef8eb27754b0ed9f658d5049c0b79562c1e7 --password signer4/passwd.txt console
 
 ======================================================================================================
 
-admin.addPeer("enode://90504ba73d0781d0706f7b84789b4d04431ebf3be93c00a4d13b716110179b425f269a42b766a129d0194d53eb4f847eb0b38f141956127b13edf8b08a6c00d0@[::]:2005")
+geth --datadir signer5/data account new
+
+clear
+
+geth --datadir signer5/data init pow.json
+
+geth --datadir signer5/data --networkid 55661 --port 2009 --unlock 1b54f91b31a430948a224c64190ebf7005ef91d4 --password signer5/passwd.txt console
+
+======================================================================================================
+
+admin.addPeer("enode://8fd02533dba65f65881cde2b5e52ae4e1077758e319dfb138e009230e274a45de4fe979f32e549313a0f2fcee2d69b6269c52f302469f97ab58b0dda794d186a@101.76.215.193:2007")
 
 net.peerCount
 
