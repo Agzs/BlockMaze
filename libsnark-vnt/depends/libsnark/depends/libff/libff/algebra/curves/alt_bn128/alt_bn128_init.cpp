@@ -52,6 +52,35 @@ size_t pub_params_sizer()
     len += alt_bn128_final_exponent.max_bits();
     len += alt_bn128_final_exponent_z.max_bits();
 
+    bigint<alt_bn128_r_limbs> alt_bn128_modulus_r;
+    bigint<alt_bn128_q_limbs> alt_bn128_modulus_q;
+
+    std::stringstream ss;
+    ss << alt_bn128_coeff_b;
+    ss << alt_bn128_twist;
+    ss << alt_bn128_twist_coeff_b;
+    ss << alt_bn128_twist_mul_by_b_c0;
+    ss << alt_bn128_twist_mul_by_b_c1;
+    ss << alt_bn128_twist_mul_by_q_X;
+    ss << alt_bn128_twist_mul_by_q_Y;
+
+    ss << alt_bn128_ate_loop_count;
+    ss << alt_bn128_ate_is_loop_count_neg;
+    ss << alt_bn128_final_exponent;
+    ss << alt_bn128_final_exponent_z;
+    ss << alt_bn128_final_exponent_is_z_neg;
+
+    cout << "Size of stream = " << ss.str().length() << "B" << endl;
+
+    std::ofstream fh;
+    fh.open("pubParams.txt", std::ios::binary);
+    ss.rdbuf()->pubseekpos(0, std::ios_base::out);
+    fh << ss.rdbuf();
+    fh.flush();
+    fh.close();
+
+    printf("write public params into file!\n");
+
     return len;
 }
 
@@ -298,39 +327,10 @@ void init_alt_bn128_params()
     alt_bn128_final_exponent_z = bigint_q("4965661367192848881");
     alt_bn128_final_exponent_is_z_neg = false;
 
-    printf("================================\n");
-    printf("Size of public params = %dbits\n", pub_params_sizer());
-    cout << "Size of pubParams = " << pub_params_sizer() << "bits" << endl;
-    printf("================================\n");
-
-    bigint<alt_bn128_r_limbs> alt_bn128_modulus_r;
-    bigint<alt_bn128_q_limbs> alt_bn128_modulus_q;
-
-    std::stringstream ss;
-    ss << alt_bn128_coeff_b;
-    ss << alt_bn128_twist;
-    ss << alt_bn128_twist_coeff_b;
-    ss << alt_bn128_twist_mul_by_b_c0;
-    ss << alt_bn128_twist_mul_by_b_c1;
-    ss << alt_bn128_twist_mul_by_q_X;
-    ss << alt_bn128_twist_mul_by_q_Y;
-
-    ss << alt_bn128_ate_loop_count;
-    ss << alt_bn128_ate_is_loop_count_neg;
-    ss << alt_bn128_final_exponent;
-    ss << alt_bn128_final_exponent_z;
-    ss << alt_bn128_final_exponent_is_z_neg;
-
-    cout << "Size of stream = " << ss.str().length() << "B" << endl;
-
-    std::ofstream fh;
-    fh.open("pubParams.txt", std::ios::binary);
-    ss.rdbuf()->pubseekpos(0, std::ios_base::out);
-    fh << ss.rdbuf();
-    fh.flush();
-    fh.close();
-
-    printf("write public params into file!\n");
+    // printf("================================\n");
+    // printf("Size of public params = %dbits\n", pub_params_sizer());
+    // cout << "Size of pubParams = " << pub_params_sizer() << "bits" << endl;
+    // printf("================================\n");
 }
 } // libff
 
