@@ -42,105 +42,105 @@ add_library(
 ###############################
 # 生成各个gadget的所需的pk，vk
 ###############################
-# add_executable(
-#   mint_key
+add_executable(
+  mint_key
 
-#   mint/getpvk.cpp
-# )
+  mint/getpvk.cpp
+)
 
-# target_link_libraries(
-#   mint_key
+target_link_libraries(
+  mint_key
 
-#   snark
-# )
+  snark
+)
 
-# target_include_directories(
-#   mint_key
+target_include_directories(
+  mint_key
 
-#   PUBLIC
-#   ${DEPENDS_DIR}/libsnark
-#   ${DEPENDS_DIR}/libsnark/depends/libfqfft
-# )
-# #########################
-# add_executable(
-#   send_key
+  PUBLIC
+  ${DEPENDS_DIR}/libsnark
+  ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+#########################
+add_executable(
+  send_key
 
-#   send/getpvk.cpp
-# )
+  send/getpvk.cpp
+)
 
-# target_link_libraries(
-#   send_key
+target_link_libraries(
+  send_key
 
-#   snark
-# )
+  snark
+)
 
-# target_include_directories(
-#   send_key
+target_include_directories(
+  send_key
 
-#   PUBLIC
-#   ${DEPENDS_DIR}/libsnark
-#   ${DEPENDS_DIR}/libsnark/depends/libfqfft
-# )
-# #########################
-# add_executable(
-#   update_key
+  PUBLIC
+  ${DEPENDS_DIR}/libsnark
+  ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+#########################
+add_executable(
+  update_key
 
-#   update/getpvk.cpp
-# )
+  update/getpvk.cpp
+)
 
-# target_link_libraries(
-#   update_key
+target_link_libraries(
+  update_key
 
-#   snark
-# )
+  snark
+)
 
-# target_include_directories(
-#   update_key
+target_include_directories(
+  update_key
 
-#   PUBLIC
-#   ${DEPENDS_DIR}/libsnark
-#   ${DEPENDS_DIR}/libsnark/depends/libfqfft
-# )
-# #########################
-# add_executable(
-#   deposit_key
+  PUBLIC
+  ${DEPENDS_DIR}/libsnark
+  ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+#########################
+add_executable(
+  deposit_key
 
-#   deposit/getpvk.cpp
-# )
+  deposit/getpvk.cpp
+)
 
-# target_link_libraries(
-#   deposit_key
+target_link_libraries(
+  deposit_key
 
-#   snark
-# )
+  snark
+)
 
-# target_include_directories(
-#   deposit_key
+target_include_directories(
+  deposit_key
 
-#   PUBLIC
-#   ${DEPENDS_DIR}/libsnark
-#   ${DEPENDS_DIR}/libsnark/depends/libfqfft
-# )
-# #########################
-# add_executable(
-#   redeem_key
+  PUBLIC
+  ${DEPENDS_DIR}/libsnark
+  ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+#########################
+add_executable(
+  redeem_key
 
-#   redeem/getpvk.cpp
-# )
+  redeem/getpvk.cpp
+)
 
-# target_link_libraries(
-#   redeem_key
+target_link_libraries(
+  redeem_key
 
-#   snark
-# )
+  snark
+)
 
-# target_include_directories(
-#   redeem_key
+target_include_directories(
+  redeem_key
 
-#   PUBLIC
-#   ${DEPENDS_DIR}/libsnark
-#   ${DEPENDS_DIR}/libsnark/depends/libfqfft
-# )
+  PUBLIC
+  ${DEPENDS_DIR}/libsnark
+  ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
 
 ##########################################
 # test setup, genProof and verProof

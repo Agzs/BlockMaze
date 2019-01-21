@@ -28,8 +28,7 @@ boost::optional<r1cs_ppzksnark_proof<ppzksnark_ppT>> generate_mint_proof(r1cs_pp
                                                                     const Note& note,
                                                                     uint256 cmtA_old,
                                                                     uint256 cmtA,
-                                                                    uint64_t value_s,
-                                                                    uint64_t balance
+                                                                    uint64_t value_s
                                                                    )
 {
     typedef Fr<ppzksnark_ppT> FieldT;
@@ -38,7 +37,7 @@ boost::optional<r1cs_ppzksnark_proof<ppzksnark_ppT>> generate_mint_proof(r1cs_pp
     mint_gadget<FieldT> g(pb); // 构造新模型
     g.generate_r1cs_constraints(); // 生成约束
 
-    g.generate_r1cs_witness(note_old, note, cmtA_old, cmtA, value_s, balance); // 为新模型的参数生成证明
+    g.generate_r1cs_witness(note_old, note, cmtA_old, cmtA, value_s); // 为新模型的参数生成证明
 
     cout << "pb.is_satisfied() is " << pb.is_satisfied() << endl;
 
@@ -57,8 +56,7 @@ bool verify_mint_proof(r1cs_ppzksnark_verification_key<ppzksnark_ppT> verificati
                     const uint256& cmtA_old,
                     const uint256& sn_old,
                     const uint256& cmtA,
-                    uint64_t value_s,
-                    uint64_t balance
+                    uint64_t value_s
                   )
 {
     typedef Fr<ppzksnark_ppT> FieldT;
@@ -67,8 +65,7 @@ bool verify_mint_proof(r1cs_ppzksnark_verification_key<ppzksnark_ppT> verificati
         cmtA_old,
         sn_old,
         cmtA,
-        value_s,
-        balance
+        value_s
     ); 
 
     // 调用libsnark库中验证proof的函数
@@ -111,7 +108,6 @@ bool test_mint_gadget_with_instance(
                             //uint256 cmtA_old,
                             //uint256 cmtA,
                             uint64_t value_s,
-                            uint64_t balance,
                             r1cs_ppzksnark_keypair<ppzksnark_ppT> keypair
                         )
 {
@@ -159,8 +155,7 @@ bool test_mint_gadget_with_instance(
                                                             note,
                                                             cmtA_old,
                                                             cmtA,
-                                                            value_s,
-                                                            balance
+                                                            value_s
                                                             );
 
     gettimeofday(&gen_end, NULL);
@@ -178,7 +173,6 @@ bool test_mint_gadget_with_instance(
         // wrong test data
         uint256 wrong_sn_old = uint256S("666");//random_uint256();
         uint64_t wrong_value_s = uint64_t(100);
-        uint64_t wrong_balance = uint64_t(20);
         uint256 wrong_cmtA_old = note.cm();
         uint256 wrong_cmtA = note_old.cm();        
 
@@ -191,8 +185,7 @@ bool test_mint_gadget_with_instance(
                                    cmtA_old,
                                    sn_old,
                                    cmtA,
-                                   value_s,
-                                   balance
+                                   value_s
                                    );
 
         gettimeofday(&ver_end, NULL);
@@ -251,9 +244,8 @@ int main () {
     uint64_t value = uint64_t(13); 
     uint64_t value_old = uint64_t(6); 
     uint64_t value_s = uint64_t(7);
-    uint64_t balance = uint64_t(30); // 由于balance是对外公开的，所以blance>0;此处balance设为负数也能验证通过
 
-    test_mint_gadget_with_instance<default_r1cs_ppzksnark_pp>(value, value_old, value_s, balance, keypair);
+    test_mint_gadget_with_instance<default_r1cs_ppzksnark_pp>(value, value_old, value_s, keypair);
 
     // Note. cmake can not compile the assert()  --Agzs
     

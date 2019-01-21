@@ -1269,7 +1269,7 @@ func (s *PublicTransactionPoolAPI) SendPublicTransaction(ctx context.Context, ar
 		return common.Hash{}, err
 	}
 
-	fmt.Println("***** public transaction size: ", signed.Size())
+	//fmt.Println("***** public transaction size: ", signed.Size())
 	
 	return submitTransaction(ctx, s.b, signed)
 }
@@ -1363,9 +1363,12 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 	tx.SetZKCMT(newCMT)                                               //cmt
 
 	balance := state.GetBalance(args.From)
+	if balance.Uint64() < tx.ZKValue() {
+		return common.Hash{}, errors.New("not enough balance")
+	}
 
 	genProofStart := time.Now()
-	zkProof := zktx.GenMintProof(SN.Value, SN.Random, newSN, newRandom, SN.CMT, SN.SN, newCMT, newValue, balance.Uint64())
+	zkProof := zktx.GenMintProof(SN.Value, SN.Random, newSN, newRandom, SN.CMT, SN.SN, newCMT, newValue)
 	genProofEnd := time.Now()
 	fmt.Println("***** GenMintProof Cost Time (ms): ", genProofEnd.Sub(genProofStart).Nanoseconds() / 1000000)
 	
@@ -1405,7 +1408,7 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 		wt.Flush()
 	}
 	
-	fmt.Println("***** mint transaction size: ", signed.Size())
+	//fmt.Println("***** mint transaction size: ", signed.Size())
 	
 	return hash, err
 }
@@ -1576,7 +1579,7 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 		wt.Flush()
 	}
 	
-	fmt.Println("***** send transaction size: ", tx.Size())
+	//fmt.Println("***** send transaction size: ", tx.Size())
 	
 	return hash, err
 }
@@ -1743,7 +1746,7 @@ loop: //得到 cmts
 		wt.Flush()
 	}
 	
-	fmt.Println("***** update transaction size: ", signed.Size())
+	//fmt.Println("***** update transaction size: ", signed.Size())
 	
 	return hash, err
 }
@@ -1948,7 +1951,7 @@ loop:
 		wt.Flush()
 	}
 	
-	fmt.Println("***** deposit transaction size: ", signedTx.Size())
+	//fmt.Println("***** deposit transaction size: ", signedTx.Size())
 	
 	return hash, err
 }
@@ -2071,7 +2074,7 @@ func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, ar
 		wt.Flush()
 	}
 	
-	fmt.Println("***** redeem transaction size: ", signed.Size())
+	//fmt.Println("***** redeem transaction size: ", signed.Size())
 	
 	return hash, err
 }

@@ -199,8 +199,7 @@ r1cs_ppzksnark_proof<ppzksnark_ppT> generate_mint_proof(r1cs_ppzksnark_proving_k
                                                         Note &note,
                                                         uint256 cmtA_old,
                                                         uint256 cmtA,
-                                                        uint64_t value_s,
-                                                        uint64_t balance)
+                                                        uint64_t value_s)
 {
     typedef Fr<ppzksnark_ppT> FieldT;
 
@@ -208,7 +207,7 @@ r1cs_ppzksnark_proof<ppzksnark_ppT> generate_mint_proof(r1cs_ppzksnark_proving_k
     mint_gadget<FieldT> g(pb);     // 构造新模型
     g.generate_r1cs_constraints(); // 生成约束
 
-    g.generate_r1cs_witness(note_old, note, cmtA_old, cmtA, value_s, balance); // 为新模型的参数生成证明
+    g.generate_r1cs_witness(note_old, note, cmtA_old, cmtA, value_s); // 为新模型的参数生成证明
 
     if (!pb.is_satisfied())
     { // 三元组R1CS是否满足  < A , X > * < B , X > = < C , X >
@@ -227,8 +226,7 @@ bool verify_mint_proof(r1cs_ppzksnark_verification_key<ppzksnark_ppT> verificati
                   uint256 &cmtA_old,
                   uint256 &sn_old,
                   uint256 &cmtA,
-                  uint64_t value_s,
-                  uint64_t balance)
+                  uint64_t value_s)
 {
     typedef Fr<ppzksnark_ppT> FieldT;
 
@@ -236,8 +234,7 @@ bool verify_mint_proof(r1cs_ppzksnark_verification_key<ppzksnark_ppT> verificati
         cmtA_old,
         sn_old,
         cmtA,
-        value_s,
-        balance);
+        value_s);
 
     // 调用libsnark库中验证proof的函数
     return r1cs_ppzksnark_verifier_strong_IC<ppzksnark_ppT>(verification_key, input, proof);
@@ -267,8 +264,7 @@ char *genMintproof(uint64_t value,
                    char *r_string,
                    char *cmtA_old_string,
                    char *cmtA_string,
-                   uint64_t value_s,
-                   uint64_t balance)
+                   uint64_t value_s)
 {
     //从字符串转uint256
     uint256 sn_old = uint256S(sn_old_string);
@@ -300,7 +296,7 @@ char *genMintproof(uint64_t value,
     // 生成proof
     cout << "Trying to generate mint proof..." << endl;
 
-    libsnark::r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof = generate_mint_proof<alt_bn128_pp>(keypair.pk, note_old, note, cmtA_old, cmtA, value_s, balance);
+    libsnark::r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof = generate_mint_proof<alt_bn128_pp>(keypair.pk, note_old, note, cmtA_old, cmtA, value_s);
 
     //proof转字符串
     std::string proof_string = string_proof_as_hex(proof);
@@ -312,7 +308,7 @@ char *genMintproof(uint64_t value,
     return p;
 }
 
-bool verifyMintproof(char *data, char *cmtA_old_string, char *sn_old_string, char *cmtA_string, uint64_t value_s, uint64_t balance)
+bool verifyMintproof(char *data, char *cmtA_old_string, char *sn_old_string, char *cmtA_string, uint64_t value_s)
 {
     uint256 sn_old = uint256S(sn_old_string);
     uint256 cmtA_old = uint256S(cmtA_old_string);
@@ -436,7 +432,7 @@ bool verifyMintproof(char *data, char *cmtA_old_string, char *sn_old_string, cha
     proof.g_K.X = k_x;
     proof.g_K.Y = k_y;
 
-    bool result = verify_mint_proof(keypair.vk, proof, cmtA_old, sn_old, cmtA, value_s, balance);
+    bool result = verify_mint_proof(keypair.vk, proof, cmtA_old, sn_old, cmtA, value_s);
 
     if (!result)
     {

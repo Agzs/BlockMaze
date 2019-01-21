@@ -1,6 +1,5 @@
 #include "utils.tcc"
 #include "note.tcc"
-#include "comparison.tcc"
 #include "add_cmp.tcc"
 #include "commitment.tcc"
 
@@ -36,7 +35,6 @@ public:
      * pb_variable_array<FieldT> balance_A;                // this->balance
      * *********************************************************************/
 
-    pb_variable_array<FieldT> balance;
     pb_variable_array<FieldT> value;
     pb_variable_array<FieldT> value_old;
     pb_variable_array<FieldT> value_s;
@@ -77,7 +75,6 @@ public:
             alloc_uint256(zk_unpacked_inputs, cmtA);
 
             alloc_uint64(zk_unpacked_inputs, this->value_s); 
-            alloc_uint64(zk_unpacked_inputs, this->balance);
 
             assert(zk_unpacked_inputs.size() == verifying_input_bit_size()); // 判定输入长度
 
@@ -105,7 +102,6 @@ public:
         
         ncab.reset(new note_gadget_with_comparison_and_addition_for_balance<FieldT>(
             pb,
-            balance,
             value,
             value_old,
             value_s,
@@ -164,11 +160,10 @@ public:
         const Note& note, 
         uint256 cmtA_old_data,
         uint256 cmtA_data,
-        uint64_t v_s, 
-        uint64_t b
+        uint64_t v_s
     ) {
         //(const Note& note_old, const Note& note, uint64_t v_s, uint64_t b)
-        ncab->generate_r1cs_witness(note_old, note, v_s, b);
+        ncab->generate_r1cs_witness(note_old, note, v_s);
 
         // Witness `zero`
         this->pb.val(ZERO) = FieldT::zero();
@@ -202,8 +197,7 @@ public:
         const uint256& cmtA_old,
         const uint256& sn_old,
         const uint256& cmtA,
-        uint64_t value_s,
-        uint64_t balance
+        uint64_t value_s
     ) {
         std::vector<bool> verify_inputs;
 
@@ -212,7 +206,6 @@ public:
         insert_uint256(verify_inputs, cmtA);
 
         insert_uint64(verify_inputs, value_s);
-        insert_uint64(verify_inputs, balance);
 
         assert(verify_inputs.size() == verifying_input_bit_size());
         auto verify_field_elements = pack_bit_vector_into_field_element_vector<FieldT>(verify_inputs);
@@ -229,7 +222,6 @@ public:
         acc += 256; // cmtA
         
         acc += 64; // value_s
-        acc += 64; // balance
 
         return acc;
     }

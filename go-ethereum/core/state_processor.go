@@ -107,9 +107,8 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 		if exist := statedb.Exist(common.BytesToAddress(tx.ZKSN().Bytes())); exist == true && (*(tx.ZKSN()) != common.Hash{}) { //if sn is already exist,
 			return nil, 0, errors.New("sn is already used ")
 		}
-		balance := statedb.GetBalance(msg.From())
 		cmtbalance := statedb.GetCMTBalance(msg.From())
-		if err = zktx.VerifyMintProof(&cmtbalance, tx.ZKSN(), tx.ZKCMT(), tx.ZKValue(), balance.Uint64(), tx.ZKProof()); err != nil {
+		if err = zktx.VerifyMintProof(&cmtbalance, tx.ZKSN(), tx.ZKCMT(), tx.ZKValue(), tx.ZKProof()); err != nil {
 			fmt.Println("invalid zk mint proof: ", err)
 			return nil, 0, err
 		}

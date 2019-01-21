@@ -612,8 +612,11 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	verProofStart := time.Now()
 	if txCode == types.MintTx {
 		balance := pool.currentState.GetBalance(from)
+		if balance.Uint64() < tx.ZKValue() {
+			return errors.New("not enough balance")
+		}
 		cmtbalance := pool.currentState.GetCMTBalance(from)
-		err = zktx.VerifyMintProof(&cmtbalance, tx.ZKSN(), tx.ZKCMT(), tx.ZKValue(), balance.Uint64(), tx.ZKProof()) //TBD
+		err = zktx.VerifyMintProof(&cmtbalance, tx.ZKSN(), tx.ZKCMT(), tx.ZKValue(), tx.ZKProof()) //TBD
 		if err != nil {
 			return err
 		}
