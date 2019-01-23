@@ -390,7 +390,7 @@ char *genUpdateproof(uint64_t value,
 
     gettimeofday(&t2,NULL);
     timeuse = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
-    printf("\n\n reading update pk Use Time:%fs\n\n",timeuse);
+    // printf("\n\n reading update pk Use Time:%fs\n\n",timeuse);
 
     // 生成proof
     cout << "Trying to generate update proof..." << endl;
@@ -433,7 +433,7 @@ bool verifyUpdateproof(char *data, char *RT, char *cmta_old, char *cmta)
 
     gettimeofday(&t2,NULL);
     timeuse = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
-    printf("\n\n reading update vk Use Time:%fs\n\n",timeuse);
+    // printf("\n\n reading update vk Use Time:%fs\n\n",timeuse);
 
     libsnark::r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof;
 

@@ -609,7 +609,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 		return ErrIntrinsicGas
 	}
 
-	verProofStart := time.Now()
+	//verProofStart := time.Now()
 	if txCode == types.MintTx {
 		balance := pool.currentState.GetBalance(from)
 		if balance.Uint64() < tx.ZKValue() {
@@ -649,8 +649,8 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 			return err
 		}
 	}
-	verProofEnd := time.Now()
-	fmt.Println("***** Verify transaction Cost Time (ms): ", verProofEnd.Sub(verProofStart).Nanoseconds() / 1000000)
+	//verProofEnd := time.Now()
+	//fmt.Println("***** Verify transaction Cost Time (ms): ", verProofEnd.Sub(verProofStart).Nanoseconds() / 1000000)
 
 
 	if txCode == types.UpdateTx || txCode == types.DepositTx {

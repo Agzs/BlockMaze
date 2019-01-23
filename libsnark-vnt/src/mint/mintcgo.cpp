@@ -291,10 +291,10 @@ char *genMintproof(uint64_t value,
 
     gettimeofday(&t2,NULL);
     timeuse = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
-    printf("\n\n reading mint pk Use Time:%fs\n\n",timeuse);
+    // printf("\n\n reading mint pk Use Time:%fs\n\n",timeuse);
 
     // 生成proof
-    cout << "Trying to generate mint proof..." << endl;
+    // cout << "Trying to generate mint proof..." << endl;
 
     libsnark::r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof = generate_mint_proof<alt_bn128_pp>(keypair.pk, note_old, note, cmtA_old, cmtA, value_s);
 
@@ -325,7 +325,7 @@ bool verifyMintproof(char *data, char *cmtA_old_string, char *sn_old_string, cha
 
     gettimeofday(&t2,NULL);
     timeuse = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
-    printf("\n\n reading mint vk Use Time:%fs\n\n",timeuse);
+    // printf("\n\n reading mint vk Use Time:%fs\n\n",timeuse);
 
     libsnark::r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof;
 

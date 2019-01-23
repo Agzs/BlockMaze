@@ -292,7 +292,7 @@ char *genRedeemproof(uint64_t value,
 
     gettimeofday(&t2,NULL);
     timeuse = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
-    printf("\n\n reading redeem pk Use Time:%fs\n\n",timeuse);
+    // printf("\n\n reading redeem pk Use Time:%fs\n\n",timeuse);
 
     // 生成proof
     cout << "Trying to generate redeem proof..." << endl;
@@ -326,7 +326,7 @@ bool verifyRedeemproof(char *data, char *cmtA_old_string, char *sn_old_string, c
 
     gettimeofday(&t2,NULL);
     timeuse = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
-    printf("\n\n reading redeem vk Use Time:%fs\n\n",timeuse);
+    // printf("\n\n reading redeem vk Use Time:%fs\n\n",timeuse);
 
     libsnark::r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof;
 

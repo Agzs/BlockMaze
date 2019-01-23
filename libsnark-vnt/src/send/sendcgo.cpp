@@ -307,7 +307,7 @@ char *genSendproof(uint64_t value_A,
 
     gettimeofday(&t2,NULL);
     timeuse = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
-    printf("\n\n reading send pk Use Time:%fs\n\n",timeuse);
+    // printf("\n\n reading send pk Use Time:%fs\n\n",timeuse);
 
     // 生成proof
     cout << "Trying to generate send proof..." << endl;
@@ -340,7 +340,7 @@ bool verifySendproof(char *data, char *sn_old_string, char *cmtS_string)
 
     gettimeofday(&t2,NULL);
     timeuse = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
-    printf("\n\n reading send vk Use Time:%fs\n\n",timeuse);
+    // printf("\n\n reading send vk Use Time:%fs\n\n",timeuse);
 
     libsnark::r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof;
     
