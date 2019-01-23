@@ -692,9 +692,9 @@ func (bc *BlockChain) procFutureBlocks() {
 		types.BlockBy(types.Number).Sort(blocks)
 
 		// Insert one by one as chain insertion needs contiguous ancestry between blocks
-		for i := range blocks {
+		for i := range blocks {            
 			bc.InsertChain(blocks[i : i+1])
-		}
+					}
 	}
 }
 
@@ -997,8 +997,12 @@ func (bc *BlockChain) WriteBlockWithState(block *types.Block, receipts []*types.
 //
 // After insertion is done, all accumulated events will be fired.
 func (bc *BlockChain) InsertChain(chain types.Blocks) (int, error) {
+	verBlockStart := time.Now()
 	n, events, logs, err := bc.insertChain(chain)
 	bc.PostChainEvents(events, logs)
+	verBlockEnd := time.Now()
+	fmt.Println("***** Verify block Cost Time (ms): ", verBlockEnd.Sub(verBlockStart).Nanoseconds()/1000)
+
 	return n, err
 }
 
