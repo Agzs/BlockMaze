@@ -1234,6 +1234,25 @@ func submitTransaction(ctx context.Context, b Backend, tx *types.Transaction) (c
 	return tx.Hash(), nil
 }
 
+//////////////////////////////
+// SendBatchPublicTransaction creates a transaction for the given argument, sign it and submit it to the
+// transaction pool.
+func (s *PublicTransactionPoolAPI) SendBatchPublicTransaction(ctx context.Context, args SendTxArgs, ntxs hexutil.Uint) (error) {
+	var err error
+	log.Info("Transactions number", "number", ntxs)
+	var i hexutil.Uint
+	for i = 0; i < ntxs; i ++ {
+		time.Sleep(1 * time.Second)
+		_, err = s.SendPublicTransaction(ctx, args)
+		if err != nil {
+			return err
+		}
+	}
+
+	return err
+}
+//////////////////////////////
+
 // SendPublicTransaction creates a transaction for the given argument, sign it and submit it to the
 // transaction pool.
 func (s *PublicTransactionPoolAPI) SendPublicTransaction(ctx context.Context, args SendTxArgs) (common.Hash, error) {
@@ -1367,10 +1386,10 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 		return common.Hash{}, errors.New("not enough balance")
 	}
 
-	genProofStart := time.Now()
+	//genProofStart := time.Now()
 	zkProof := zktx.GenMintProof(SN.Value, SN.Random, newSN, newRandom, SN.CMT, SN.SN, newCMT, newValue)
-	genProofEnd := time.Now()
-	fmt.Println("***** GenMintProof Cost Time (ms): ", genProofEnd.Sub(genProofStart).Nanoseconds() / 1000000)
+	//genProofEnd := time.Now()
+	// fmt.Println("***** GenMintProof Cost Time (ms): ", genProofEnd.Sub(genProofStart).Nanoseconds() / 1000000)
 	
 	if string(zkProof[0:10]) == "0000000000" {
 		return common.Hash{}, errors.New("can't generate proof")
@@ -1519,7 +1538,7 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 		Y *big.Int
 	}
 
-	genRandomKeyStart := time.Now()
+	//genRandomKeyStart := time.Now()
 	var pubKey pub
 
 	rlp.DecodeBytes(*args.PubKey, &pubKey) //--zy
@@ -1533,9 +1552,9 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 
 	zktx.RandomReceiverPK = randomReceiverPK //store randomReceiverPK for update
 
-	genRandomKeyEnd := time.Now()
-	fmt.Println("***** GenRandomKey Cost Time (ms): ", genRandomKeyEnd.Sub(genRandomKeyStart).Nanoseconds() / 1000000)
-	fmt.Println("***** sum RandomReceiverPK size: ", randomReceiverPK.X.BitLen()+randomReceiverPK.Y.BitLen())
+	//genRandomKeyEnd := time.Now()
+	// fmt.Println("***** GenRandomKey Cost Time (ms): ", genRandomKeyEnd.Sub(genRandomKeyStart).Nanoseconds() / 1000000)
+	//fmt.Println("***** sum RandomReceiverPK size: ", randomReceiverPK.X.BitLen()+randomReceiverPK.Y.BitLen())
 	
 	randomPK := R.PublicKey
 	tx.SetPubKey(randomPK.X, randomPK.Y)
@@ -1546,10 +1565,10 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 	CMTs := zktx.GenCMTS(args.Value.ToInt().Uint64(), randomReceiverPK, SNs.Bytes(), newRs.Bytes(), SN.SN.Bytes()) //tbd
 	tx.SetZKCMT(CMTs)
 
-	genProofStart := time.Now()
+	//genProofStart := time.Now()
 	zkProof := zktx.GenSendProof(SN.CMT, SN.Value, SN.Random, args.Value.ToInt().Uint64(), randomReceiverPK, SNs, newRs, SN.SN, CMTs)
-	genProofEnd := time.Now()
-	fmt.Println("***** GenSendProof Cost Time (ms): ", genProofEnd.Sub(genProofStart).Nanoseconds() / 1000000)
+	//genProofEnd := time.Now()
+	// fmt.Println("***** GenSendProof Cost Time (ms): ", genProofEnd.Sub(genProofStart).Nanoseconds() / 1000000)
 	
 	if string(zkProof[0:10]) == "0000000000" {
 		return common.Hash{}, errors.New("can't generate proof")
@@ -1707,10 +1726,10 @@ loop: //得到 cmts
 
 	tx.SetCMTBlocks(cmtBlockNumbers)
 
-	genProofStart := time.Now()
+	//genProofStart := time.Now()
 	zkProof := zktx.GenUpdateProof(txSend.ZKCMT(), SNs.Value, zktx.RandomReceiverPK, SNs.SN, SNs.Random, SNa.SN, SNa.Value, SNa.Random, newSN, newRandom, SNa.CMT, RTcmt.Bytes(), newCMTA, CMTSForMerkle, len(CMTSForMerkle))
-	genProofEnd := time.Now()
-	fmt.Println("***** GenUpdateProof Cost Time (ms): ", genProofEnd.Sub(genProofStart).Nanoseconds() / 1000000)
+	//genProofEnd := time.Now()
+	// fmt.Println("***** GenUpdateProof Cost Time (ms): ", genProofEnd.Sub(genProofStart).Nanoseconds() / 1000000)
 
 	if string(zkProof[0:10]) == "0000000000" {
 		return common.Hash{}, errors.New("can't generate proof")
@@ -1907,10 +1926,10 @@ loop:
 	tx.SetZKCMT(newCMTB)
 	tx.SetPubKey(randomKeyB.X, randomKeyB.Y)
 
-	genProofStart := time.Now()
+	//genProofStart := time.Now()
 	zkProof := zktx.GenDepositProof(txSend.ZKCMT(), valueS, sns, rs, sna, SNb.Value, SNb.Random, newSN, newRandom, &randomKeyB.PublicKey, RTcmt.Bytes(), SNb.CMT, SNb.SN, newCMTB, CMTSForMerkle)
-	genProofEnd := time.Now()
-	fmt.Println("***** GenDepositProof Cost Time (ms): ", genProofEnd.Sub(genProofStart).Nanoseconds() / 1000000)
+	//genProofEnd := time.Now()
+	// fmt.Println("***** GenDepositProof Cost Time (ms): ", genProofEnd.Sub(genProofStart).Nanoseconds() / 1000000)
 
 	if string(zkProof[0:10]) == "0000000000" {
 		return common.Hash{}, errors.New("can't generate proof")
@@ -2033,10 +2052,10 @@ func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, ar
 	newCMT := zktx.GenCMT(newValue, newSN.Bytes(), newRandom.Bytes()) //tbd
 	tx.SetZKCMT(newCMT)                                               //cmt
 
-	genProofStart := time.Now()
+	//genProofStart := time.Now()
 	zkProof := zktx.GenRedeemProof(SN.Value, SN.Random, newSN, newRandom, SN.CMT, SN.SN, newCMT, newValue)
-	genProofEnd := time.Now()
-	fmt.Println("***** GenRedeemProof Cost Time (ms): ", genProofEnd.Sub(genProofStart).Nanoseconds() / 1000000)
+	//genProofEnd := time.Now()
+	// fmt.Println("***** GenRedeemProof Cost Time (ms): ", genProofEnd.Sub(genProofStart).Nanoseconds() / 1000000)
 
 	if string(zkProof[0:10]) == "0000000000" {
 		return common.Hash{}, errors.New("can't generate proof")

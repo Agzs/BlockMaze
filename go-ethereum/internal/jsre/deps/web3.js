@@ -5376,6 +5376,13 @@ var methods = function () {
         inputFormatter: [null]
     });
     
+    var sendBatchPublicTransaction = new Method({
+        name: 'sendBatchPublicTransaction',
+        call: 'eth_sendBatchPublicTransaction',
+        params: 2,
+        inputFormatter: [formatters.inputTransactionFormatter, utils.toHex]
+    });
+
     /** --Agzs 09.17
      * zero-knowledge for VNT using four types transaction as follows:
      * MintTransaction: A converts plaintext balance into zero-knowledge balance;
@@ -5498,6 +5505,7 @@ var methods = function () {
         estimateGas,
         sendRawTransaction,
         signTransaction,
+        sendBatchPublicTransaction,
         sendMintTransaction,
         sendSendTransaction,
         sendDepositTransaction, // --Agzs 09.17
