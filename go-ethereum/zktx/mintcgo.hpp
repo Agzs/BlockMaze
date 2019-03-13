@@ -21,10 +21,9 @@ char* genMintproof(uint64_t value,
                 char* cmtA_old_string, //111
                 //    uint256 cmtA,
                 char* cmtA_string, //111
-                   uint64_t value_s,
-                   uint64_t balance);
+                   uint64_t value_s);
 
-bool verifyMintproof(char *data, char* cmtA_old_string, char* sn_old_string, char* cmtA_string,uint64_t value_s, uint64_t balance);
+bool verifyMintproof(char *data, char* cmtA_old_string, char* sn_old_string, char* cmtA_string,uint64_t value_s);
 
 #ifdef __cplusplus
 } // extern "C"

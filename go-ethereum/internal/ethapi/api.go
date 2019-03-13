@@ -1361,8 +1361,11 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 	tx.SetZKCMT(newCMT)                                               //cmt
 
 	balance := state.GetBalance(args.From)
+	if balance.Uint64() < tx.ZKValue() {
+		return common.Hash{}, errors.New("not enough balance")
+	}
 
-	zkProof := zktx.GenMintProof(SN.Value, SN.Random, newSN, newRandom, SN.CMT, SN.SN, newCMT, newValue, balance.Uint64())
+	zkProof := zktx.GenMintProof(SN.Value, SN.Random, newSN, newRandom, SN.CMT, SN.SN, newCMT, newValue)
 	if string(zkProof[0:10]) == "0000000000" {
 		return common.Hash{}, errors.New("can't generate proof")
 	}
@@ -1397,7 +1400,7 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 		wt.WriteString(SNSString)
 		wt.WriteString("\n") //write a line
 		wt.Flush()
-	}
+	}	
 	return hash, err
 }
 
@@ -1428,8 +1431,6 @@ func (s *PublicTransactionPoolAPI) GetPubKeyRLP(ctx context.Context, address com
 	pubkey := pub{key.X, key.Y}
 
 	pp, err := rlp.EncodeToBytes(pubkey)
-
-	//fmt.Println("*****pubKey size: ", len(pp));
 
 	return common.ToHex(pp), err
 }
@@ -1504,7 +1505,7 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 	SN := zktx.SequenceNumberAfter
 	tx.SetZKSN(SN.SN) //SN
 
-    if (len(*args.PubKey) != PubKeySize) {
+	if (len(*args.PubKey) != PubKeySize) {
 		return common.Hash{}, errors.New("invalid receiver pubkey")
 	}
 
@@ -1512,6 +1513,7 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 		X *big.Int
 		Y *big.Int
 	}
+
 	var pubKey pub
 
 	rlp.DecodeBytes(*args.PubKey, &pubKey) //--zy
@@ -1521,20 +1523,20 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 	R := zktx.GenR()
 	Sa := R.D
 
+	randomReceiverPK := zktx.NewRandomPubKey(Sa, *receiverPubkey)
+
+	zktx.RandomReceiverPK = randomReceiverPK //store randomReceiverPK for update
+	
 	randomPK := R.PublicKey
 	tx.SetPubKey(randomPK.X, randomPK.Y)
 
 	SNs := zktx.NewRandomHash()
 	newRs := zktx.NewRandomHash()
 
-	randomReceiverPK := zktx.NewRandomPubKey(Sa, *receiverPubkey)
-
-	zktx.RandomReceiverPK = randomReceiverPK //store randomReceiverPK for update
-
 	CMTs := zktx.GenCMTS(args.Value.ToInt().Uint64(), randomReceiverPK, SNs.Bytes(), newRs.Bytes(), SN.SN.Bytes()) //tbd
 	tx.SetZKCMT(CMTs)
 
-	zkProof := zktx.GenSendProof(SN.CMT, SN.Value, SN.Random, args.Value.ToInt().Uint64(), randomReceiverPK, SNs, newRs, SN.SN, CMTs)
+	zkProof := zktx.GenSendProof(SN.CMT, SN.Value, SN.Random, args.Value.ToInt().Uint64(), randomReceiverPK, SNs, newRs, SN.SN, CMTs)	
 	if string(zkProof[0:10]) == "0000000000" {
 		return common.Hash{}, errors.New("can't generate proof")
 	}
@@ -1560,7 +1562,7 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 		wt.WriteString(SNSString)
 		wt.WriteString("\n") //write a line
 		wt.Flush()
-	}
+	}	
 	return hash, err
 
 }
@@ -1721,7 +1723,7 @@ loop: //得到 cmts
 		wt.WriteString(SNSString)
 		wt.WriteString("\n") //write a line
 		wt.Flush()
-	}
+	}	
 	return hash, err
 }
 
@@ -2029,7 +2031,7 @@ func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, ar
 		wt.WriteString(SNSString)
 		wt.WriteString("\n") //write a line
 		wt.Flush()
-	}
+	}	
 	return hash, err
 }
 //=============================================================================

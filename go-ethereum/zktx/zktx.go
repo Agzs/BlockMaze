@@ -117,14 +117,13 @@ func NewRandomInt() *big.Int {
 
 var InvalidMintProof = errors.New("Verifying mint proof failed!!!")
 
-func VerifyMintProof(cmtold *common.Hash, snaold *common.Hash, cmtnew *common.Hash, value uint64, balance uint64, proof []byte) error {
+func VerifyMintProof(cmtold *common.Hash, snaold *common.Hash, cmtnew *common.Hash, value uint64, proof []byte) error {
 	cproof := C.CString(string(proof))
 	cmtA_old_c := C.CString(common.ToHex(cmtold[:]))
 	cmtA_c := C.CString(common.ToHex(cmtnew[:]))
 	sn_old_c := C.CString(common.ToHex(snaold.Bytes()[:]))
 	value_s_c := C.ulong(value)
-	balance_c := C.ulong(balance)
-	tf := C.verifyMintproof(cproof, cmtA_old_c, sn_old_c, cmtA_c, value_s_c, balance_c)
+	tf := C.verifyMintproof(cproof, cmtA_old_c, sn_old_c, cmtA_c, value_s_c)
 	if tf == false {
 		return InvalidMintProof
 	}
@@ -335,7 +334,7 @@ func GenerateKeyForRandomB(R *ecdsa.PublicKey, kB *ecdsa.PrivateKey) *ecdsa.Priv
 	return sskB
 }
 
-func GenMintProof(ValueOld uint64, RAold *common.Hash, SNAnew *common.Hash, RAnew *common.Hash, CMTold *common.Hash, SNold *common.Hash, CMTnew *common.Hash, ValueNew uint64, balance uint64) []byte {
+func GenMintProof(ValueOld uint64, RAold *common.Hash, SNAnew *common.Hash, RAnew *common.Hash, CMTold *common.Hash, SNold *common.Hash, CMTnew *common.Hash, ValueNew uint64) []byte {
 	value_c := C.ulong(ValueNew)     //转换后零知识余额对应的明文余额
 	value_old_c := C.ulong(ValueOld) //转换前零知识余额对应的明文余额
 
@@ -348,9 +347,8 @@ func GenMintProof(ValueOld uint64, RAold *common.Hash, SNAnew *common.Hash, RAne
 	cmtA_c := C.CString(common.ToHex(CMTnew[:]))
 
 	value_s_c := C.ulong(ValueNew - ValueOld) //需要被转换的明文余额
-	balance_c := C.ulong(balance)
 
-	cproof := C.genMintproof(value_c, value_old_c, sn_old_c, r_old_c, sn_c, r_c, cmtA_old_c, cmtA_c, value_s_c, balance_c)
+	cproof := C.genMintproof(value_c, value_old_c, sn_old_c, r_old_c, sn_c, r_c, cmtA_old_c, cmtA_c, value_s_c)
 
 	var goproof string
 	goproof = C.GoString(cproof)
