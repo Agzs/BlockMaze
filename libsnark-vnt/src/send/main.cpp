@@ -24,8 +24,10 @@ template<typename ppzksnark_ppT>
 boost::optional<r1cs_ppzksnark_proof<ppzksnark_ppT>> generate_send_proof(r1cs_ppzksnark_proving_key<ppzksnark_ppT> proving_key,
                                                                     const Note& note_old,
                                                                     const NoteS& notes,
+                                                                    const Note& note,
                                                                     uint256 cmtA_old,
-                                                                    uint256 cmtS
+                                                                    uint256 cmtS,
+                                                                    uint256 cmtA
                                                                    )
 {
     typedef Fr<ppzksnark_ppT> FieldT;
@@ -34,7 +36,7 @@ boost::optional<r1cs_ppzksnark_proof<ppzksnark_ppT>> generate_send_proof(r1cs_pp
     send_gadget<FieldT> send(pb); // 构造新模型
     send.generate_r1cs_constraints(); // 生成约束
 
-    send.generate_r1cs_witness(note_old, notes, cmtA_old, cmtS); // 为新模型的参数生成证明
+    send.generate_r1cs_witness(note_old, notes, note, cmtA_old, cmtS, cmtA); // 为新模型的参数生成证明
 
     cout << "pb.is_satisfied() is " << pb.is_satisfied() << endl;
 
@@ -50,15 +52,19 @@ boost::optional<r1cs_ppzksnark_proof<ppzksnark_ppT>> generate_send_proof(r1cs_pp
 template<typename ppzksnark_ppT>
 bool verify_send_proof(r1cs_ppzksnark_verification_key<ppzksnark_ppT> verification_key,
                     r1cs_ppzksnark_proof<ppzksnark_ppT> proof,
+                    const uint256& cmtA_old,
                     const uint256& sn_old,
-                    const uint256& cmtS
+                    const uint256& cmtS,
+                    const uint256& cmtA     
                   )
 {
     typedef Fr<ppzksnark_ppT> FieldT;
 
     const r1cs_primary_input<FieldT> input = send_gadget<FieldT>::witness_map(
+        cmtA_old,
         sn_old,
-        cmtS
+        cmtS,
+        cmtA
     ); 
 
     // 调用libsnark库中验证proof的函数
@@ -99,7 +105,8 @@ bool test_send_gadget_with_instance(
                             //uint256 r,
                             //uint256 cmtA_old,
                             //uint256 cmtA,
-                            uint64_t value_s
+                            uint64_t value_s,
+                            uint64_t value
                         )
 {
     // Note note_old = Note(value_old, sn_old, r_old);
@@ -120,6 +127,16 @@ bool test_send_gadget_with_instance(
     uint256 cmtS = notes.cm();
 
     //printf("value_old+value_s = %zu\n", value_old+value_s);
+    uint256 sn = uint256S("12");//random_uint256();
+    uint256 r = uint256S("12");//random_uint256();
+    Note note = Note(value, sn, r);
+    uint256 cmtA = note.cm();
+
+    // wrong test data
+    uint256 wrong_sn_old = uint256S("666");
+    uint256 wrong_cmtS = note_old.cm();
+    uint256 wrong_cmtA_old = note.cm();
+    uint256 wrong_cmtA = note_old.cm();
     
     typedef libff::Fr<ppzksnark_ppT> FieldT;
 
@@ -141,8 +158,10 @@ bool test_send_gadget_with_instance(
     auto proof = generate_send_proof<default_r1cs_ppzksnark_pp>(keypair.pk, 
                                                             note_old,
                                                             notes,
-                                                            cmtA_old,
-                                                            cmtS
+                                                            note,
+                                                            cmtA_old, // wrong_cmtA_old
+                                                            cmtS, // wrong_cmtS
+                                                            cmtA // wrong_cmtA
                                                             );
 
     // verify proof
@@ -153,14 +172,13 @@ bool test_send_gadget_with_instance(
         PrintProof(*proof);
 
         //assert(verify_send_proof(keypair.vk, *proof));
-        // wrong test data
-        uint256 wrong_sn_old = uint256S("666");
-        uint256 wrong_cmtS = note_old.cm();
         
         bool result = verify_send_proof(keypair.vk, 
                                    *proof, 
+                                   cmtA_old,
                                    sn_old,
-                                   cmtS
+                                   cmtS,
+                                   cmtA
                                    );
 
         //printf("verify result = %d\n", result);
@@ -180,10 +198,11 @@ int main () {
 
     libff::print_header("#             testing send gadget");
 
-    uint64_t value_old = uint64_t(20); 
-    uint64_t value_s = uint64_t(7);
+    uint64_t value = uint64_t(14); 
+    uint64_t value_old = uint64_t(22); 
+    uint64_t value_s = uint64_t(8);
 
-    test_send_gadget_with_instance<default_r1cs_ppzksnark_pp>(value_old, value_s);
+    test_send_gadget_with_instance<default_r1cs_ppzksnark_pp>(value_old, value_s, value);
 
     // Note. cmake can not compile the assert()  --Agzs
     
