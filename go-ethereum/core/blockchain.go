@@ -1001,7 +1001,7 @@ func (bc *BlockChain) InsertChain(chain types.Blocks) (int, error) {
 	n, events, logs, err := bc.insertChain(chain)
 	bc.PostChainEvents(events, logs)
 	verBlockEnd := time.Now()
-	fmt.Println("***** Verify block Cost Time (ms): ", verBlockEnd.Sub(verBlockStart).Nanoseconds()/1000)
+	fmt.Println("***** Verify block Cost Time (us): ", verBlockEnd.Sub(verBlockStart).Nanoseconds()/1000)
 
 	return n, err
 }
