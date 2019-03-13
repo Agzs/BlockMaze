@@ -72,14 +72,16 @@ public:
          * less_or_eq * not_all_zeros = less
          * 0 * not_all_zeros = 0 => less => A < B
          * 0 * not_all_zeros = 1 => eq => A = B   
-         * 1 * not_all_zeros = 1 => less_or_eq => A <= B
+         * 1 * not_all_zeros = 1 => less_or_eq => A < B  正确 
          * 1 * not_all_zeros = 0 => nothing
-         * 1 * not_all_zeros = not_all_zeros => less_or_eq => A <= B
+         * 1 * not_all_zeros = not_all_zeros => less_or_eq => A <= B  正确
          * 0 * not_all_zeros = not_all_zeros => eq => A = B  
          * this->pb.val(0)== this->pb.val(1), 所以 not_all_zeros=1 时成立
          * ********************************************************************************/
-        this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(FieldT::one(), not_all_zeros, FieldT::one()),
-                                    FMT(this->annotation_prefix, " less"));
+        // this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(FieldT::one(), not_all_zeros, FieldT::one()),
+        //                             FMT(this->annotation_prefix, "less"));
+        this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(FieldT::one(), not_all_zeros, not_all_zeros),
+                                    FMT(this->annotation_prefix, "less_or_eq"));
     }
     void generate_r1cs_witness(){
         A.evaluate(this->pb);
