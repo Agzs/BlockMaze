@@ -70,7 +70,7 @@ func SignTx(tx *Transaction, s Signer, prv *ecdsa.PrivateKey) (*Transaction, err
 // signing method. The cache is invalidated if the cached signer does
 // not match the signer used in the current call.
 func Sender(signer Signer, tx *Transaction) (common.Address, error) {
-	if tx.Code() == SendTx || tx.Code() == DepositTx {
+	if tx.Code() == DepositTx {
 		addr := tx.ZKAddress()
 		return *addr, nil
 	}

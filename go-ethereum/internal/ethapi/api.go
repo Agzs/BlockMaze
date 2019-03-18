@@ -1477,6 +1477,10 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 
 	// Look up the wallet containing the requested signer
 	account := accounts.Account{Address: args.From}
+	wallet, err := s.b.AccountManager().Find(account)
+	if err != nil {
+		return common.Hash{}, err
+	}
 	_, err = s.b.AccountManager().Find(account)
 	if err != nil {
 		return common.Hash{}, err
@@ -1553,7 +1557,17 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 	tx.SetAUX(AUX)
 	zktx.SNS = &zktx.Sequence{SN: SNs, CMT: CMTs, Random: newRs, Value: args.Value.ToInt().Uint64()}
 
-	hash, err := submitTransaction(ctx, s.b, tx)
+	var chainID *big.Int
+	if config := s.b.ChainConfig(); config.IsEIP155(s.b.CurrentBlock().Number()) {
+		chainID = config.ChainID
+	}
+
+	signed, err := wallet.SignTx(account, tx, chainID)
+	if err != nil {
+		return common.Hash{}, err
+	}
+
+	hash, err := submitTransaction(ctx, s.b, signed)
 	// if err == nil {
 	// 	zktx.Stage = zktx.Send
 	// 	SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.SNS, zktx.RandomReceiverPK.X,zktx.RandomReceiverPK.Y, zktx.Send}

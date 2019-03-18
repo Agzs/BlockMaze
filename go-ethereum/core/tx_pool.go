@@ -649,7 +649,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 		}
 	}
 
-	if txCode == types.UpdateTx || txCode == types.DepositTx {
+	if txCode == types.DepositTx {
 		var cmtsForMerkle []*common.Hash
 		cmtblocknumbers := tx.CMTBlocks()
 		for i, _ := range cmtblocknumbers {
