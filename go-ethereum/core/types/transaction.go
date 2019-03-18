@@ -75,6 +75,7 @@ type txdata struct {
 	ZKNounce  uint64
 	ZKAdrress *common.Address
 	ZKCMT     *common.Hash
+	ZKCMTS    *common.Hash //add by zy
 	ZKProof   []byte
 	//	CMTProof  []byte
 	RTcmt    common.Hash
@@ -303,8 +304,18 @@ func (tx *Transaction) ZKCMT() *common.Hash {
 }
 
 //
+func (tx *Transaction) ZKCMTS() *common.Hash {
+	return tx.data.ZKCMTS
+}
+
+//
 func (tx *Transaction) SetZKCMT(hash *common.Hash) {
 	tx.data.ZKCMT = hash
+}
+
+//
+func (tx *Transaction) SetZKCMTS(hash *common.Hash) {
+	tx.data.ZKCMTS = hash
 }
 
 //

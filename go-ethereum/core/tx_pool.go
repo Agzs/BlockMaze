@@ -627,18 +627,19 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 		}
 	}
 	if txCode == types.SendTx {
-		err = zktx.VerifySendProof(tx.ZKSN(), tx.ZKCMT(), tx.ZKProof()) //TBD
-		if err != nil {
-			return err
-		}
-	}
-	if txCode == types.UpdateTx {
 		cmtbalance := pool.currentState.GetCMTBalance(from)
-		err = zktx.VerifyUpdateProof(&cmtbalance, tx.RTcmt(), tx.ZKCMT(), tx.ZKProof())
+		err = zktx.VerifySendProof(tx.ZKSN(), tx.ZKCMT(), tx.ZKProof(), &cmtbalance, tx.ZKCMT()) //TBD
 		if err != nil {
 			return err
 		}
 	}
+	// if txCode == types.UpdateTx {
+	// 	cmtbalance := pool.currentState.GetCMTBalance(from)
+	// 	err = zktx.VerifyUpdateProof(&cmtbalance, tx.RTcmt(), tx.ZKCMT(), tx.ZKProof())
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
 	if txCode == types.DepositTx {
 		cmtbalance := pool.currentState.GetCMTBalance(from)
 		ppp := &ecdsa.PublicKey{crypto.S256(), tx.X(), tx.Y()}

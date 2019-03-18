@@ -115,21 +115,22 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 		statedb.CreateAccount(common.BytesToAddress(tx.ZKSN().Bytes()))
 		statedb.SetNonce(common.BytesToAddress(tx.ZKSN().Bytes()), 1)
 	} else if tx.TxCode() == types.SendTx {
+		cmtbalance := statedb.GetCMTBalance(msg.From())
 		if exist := statedb.Exist(common.BytesToAddress(tx.ZKSN().Bytes())); exist == true && (*(tx.ZKSN()) != common.Hash{}) { //if sn is already exist,
 			return nil, 0, errors.New("sn is already used ")
 		}
-		if err = zktx.VerifySendProof(tx.ZKSN(), tx.ZKCMT(), tx.ZKProof()); err != nil {
+		if err = zktx.VerifySendProof(tx.ZKSN(), tx.ZKCMTS(), tx.ZKProof(), &cmtbalance, tx.ZKCMT()); err != nil {
 			fmt.Println("invalid zk send proof: ", err)
 			return nil, 0, err
 		}
 		statedb.CreateAccount(common.BytesToAddress(tx.ZKSN().Bytes()))
 		statedb.SetNonce(common.BytesToAddress(tx.ZKSN().Bytes()), 1)
-	} else if tx.TxCode() == types.UpdateTx {
-		cmtbalance := statedb.GetCMTBalance(msg.From())
-		if err = zktx.VerifyUpdateProof(&cmtbalance, tx.RTcmt(), tx.ZKCMT(), tx.ZKProof()); err != nil {
-			fmt.Println("invalid zk update proof: ", err)
-			return nil, 0, err
-		}
+		// } else if tx.TxCode() == types.UpdateTx {
+		// 	cmtbalance := statedb.GetCMTBalance(msg.From())
+		// 	if err = zktx.VerifyUpdateProof(&cmtbalance, tx.RTcmt(), tx.ZKCMT(), tx.ZKProof()); err != nil {
+		// 		fmt.Println("invalid zk update proof: ", err)
+		// 		return nil, 0, err
+		// 	}
 	} else if tx.TxCode() == types.DepositTx {
 		if exist := statedb.Exist(common.BytesToAddress(tx.ZKSN().Bytes())); exist == true && (*(tx.ZKSN()) != common.Hash{}) { //if sn is already exist,
 			return nil, 0, errors.New("sn in deposit tx has been already used")
