@@ -27,11 +27,11 @@ add_library(
   send/sendcgo.cpp
 )
 
-add_library(
-  zk_update
-  SHARED
-  update/updatecgo.cpp
-)
+#add_library(
+#  zk_update
+#  SHARED
+#  update/updatecgo.cpp
+#)
 
 add_library(
   zk_deposit
@@ -82,25 +82,25 @@ target_include_directories(
   ${DEPENDS_DIR}/libsnark/depends/libfqfft
 )
 #########################
-add_executable(
-  update_key
+#add_executable(
+#  update_key
+#
+#  update/getpvk.cpp
+#)
 
-  update/getpvk.cpp
-)
+#target_link_libraries(
+#  update_key
+#
+#  snark
+#)
 
-target_link_libraries(
-  update_key
+#target_include_directories(
+#  update_key
 
-  snark
-)
-
-target_include_directories(
-  update_key
-
-  PUBLIC
-  ${DEPENDS_DIR}/libsnark
-  ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
+#  PUBLIC
+#  ${DEPENDS_DIR}/libsnark
+#  ${DEPENDS_DIR}/libsnark/depends/libfqfft
+#)
 #########################
 add_executable(
   deposit_key
