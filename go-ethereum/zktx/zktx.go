@@ -1,11 +1,11 @@
 package zktx
 
 /*
-#cgo LDFLAGS: -L/usr/local/lib -lzk_mint -lzk_redeem  -lzk_send  -lzk_deposit -lff  -lsnark -lstdc++  -lgmp -lgmpxx
+#cgo LDFLAGS: -L/usr/local/lib -lzk_mint  -lzk_send  -lzk_deposit -lzk_redeem -lff  -lsnark -lstdc++  -lgmp -lgmpxx
 #include "mintcgo.hpp"
-#include "redeemcgo.hpp"
 #include "sendcgo.hpp"
 #include "depositcgo.hpp"
+#include "redeemcgo.hpp"
 #include <stdlib.h>
 */
 import "C"
