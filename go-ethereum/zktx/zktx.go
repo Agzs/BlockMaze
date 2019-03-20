@@ -424,7 +424,6 @@ func GenSendProof(CMTA *common.Hash, ValueA uint64, RA *common.Hash, ValueS uint
 // }
 
 func GenDepositProof(CMTS *common.Hash, ValueS uint64, SNS *common.Hash, RS *common.Hash, SNA *common.Hash, ValueB uint64, RB *common.Hash, SNBnew *common.Hash, RBnew *common.Hash, pk *ecdsa.PublicKey, RTcmt []byte, CMTB *common.Hash, SNB *common.Hash, CMTBnew *common.Hash, CMTSForMerkle []*common.Hash) []byte {
-
 	cmtS_c := C.CString(common.ToHex(CMTS[:]))
 	valueS_c := C.ulong(ValueS)
 	PK := crypto.PubkeyToAddress(*pk) //--zy

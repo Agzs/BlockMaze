@@ -1317,10 +1317,10 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 	exist = state.Exist(common.BytesToAddress(zktx.SequenceNumber.SN.Bytes()))
 
 	if exist == false && *(zktx.SequenceNumber.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
-		if zktx.Stage == zktx.Update {
-			fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
-			return common.Hash{}, nil
-		}
+		// if zktx.Stage == zktx.Update {
+		// 	fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
+		// 	return common.Hash{}, nil
+		// }
 		zktx.SequenceNumberAfter = zktx.SequenceNumber
 	}
 
@@ -1468,10 +1468,10 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 	exist = state.Exist(common.BytesToAddress(zktx.SequenceNumber.SN.Bytes()))
 
 	if exist == false && *(zktx.SequenceNumber.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
-		if zktx.Stage == zktx.Update {
-			fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
-			return common.Hash{}, nil
-		}
+		// if zktx.Stage == zktx.Update {
+		// 	fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
+		// 	return common.Hash{}, nil
+		// }
 		zktx.SequenceNumberAfter = zktx.SequenceNumber
 	}
 
@@ -1799,10 +1799,10 @@ func (s *PublicTransactionPoolAPI) SendDepositTransaction(ctx context.Context, a
 	exist = state.Exist(common.BytesToAddress(zktx.SequenceNumber.SN.Bytes()))
 
 	if exist == false && *(zktx.SequenceNumber.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
-		if zktx.Stage == zktx.Update {
-			fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
-			return common.Hash{}, nil
-		}
+		// if zktx.Stage == zktx.Update {
+		// 	fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
+		// 	return common.Hash{}, nil
+		// }
 		zktx.SequenceNumberAfter = zktx.SequenceNumber
 	}
 
@@ -1917,7 +1917,7 @@ loop:
 	tx.SetZKCMT(newCMTB)
 	tx.SetPubKey(randomKeyB.X, randomKeyB.Y)
 
-	zkProof := zktx.GenDepositProof(txSend.ZKCMT(), valueS, sns, rs, sna, SNb.Value, SNb.Random, newSN, newRandom, &randomKeyB.PublicKey, RTcmt.Bytes(), SNb.CMT, SNb.SN, newCMTB, CMTSForMerkle)
+	zkProof := zktx.GenDepositProof(txSend.ZKCMTS(), valueS, sns, rs, sna, SNb.Value, SNb.Random, newSN, newRandom, &randomKeyB.PublicKey, RTcmt.Bytes(), SNb.CMT, SNb.SN, newCMTB, CMTSForMerkle)
 	if string(zkProof[0:10]) == "0000000000" {
 		return common.Hash{}, errors.New("can't generate proof")
 	}
@@ -1929,7 +1929,7 @@ loop:
 		fmt.Println("pubkeyb cat not be used for a second time")
 		return common.Hash{}, nil
 	}
-	fmt.Println("randomKeyB:", randomKeyB.D.BitLen())
+	//fmt.Println("randomKeyB:", randomKeyB.D.BitLen())
 	signedTx, errSignedTx := types.SignTx(tx, types.HomesteadSigner{}, randomKeyB)
 
 	if errSignedTx != nil {
@@ -1991,10 +1991,10 @@ func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, ar
 	exist = state.Exist(common.BytesToAddress(zktx.SequenceNumber.SN.Bytes()))
 
 	if exist == false && *(zktx.SequenceNumber.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
-		if zktx.Stage == zktx.Update {
-			fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
-			return common.Hash{}, nil
-		}
+		// if zktx.Stage == zktx.Update {
+		// 	fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
+		// 	return common.Hash{}, nil
+		// }
 		zktx.SequenceNumberAfter = zktx.SequenceNumber
 	}
 
