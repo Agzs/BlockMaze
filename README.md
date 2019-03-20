@@ -23,7 +23,7 @@
 go version >= 1.10
 ```
 
-> Note: 从共享文件夹中将prfkey文件夹拷贝至/usr/local目录下!!!
+> Note: 从共享文件夹中将prfKey文件夹拷贝至/usr/local目录下!!!
 
 ### 二、压缩版编译
 
