@@ -1231,6 +1231,7 @@ func submitTransaction(ctx context.Context, b Backend, tx *types.Transaction) (c
 		log.Info("Submitted contract creation", "fullhash", tx.Hash().Hex(), "contract", addr.Hex())
 	} else {
 		log.Info("Submitted transaction", "fullhash", tx.Hash().Hex(), "recipient", tx.To())
+		fmt.Println("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz11")
 	}
 	return tx.Hash(), nil
 }
@@ -1502,8 +1503,8 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 	tx.SetTxCode(types.SendTx)
 	tx.SetPrice(big.NewInt(0))
 	tx.SetValue(big.NewInt(0))
-	randomAddress := zktx.NewRandomAddress()
-	tx.SetZKAddress(randomAddress)
+	// randomAddress := zktx.NewRandomAddress()
+	tx.SetZKAddress(&zktx.ZKTxAddress)
 	tx.SetNonce(0)
 
 	SN := zktx.SequenceNumberAfter
@@ -1545,7 +1546,7 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 	newValueA := SN.Value - args.Value.ToInt().Uint64()                   //update后 A新value
 	newCMTA := zktx.GenCMT(newValueA, newSNA.Bytes(), newRandomA.Bytes()) //A 新 cmt
 	tx.SetZKCMT(newCMTA)
-	tx.SetZKAddress(&args.From)
+	//tx.SetZKAddress(&args.From)
 	//end
 	zkProof := zktx.GenSendProof(SN.CMT, SN.Value, SN.Random, args.Value.ToInt().Uint64(), randomReceiverPK, SNs, newRs, SN.SN, CMTs, newValueA, newSNA, newRandomA, newCMTA)
 	if string(zkProof[0:10]) == "0000000000" {

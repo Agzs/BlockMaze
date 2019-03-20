@@ -677,6 +677,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 // whitelisted, preventing any associated transaction from being dropped out of
 // the pool due to pricing constraints.
 func (pool *TxPool) add(tx *types.Transaction, local bool) (bool, error) {
+	fmt.Println("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz55")
 	// If the transaction is already known, discard it
 	hash := tx.Hash()
 
@@ -745,6 +746,7 @@ func (pool *TxPool) add(tx *types.Transaction, local bool) (bool, error) {
 	pool.journalTx(from, tx)
 
 	log.Trace("Pooled new future transaction", "hash", hash, "from", from, "to", tx.To())
+	fmt.Println("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz66")
 	return replace, nil
 
 }
@@ -832,6 +834,7 @@ func (pool *TxPool) promoteTx(addr common.Address, hash common.Hash, tx *types.T
 // the sender as a local one in the mean time, ensuring it goes around the local
 // pricing constraints.
 func (pool *TxPool) AddLocal(tx *types.Transaction) error {
+	fmt.Println("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz33")
 	return pool.addTx(tx, !pool.config.NoLocals)
 }
 
@@ -858,6 +861,7 @@ func (pool *TxPool) AddRemotes(txs []*types.Transaction) []error {
 
 // addTx enqueues a single transaction into the pool if it is valid.
 func (pool *TxPool) addTx(tx *types.Transaction, local bool) error {
+	fmt.Println("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz44")
 	pool.mu.Lock()
 	defer pool.mu.Unlock()
 
