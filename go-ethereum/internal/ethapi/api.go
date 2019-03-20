@@ -1906,6 +1906,9 @@ loop:
 
 	AUXA := txSend.AUX()
 	valueS, sns, rs, sna := zktx.DecAUX(&randomKeyB.PublicKey, AUXA) //--zy
+	if valueS <= 0 {
+		return common.Hash{}, errors.New("transfer amount must be larger than 0")
+	}
 
 	SNb := zktx.SequenceNumberAfter
 	tx.SetZKSN(SNb.SN)
