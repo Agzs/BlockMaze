@@ -101,14 +101,11 @@ eth.sendMintTransaction({from:"0x492f3232b3e2affb484ddebd3bc84c091b68626f",value
 // 其中第一个参数是账户，第二个参数是账户的密码
 eth.getPubKeyRLP("0x6044c69f30e5699fe6f0ee4fccbcb50b1ab11faexit7","")
 
-// 节点A执行Send操作，其中pubkey为接收方(节点B)的公钥  (上一步的结果)
+// 节点A执行Send操作进行转账，并更新自己的零知识余额，其中pubkey为接收方(节点B)的公钥  (上一步的结果)
 // 线下告诉节点B 交易SendTransaction的hash
 eth.sendSendTransaction({from:"0x492f3232b3e2affb484ddebd3bc84c091b68626f",value:"0x123",pubKey:"0xf842a0dfdc52fc4652e878a5ab8b714c493ccf4b8fc1106d457941a25989ce4ee2f5d7a0e600c1f446799b44e9e5d23712176a12dec4f4731e1adc7cc26f74b5e8a3d9c0"})
 
-// 节点A执行Update操作，其中txHash为send 交易的hash (上一步的结果)
-eth.sendUpdateTransaction({from:"0x492f3232b3e2affb484ddebd3bc84c091b68626f",txHash:"0x3493dc889528bc975436fcfb2fae9fd3d1829ecac0161e966a1459ab9df36f88"})
-
-// 节点B执行Deposit操作，其中txHash为节点A产生的send 交易的hash
+// 节点B执行Deposit操作，其中txHash为节点A产生的send交易的hash (上一步的结果)
 // 其中key为账户的密码
 eth.sendDepositTransaction({from:"0x29eec49600049eb192b860121447bfc72fe7ebac",txHash:"0xb13787daae6718378334577d9ed16fda0575ddfa0511546d79c3eea1970f9753",key:""})
 
