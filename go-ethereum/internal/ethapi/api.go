@@ -1231,7 +1231,6 @@ func submitTransaction(ctx context.Context, b Backend, tx *types.Transaction) (c
 		log.Info("Submitted contract creation", "fullhash", tx.Hash().Hex(), "contract", addr.Hex())
 	} else {
 		log.Info("Submitted transaction", "fullhash", tx.Hash().Hex(), "recipient", tx.To())
-		fmt.Println("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz11")
 	}
 	return tx.Hash(), nil
 }
@@ -1505,7 +1504,7 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 	tx.SetValue(big.NewInt(0))
 	// randomAddress := zktx.NewRandomAddress()
 	tx.SetZKAddress(&zktx.ZKTxAddress)
-	tx.SetNonce(0)
+	//tx.SetNonce(0)
 
 	SN := zktx.SequenceNumberAfter
 	tx.SetZKSN(SN.SN) //SN
