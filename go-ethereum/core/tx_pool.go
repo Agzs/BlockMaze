@@ -628,7 +628,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	}
 	if txCode == types.SendTx {
 		cmtbalance := pool.currentState.GetCMTBalance(from)
-		err = zktx.VerifySendProof(tx.ZKSN(), tx.ZKCMT(), tx.ZKProof(), &cmtbalance, tx.ZKCMT()) //TBD
+		err = zktx.VerifySendProof(tx.ZKSN(), tx.ZKCMTS(), tx.ZKProof(), &cmtbalance, tx.ZKCMT()) //TBD
 		if err != nil {
 			return err
 		}
@@ -688,6 +688,7 @@ func (pool *TxPool) add(tx *types.Transaction, local bool) (bool, error) {
 	if err := pool.validateTx(tx, local); err != nil {
 		log.Trace("Discarding invalid transaction", "hash", hash, "err", err)
 		invalidTxCounter.Inc(1)
+		fmt.Println("add txpool err", err)
 		return false, err
 	}
 	// If the transaction pool is full, discard underpriced transactions

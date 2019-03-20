@@ -143,6 +143,10 @@ var InvalidSendProof = errors.New("Verifying send proof failed!!!")
 // 	return nil
 // }
 func VerifySendProof(sna *common.Hash, cmts *common.Hash, proof []byte, cmtAold *common.Hash, cmtAnew *common.Hash) error {
+	fmt.Println("sna", sna)
+	fmt.Println("cmts", cmts)
+	fmt.Println("cmtAold", cmtAold)
+	fmt.Println("cmtAnew", cmtAnew)
 	cproof := C.CString(string(proof))
 	snAold_c := C.CString(common.ToHex(sna.Bytes()[:]))
 	cmtS := C.CString(common.ToHex(cmts[:]))
@@ -368,6 +372,12 @@ func GenMintProof(ValueOld uint64, RAold *common.Hash, SNAnew *common.Hash, RAne
 }
 
 func GenSendProof(CMTA *common.Hash, ValueA uint64, RA *common.Hash, ValueS uint64, pk *ecdsa.PublicKey, SNS *common.Hash, RS *common.Hash, SNA *common.Hash, CMTS *common.Hash, ValueAnew uint64, SNAnew *common.Hash, RAnew *common.Hash, CMTAnew *common.Hash) []byte {
+	fmt.Println("valueA", ValueA)
+	fmt.Println("ValueS", ValueS)
+	fmt.Println("snA", SNA)
+	fmt.Println("cmtA", CMTA)
+	fmt.Println("CMTS", CMTS)
+	fmt.Println("CMTAnew", CMTAnew)
 	cmtA_c := C.CString(common.ToHex(CMTA[:]))
 	valueA_c := C.ulong(ValueA)
 	rA_c := C.CString(common.ToHex(RA.Bytes()[:]))
