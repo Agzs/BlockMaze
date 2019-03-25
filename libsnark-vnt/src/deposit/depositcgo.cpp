@@ -284,6 +284,31 @@ char *genCMTS(uint64_t value_s, char *pk_string, char *sn_s_string, char *r_s_st
     return p;
 }
 
+char *genRoot(char *cmtarray, int n)
+{
+    boost::array<uint256, 32> commitments; //16个cmts
+
+    string s = cmtarray;
+
+    ZCIncrementalMerkleTree tree;
+    assert(tree.root() == ZCIncrementalMerkleTree::empty_root());
+
+    for (int i = 0; i < n; i++)
+    {
+        commitments[i] = uint256S(s.substr(i * 66, 66)); //分割cmtarray  0x+64个十六进制数 一共64位
+        tree.append(commitments[i]);
+    }
+
+    uint256 rt = tree.root();
+    std::string rt_c = rt.ToString();
+
+    char *p = new char[65]; //必须使用new开辟空间 不然cgo调用该函数结束全为0   65
+    rt_c.copy(p, 64, 0);
+    *(p + 64) = '\0'; //手动加结束符
+
+    return p;
+}
+
 char *genDepositproof(uint64_t value,
                       uint64_t value_old,
                       char *sn_old_string,

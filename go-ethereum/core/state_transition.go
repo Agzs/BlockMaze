@@ -218,7 +218,7 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 		// Increment the nonce for the next transaction
 		st.state.SetNonce(msg.From(), st.state.GetNonce(sender.Address())+1)
 		ret, st.gas, vmerr = evm.Call(sender, st.to(), st.data, st.gas, st.value)
-		if txCode == types.MintTx || txCode == types.UpdateTx || txCode == types.DepositTx || txCode == types.RedeemTx {
+		if txCode == types.MintTx || txCode == types.SendTx || txCode == types.DepositTx || txCode == types.RedeemTx {
 			st.state.SetCMT(msg.From(), cmt)
 		}
 	}

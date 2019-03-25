@@ -89,8 +89,6 @@ eth.getPubKeyRLP(eth.accounts[0],"")
 eth.sendSendTransaction({from:eth.accounts[0],value:"0x123",pubKey:"0xf842a0c9e20642d6e367a0ce02f066edffc72ae4e3d09e9e7c1aea4e41df52620c7764a06f0029a171693dd44383c3f791f5aa0616a268bdb9989eeccef4cae5099b3efb"})
 
 
-eth.sendUpdateTransaction({from:eth.accounts[0],txHash:"0x523d73b6ca49473e1f6b1f72b89adaa0eb3710fd1f74c621db2a255c0f7d0141"})
-
 eth.sendDepositTransaction({from:eth.accounts[0],txHash:"0x523d73b6ca49473e1f6b1f72b89adaa0eb3710fd1f74c621db2a255c0f7d0141",key:""})
 
 

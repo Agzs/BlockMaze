@@ -198,8 +198,10 @@ template <typename ppzksnark_ppT>
 r1cs_ppzksnark_proof<ppzksnark_ppT> generate_send_proof(r1cs_ppzksnark_proving_key<ppzksnark_ppT> proving_key,
                                                         Note &note_old,
                                                         NoteS &notes,
+                                                        Note& note,
                                                         uint256 cmtA_old,
-                                                        uint256 cmtS)
+                                                        uint256 cmtS,
+                                                        uint256 cmtA)
 {
     typedef Fr<ppzksnark_ppT> FieldT;
 
@@ -207,7 +209,7 @@ r1cs_ppzksnark_proof<ppzksnark_ppT> generate_send_proof(r1cs_ppzksnark_proving_k
     send_gadget<FieldT> g(pb);     // 构造新模型
     g.generate_r1cs_constraints(); // 生成约束
 
-    g.generate_r1cs_witness(note_old, notes, cmtA_old, cmtS); // 为新模型的参数生成证明
+    g.generate_r1cs_witness(note_old, notes, note, cmtA_old, cmtS, cmtA); // 为新模型的参数生成证明
 
     if (!pb.is_satisfied())
     { // 三元组R1CS是否满足  < A , X > * < B , X > = < C , X >
@@ -224,14 +226,18 @@ r1cs_ppzksnark_proof<ppzksnark_ppT> generate_send_proof(r1cs_ppzksnark_proving_k
 template <typename ppzksnark_ppT>
 bool verify_send_proof(r1cs_ppzksnark_verification_key<ppzksnark_ppT> verification_key,
                   r1cs_ppzksnark_proof<ppzksnark_ppT> proof,
+                  uint256 &cmtA_old,
                   uint256 &sn_old,
-                  uint256 &cmtS)
+                  uint256 &cmtS,
+                  uint256 &cmtA)
 {
     typedef Fr<ppzksnark_ppT> FieldT;
 
     const r1cs_primary_input<FieldT> input = send_gadget<FieldT>::witness_map(
+        cmtA_old,
         sn_old,
-        cmtS);
+        cmtS,
+        cmtA);
 
     // 调用libsnark库中验证proof的函数
     return r1cs_ppzksnark_verifier_strong_IC<ppzksnark_ppT>(verification_key, input, proof);
@@ -278,7 +284,11 @@ char *genSendproof(uint64_t value_A,
                    char *cmt_s_string,
                    char *cmtA_string,
                    uint64_t value_s,
-                   char *pk_string)
+                   char *pk_string,
+                   uint64_t value_A_new,
+                   char *sn_A_new,
+                   char *r_A_new,
+                   char *cmt_A_new)
 {
     //从字符串转uint256
     uint256 sn_s = uint256S(sn_s_string);
@@ -288,10 +298,15 @@ char *genSendproof(uint64_t value_A,
     uint256 cmtS = uint256S(cmt_s_string); //--zy
     uint256 cmtA = uint256S(cmtA_string);
     uint160 pk = uint160S(pk_string);
+    uint256 snAnew = uint256S(sn_A_new);
+    uint256 rAnew = uint256S(r_A_new);
+    uint256 cmtAnew = uint256S(cmt_A_new);
+
 
     //计算sha256
     Note note_old = Note(value_A, sn, r);
     NoteS notes = NoteS(value_s, pk, sn_s, r_s, sn);
+    Note note_new = Note(value_A_new, snAnew, rAnew);
 
     //初始化参数
     alt_bn128_pp::init_public_params();
@@ -312,7 +327,7 @@ char *genSendproof(uint64_t value_A,
     // 生成proof
     cout << "Trying to generate send proof..." << endl;
 
-    libsnark::r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof = generate_send_proof<alt_bn128_pp>(keypair.pk, note_old, notes, cmtA, cmtS);
+    libsnark::r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof = generate_send_proof<alt_bn128_pp>(keypair.pk, note_old, notes, note_new, cmtA, cmtS , cmtAnew);
 
     //proof转字符串
     std::string proof_string = string_proof_as_hex(proof);
@@ -324,10 +339,12 @@ char *genSendproof(uint64_t value_A,
     return p;
 }
 
-bool verifySendproof(char *data, char *sn_old_string, char *cmtS_string)
+bool verifySendproof(char *data, char *cmtA_old_string, char *sn_old_string, char *cmtS_string ,char *cmtA_new_string)
 {
     uint256 sn_old = uint256S(sn_old_string);
     uint256 cmtS = uint256S(cmtS_string);
+    uint256 cmtA_old = uint256S(cmtA_old_string);
+    uint256 cmtA_new = uint256S(cmtA_new_string);
 
     alt_bn128_pp::init_public_params();
     
@@ -447,7 +464,7 @@ bool verifySendproof(char *data, char *sn_old_string, char *cmtS_string)
     proof.g_K.X = k_x;
     proof.g_K.Y = k_y;
 
-    bool result = verify_send_proof(keypair.vk, proof, sn_old, cmtS);
+    bool result = verify_send_proof(keypair.vk, proof, cmtA_old,sn_old, cmtS , cmtA_new);
 
     if (!result)
     {

@@ -47,11 +47,11 @@ public:
 
     // old commitment with sha256_two_block_gadget
     std::shared_ptr<digest_variable<FieldT>> cmtA_old; // cm
-    std::shared_ptr<sha256_two_block_gadget<FieldT>> commit_to_inputs_old; // note_commitment
+    std::shared_ptr<sha256_two_block_gadget<FieldT>> commit_to_inputs_cmt_old; // note_commitment
 
     // new commitment with sha256_two_block_gadget
     std::shared_ptr<digest_variable<FieldT>> cmtA; // cm
-    std::shared_ptr<sha256_two_block_gadget<FieldT>> commit_to_inputs; // note_commitment
+    std::shared_ptr<sha256_two_block_gadget<FieldT>> commit_to_inputs_cmt; // note_commitment
     
     // comparison_gadget inherited from note_gadget_with_comparison_and_addition_for_balance
 
@@ -112,7 +112,7 @@ public:
         ));
         // cmtA_old.reset(new digest_variable<FieldT>(pb, 256, "cmtA_old"));
 
-        commit_to_inputs_old.reset(new sha256_two_block_gadget<FieldT>( 
+        commit_to_inputs_cmt_old.reset(new sha256_two_block_gadget<FieldT>( 
             pb,
             ZERO,
             value_old,      // 64bits value for Mint
@@ -123,7 +123,7 @@ public:
 
         //cmtA.reset(new digest_variable<FieldT>(pb, 256, "cmtA"));
 
-        commit_to_inputs.reset(new sha256_two_block_gadget<FieldT>( 
+        commit_to_inputs_cmt.reset(new sha256_two_block_gadget<FieldT>( 
             pb,
             ZERO,
             value,       // 64bits value for Mint
@@ -147,11 +147,11 @@ public:
         // already boolean constrains its outputs.
         cmtA_old->generate_r1cs_constraints();
 
-        commit_to_inputs_old->generate_r1cs_constraints();
+        commit_to_inputs_cmt_old->generate_r1cs_constraints();
 
         cmtA->generate_r1cs_constraints();
 
-        commit_to_inputs->generate_r1cs_constraints();
+        commit_to_inputs_cmt->generate_r1cs_constraints();
     }
 
     // 证据函数，为commitment_with_add_and_less_gadget的变量生成证据
@@ -169,10 +169,10 @@ public:
         this->pb.val(ZERO) = FieldT::zero();
 
         // Witness the commitment of the input note
-        commit_to_inputs_old->generate_r1cs_witness();
+        commit_to_inputs_cmt_old->generate_r1cs_witness();
 
         // Witness the commitment of the input note
-        commit_to_inputs->generate_r1cs_witness();
+        commit_to_inputs_cmt->generate_r1cs_witness();
 
         // [SANITY CHECK] Ensure the commitment is
         // valid.

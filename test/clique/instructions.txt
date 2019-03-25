@@ -9,7 +9,7 @@ clear
 
 geth --datadir signer1/data init clique.json
 
-geth --datadir signer1/data --networkid 55661 --port 2007 --unlock b1176ad0de2dc7c2b42f31546479e0682b440795 --password signer1/passwd.txt console 2>> signer1debug.log
+geth --datadir signer1/data --networkid 55661 --port 2007 --unlock 7e38083649e99d39840f7a60207c6a94a8c09abc --password signer1/passwd.txt console 2>> signer1debug.log
 
 eth.sendPublicTransaction({from:eth.accounts[0],to:"156669f9f391aa6a77c494ec6bd4a7761a6541b7",value:web3.toWei(0.05, "ether")})
 
@@ -88,8 +88,6 @@ eth.getPubKeyRLP(eth.accounts[0],"")
 
 eth.sendSendTransaction({from:eth.accounts[0],value:"0x123",pubKey:"0xf842a0c9e20642d6e367a0ce02f066edffc72ae4e3d09e9e7c1aea4e41df52620c7764a06f0029a171693dd44383c3f791f5aa0616a268bdb9989eeccef4cae5099b3efb"})
 
-
-eth.sendUpdateTransaction({from:eth.accounts[0],txHash:"0x523d73b6ca49473e1f6b1f72b89adaa0eb3710fd1f74c621db2a255c0f7d0141"})
 
 eth.sendDepositTransaction({from:eth.accounts[0],txHash:"0x523d73b6ca49473e1f6b1f72b89adaa0eb3710fd1f74c621db2a255c0f7d0141",key:""})
 

@@ -5408,12 +5408,6 @@ var methods = function () {
         params: 1,
     });
 
-    var sendUpdateTransaction = new Method({
-        name: 'sendUpdateTransaction',
-        call: 'eth_sendUpdateTransaction',
-        params: 1,
-    });
-
     var sendRedeemTransaction = new Method({
         name: 'sendRedeemTransaction',
         call: 'eth_sendRedeemTransaction',
@@ -5509,7 +5503,6 @@ var methods = function () {
         sendMintTransaction,
         sendSendTransaction,
         sendDepositTransaction, // --Agzs 09.17
-        sendUpdateTransaction,
         sendRedeemTransaction,
         sendPublicTransaction,
         sign,

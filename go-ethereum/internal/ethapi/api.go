@@ -55,6 +55,7 @@ import (
 
 const (
 	defaultGasPrice = 50 * params.Shannon
+	PubKeySize      = 68
 )
 
 // PublicEthereumAPI provides an API to access Ethereum related information.
@@ -1309,10 +1310,10 @@ func (s *PublicTransactionPoolAPI) StateDB(ctx context.Context) (*state.StateDB,
 // SendMintTransaction creates a mint transaction for the given argument, sign it and submit it to the
 // transaction pool.
 func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args SendTxArgs) (common.Hash, error) {
-	if zktx.Stage == zktx.Send {
-		fmt.Println("cannot send mintTx after sendTx")
-		return common.Hash{}, nil
-	}
+	// if zktx.Stage == zktx.Send {
+	// 	fmt.Println("cannot send mintTx after sendTx")
+	// 	return common.Hash{}, nil
+	// }
 	if zktx.SNfile == nil {
 		fmt.Println("SNfile does not exist")
 		return common.Hash{}, nil
@@ -1338,10 +1339,10 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 	exist = state.Exist(common.BytesToAddress(zktx.SequenceNumber.SN.Bytes()))
 
 	if exist == false && *(zktx.SequenceNumber.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
-		if zktx.Stage == zktx.Update {
-			fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
-			return common.Hash{}, nil
-		}
+		// if zktx.Stage == zktx.Update {
+		// 	fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
+		// 	return common.Hash{}, nil
+		// }
 		zktx.SequenceNumberAfter = zktx.SequenceNumber
 	}
 
@@ -1411,7 +1412,7 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 		zktx.SequenceNumber = zktx.SequenceNumberAfter
 		zktx.SequenceNumberAfter = &zktx.Sequence{SN: newSN, CMT: newCMT, Random: newRandom, Value: newValue}
 		zktx.Stage = zktx.Mint
-		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.SNS, nil,nil,zktx.Mint}
+		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.SNS, nil, nil, zktx.Mint}
 		SNSBytes, err := rlp.EncodeToBytes(SNS)
 
 		if err != nil {
@@ -1466,10 +1467,10 @@ func (s *PublicTransactionPoolAPI) GetPubKeyRLP(ctx context.Context, address com
 // SendSendTransaction creates a send transaction for the given argument, sign it and submit it to the
 // transaction pool.
 func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args SendTxArgs) (common.Hash, error) { //tbd
-	if zktx.Stage == zktx.Send {
-		fmt.Println("cannot send sendTx after sendTx")
-		return common.Hash{}, nil
-	}
+	// if zktx.Stage == zktx.Send {
+	// 	fmt.Println("cannot send sendTx after sendTx")
+	// 	return common.Hash{}, nil
+	// }
 	if zktx.SNfile == nil {
 		fmt.Println("SNfile does not exist")
 		return common.Hash{}, nil
@@ -1496,15 +1497,19 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 	exist = state.Exist(common.BytesToAddress(zktx.SequenceNumber.SN.Bytes()))
 
 	if exist == false && *(zktx.SequenceNumber.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
-		if zktx.Stage == zktx.Update {
-			fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
-			return common.Hash{}, nil
-		}
+		// if zktx.Stage == zktx.Update {
+		// 	fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
+		// 	return common.Hash{}, nil
+		// }
 		zktx.SequenceNumberAfter = zktx.SequenceNumber
 	}
 
 	// Look up the wallet containing the requested signer
 	account := accounts.Account{Address: args.From}
+	wallet, err := s.b.AccountManager().Find(account)
+	if err != nil {
+		return common.Hash{}, err
+	}
 	_, err = s.b.AccountManager().Find(account)
 	if err != nil {
 		return common.Hash{}, err
@@ -1526,12 +1531,16 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 	tx.SetTxCode(types.SendTx)
 	tx.SetPrice(big.NewInt(0))
 	tx.SetValue(big.NewInt(0))
-	randomAddress := zktx.NewRandomAddress()
-	tx.SetZKAddress(randomAddress)
-	tx.SetNonce(0)
+	// randomAddress := zktx.NewRandomAddress()
+	tx.SetZKAddress(&zktx.ZKTxAddress)
+	//tx.SetNonce(0)
 
 	SN := zktx.SequenceNumberAfter
 	tx.SetZKSN(SN.SN) //SN
+
+	if len(*args.PubKey) != PubKeySize {
+		return common.Hash{}, errors.New("invalid receiver pubkey")
+	}
 
 	type pub struct {
 		X *big.Int
@@ -1562,14 +1571,20 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 	SNs := zktx.NewRandomHash()
 	newRs := zktx.NewRandomHash()
 
-	CMTs := zktx.GenCMTS(args.Value.ToInt().Uint64(), randomReceiverPK, SNs.Bytes(), newRs.Bytes(), SN.SN.Bytes()) //tbd
-	tx.SetZKCMT(CMTs)
-
+	CMTs := zktx.GenCMTS(args.Value.ToInt().Uint64(), randomReceiverPK, SNs.Bytes(), newRs.Bytes(), SN.SN.Bytes()) //生成cmts
+	tx.SetZKCMTS(CMTs)
+	//add by zy
+	newSNA := zktx.NewRandomHash()                                        //A新sn
+	newRandomA := zktx.NewRandomHash()                                    //A 新 r
+	newValueA := SN.Value - args.Value.ToInt().Uint64()                   //update后 A新value
+	newCMTA := zktx.GenCMT(newValueA, newSNA.Bytes(), newRandomA.Bytes()) //A 新 cmt
+	tx.SetZKCMT(newCMTA)
+	//tx.SetZKAddress(&args.From)
+	//end
 	//genProofStart := time.Now()
-	zkProof := zktx.GenSendProof(SN.CMT, SN.Value, SN.Random, args.Value.ToInt().Uint64(), randomReceiverPK, SNs, newRs, SN.SN, CMTs)
+	zkProof := zktx.GenSendProof(SN.CMT, SN.Value, SN.Random, args.Value.ToInt().Uint64(), randomReceiverPK, SNs, newRs, SN.SN, CMTs, newValueA, newSNA, newRandomA, newCMTA)
 	//genProofEnd := time.Now()
 	// fmt.Println("***** GenSendProof Cost Time (ms): ", genProofEnd.Sub(genProofStart).Nanoseconds() / 1000000)
-	
 	if string(zkProof[0:10]) == "0000000000" {
 		return common.Hash{}, errors.New("can't generate proof")
 	}
@@ -1580,10 +1595,23 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 	tx.SetAUX(AUX)
 	zktx.SNS = &zktx.Sequence{SN: SNs, CMT: CMTs, Random: newRs, Value: args.Value.ToInt().Uint64()}
 
-	hash, err := submitTransaction(ctx, s.b, tx)
+	var chainID *big.Int
+	if config := s.b.ChainConfig(); config.IsEIP155(s.b.CurrentBlock().Number()) {
+		chainID = config.ChainID
+	}
+
+	signed, err := wallet.SignTx(account, tx, chainID)
+	if err != nil {
+		return common.Hash{}, err
+	}
+
+	hash, err := submitTransaction(ctx, s.b, signed)
+
 	if err == nil {
 		zktx.Stage = zktx.Send
-		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.SNS, zktx.RandomReceiverPK.X,zktx.RandomReceiverPK.Y, zktx.Send}
+		zktx.SequenceNumber = zktx.SequenceNumberAfter
+		zktx.SequenceNumberAfter = &zktx.Sequence{SN: newSNA, CMT: newCMTA, Random: newRandomA, Value: newValueA}
+		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.SNS, nil, nil, zktx.Send}
 		SNSBytes, err := rlp.EncodeToBytes(SNS)
 		if err != nil {
 			fmt.Println("encode sns error")
@@ -1601,182 +1629,16 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 	//fmt.Println("***** send transaction size: ", tx.Size())
 	
 	return hash, err
-}
 
-// SendUpdateTransaction creates a Update transaction for the given argument, sign it and submit it to the
-// transaction pool.
-func (s *PublicTransactionPoolAPI) SendUpdateTransaction(ctx context.Context, args SendTxArgs) (common.Hash, error) {
-	if zktx.Stage != zktx.Send {
-		fmt.Println("updateTx must after sendTx, but last tx is not a sendTx")
-		return common.Hash{}, nil
-	}
-	if zktx.SNfile == nil {
-		fmt.Println("SNfile does not exist")
-		return common.Hash{}, nil
-	}
-	if zktx.SequenceNumber == nil || zktx.SequenceNumberAfter == nil {
-		fmt.Println("SequenceNumber or SequenceNumberAfter nil")
-		return common.Hash{}, nil
-	}
-	state, _, err := s.b.StateAndHeaderByNumber(ctx, rpc.LatestBlockNumber)
-	if state == nil || err != nil {
-		return common.Hash{}, err
-	}
-
-	//check whether sn can be used
-	exist := state.Exist(common.BytesToAddress(zktx.SequenceNumberAfter.SN.Bytes()))
-
-	if exist == false && *(zktx.SequenceNumberAfter.SN) != *(zktx.InitializeSN().SN) {
-		fmt.Println("send sendtx firstly")
-		return common.Hash{}, nil
-	}
-
-	// Look up the wallet containing the requested signer
-	account := accounts.Account{Address: args.From}
-	wallet, err := s.b.AccountManager().Find(account)
-	if err != nil {
-		return common.Hash{}, err
-	}
-
-	if args.Nonce == nil {
-		// Hold the addresse's mutex around signing to prevent concurrent assignment of
-		// the same nonce to multiple accounts.
-		s.nonceLock.LockAddr(args.From)
-		defer s.nonceLock.UnlockAddr(args.From)
-	}
-	//key := args.Key
-	args.To = &zktx.ZKTxAddress
-	// Set some sanity defaults and terminate on failure
-	if err := args.setDefaults(ctx, s.b); err != nil {
-		return common.Hash{}, err
-	}
-	// Assemble the transaction and sign with the wallet
-	tx := args.toTransaction()
-	tx.SetTxCode(types.UpdateTx)
-	tx.SetPrice(big.NewInt(0))
-	tx.SetValue(big.NewInt(0))
-	tx.SetZKAddress(&zktx.ZKTxAddress)
-
-	SNa := zktx.SequenceNumberAfter
-	SNs := zktx.SNS
-
-	newSN := zktx.NewRandomHash()                                      //A新sn
-	newRandom := zktx.NewRandomHash()                                  //A 新 r
-	newValue := SNa.Value - SNs.Value                                  //update后 A新value
-	newCMTA := zktx.GenCMT(newValue, newSN.Bytes(), newRandom.Bytes()) //A 新 cmt
-	tx.SetZKCMT(newCMTA)
-
-	txSend := s.GetTransactionByHash2(ctx, args.TxHash)
-	if txSend == nil {
-		return common.Hash{}, errors.New("there does not exist a transaction" + args.TxHash.String())
-	}
-
-	RPCtx := s.GetTransactionByHash(ctx, args.TxHash)
-	if RPCtx == nil {
-		return common.Hash{}, errors.New("there does not exist a transaction" + args.TxHash.String())
-	}
-
-	cmtBlockNumber := (*big.Int)(RPCtx.BlockNumber)
-	var cmtBlockNumbers []uint64
-	var CMTSForMerkle []*common.Hash
-	BlockToCmt := make(map[uint64][]*common.Hash)
-
-	block, err := s.b.BlockByNumber(ctx, rpc.LatestBlockNumber)
-	if block == nil {
-		return common.Hash{}, err
-	}
-
-	cmtBlockNumbers = append(cmtBlockNumbers, cmtBlockNumber.Uint64())
-	block2, err := s.b.BlockByNumber(ctx, rpc.BlockNumber(cmtBlockNumber.Uint64()))
-	BlockToCmt[cmtBlockNumber.Uint64()] = block2.CMTS()
-
-	// latest header should always be available
-	latestBlockNumber := block.NumberU64()
-	count := len(block2.CMTS())
-loop: //得到 cmts
-	for count < zktx.ZKCMTNODES {
-		if len(cmtBlockNumbers) > int(latestBlockNumber) {
-			return common.Hash{}, errors.New("insufficient cmts for merkle tree")
-		}
-		blockNum := uint64(rand.Int63n(int64(latestBlockNumber + 1)))
-		for i, _ := range cmtBlockNumbers {
-			if cmtBlockNumbers[i] == blockNum {
-				goto loop
-			}
-		}
-		block, err = s.b.BlockByNumber(ctx, rpc.BlockNumber(blockNum))
-		if block == nil {
-			return common.Hash{}, err
-		}
-		cmts := block.CMTS()
-		BlockToCmt[blockNum] = cmts
-		cmtBlockNumbers = append(cmtBlockNumbers, blockNum)
-		count += len(cmts)
-	}
-
-	merkle.QuickSortUint64(cmtBlockNumbers)
-
-	for i, _ := range cmtBlockNumbers {
-		index := cmtBlockNumbers[i]
-		CMTSForMerkle = append(CMTSForMerkle, BlockToCmt[index]...)
-	}
-	RTcmt := zktx.GenRT(CMTSForMerkle)
-
-	tx.SetRTcmt(RTcmt)
-
-	tx.SetCMTBlocks(cmtBlockNumbers)
-
-	//genProofStart := time.Now()
-	zkProof := zktx.GenUpdateProof(txSend.ZKCMT(), SNs.Value, zktx.RandomReceiverPK, SNs.SN, SNs.Random, SNa.SN, SNa.Value, SNa.Random, newSN, newRandom, SNa.CMT, RTcmt.Bytes(), newCMTA, CMTSForMerkle, len(CMTSForMerkle))
-	//genProofEnd := time.Now()
-	// fmt.Println("***** GenUpdateProof Cost Time (ms): ", genProofEnd.Sub(genProofStart).Nanoseconds() / 1000000)
-
-	if string(zkProof[0:10]) == "0000000000" {
-		return common.Hash{}, errors.New("can't generate proof")
-	}
-	tx.SetZKProof(zkProof) //proof tbd
-	var chainID *big.Int
-	if config := s.b.ChainConfig(); config.IsEIP155(s.b.CurrentBlock().Number()) {
-		chainID = config.ChainID
-	}
-
-	signed, err := wallet.SignTx(account, tx, chainID)
-	if err != nil {
-		return common.Hash{}, err
-	}
-
-	hash, err := submitTransaction(ctx, s.b, signed)
-	if err == nil {
-		zktx.SequenceNumber = zktx.SequenceNumberAfter
-		zktx.SequenceNumberAfter = &zktx.Sequence{SN: newSN, CMT: newCMTA, Random: newRandom, Value: newValue}
-		zktx.Stage = zktx.Update
-		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.SNS, nil,nil, zktx.Update}
-		SNSBytes, err := rlp.EncodeToBytes(SNS)
-		if err != nil {
-			fmt.Println("encode sns error")
-			return common.Hash{}, nil
-		}
-		SNSString := hex.EncodeToString(SNSBytes)
-		zktx.SNfile.Seek(0, 0) //write in the first line of the file
-		wt := bufio.NewWriter(zktx.SNfile)
-
-		wt.WriteString(SNSString)
-		wt.WriteString("\n") //write a line
-		wt.Flush()
-	}
-	
-	//fmt.Println("***** update transaction size: ", signed.Size())
-	
-	return hash, err
 }
 
 // SendUpdateTransaction creates a Deposit transaction for the given argument, sign it and submit it to the
 // transaction pool.
 func (s *PublicTransactionPoolAPI) SendDepositTransaction(ctx context.Context, args SendTxArgs) (common.Hash, error) {
-	if zktx.Stage == zktx.Send {
-		fmt.Println("cannot send DepositTx after sendTx")
-		return common.Hash{}, nil
-	}
+	// if zktx.Stage == zktx.Send {
+	// 	fmt.Println("cannot send DepositTx after sendTx")  //修改方案后无影响
+	// 	return common.Hash{}, nil
+	// }
 	if zktx.SNfile == nil {
 		fmt.Println("SNfile does not exist")
 		return common.Hash{}, nil
@@ -1802,10 +1664,10 @@ func (s *PublicTransactionPoolAPI) SendDepositTransaction(ctx context.Context, a
 	exist = state.Exist(common.BytesToAddress(zktx.SequenceNumber.SN.Bytes()))
 
 	if exist == false && *(zktx.SequenceNumber.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
-		if zktx.Stage == zktx.Update {
-			fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
-			return common.Hash{}, nil
-		}
+		// if zktx.Stage == zktx.Update {
+		// 	fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
+		// 	return common.Hash{}, nil
+		// }
 		zktx.SequenceNumberAfter = zktx.SequenceNumber
 	}
 
@@ -1858,7 +1720,7 @@ func (s *PublicTransactionPoolAPI) SendDepositTransaction(ctx context.Context, a
 	cmtBlockNumbers = append(cmtBlockNumbers, cmtBlockNumber.Uint64())
 	block2, err := s.b.BlockByNumber(ctx, rpc.BlockNumber(cmtBlockNumber.Uint64()))
 	BlockToCmt[cmtBlockNumber.Uint64()] = block2.CMTS()
-   
+
 	// latest header should always be available
 	latestBlockNumber := block.NumberU64()
 	count := len(block2.CMTS())
@@ -1915,6 +1777,9 @@ loop:
 
 	AUXA := txSend.AUX()
 	valueS, sns, rs, sna := zktx.DecAUX(&randomKeyB.PublicKey, AUXA) //--zy
+	if valueS <= 0 {
+		return common.Hash{}, errors.New("transfer amount must be larger than 0")
+	}
 
 	SNb := zktx.SequenceNumberAfter
 	tx.SetZKSN(SNb.SN)
@@ -1942,7 +1807,7 @@ loop:
 		fmt.Println("pubkeyb cat not be used for a second time")
 		return common.Hash{}, nil
 	}
-	fmt.Println("randomKeyB:", randomKeyB.D.BitLen())
+	//fmt.Println("randomKeyB:", randomKeyB.D.BitLen())
 	signedTx, errSignedTx := types.SignTx(tx, types.HomesteadSigner{}, randomKeyB)
 
 	if errSignedTx != nil {
@@ -1955,7 +1820,7 @@ loop:
 		zktx.SequenceNumber = zktx.SequenceNumberAfter
 		zktx.SequenceNumberAfter = &zktx.Sequence{SN: newSN, CMT: newCMTB, Random: newRandom, Value: newValue}
 		zktx.Stage = zktx.Deposit
-		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.SNS, nil,nil, zktx.Deposit}
+		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.SNS, nil, nil, zktx.Deposit}
 		SNSBytes, err := rlp.EncodeToBytes(SNS)
 		if err != nil {
 			fmt.Println("encode sns error")
@@ -1978,10 +1843,10 @@ loop:
 // SendRedeemTransaction creates a Redeem transaction for the given argument, sign it and submit it to the
 // transaction pool.
 func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, args SendTxArgs) (common.Hash, error) {
-	if zktx.Stage == zktx.Send {
-		fmt.Println("cannot send Redeem after sendTx")
-		return common.Hash{}, nil
-	}
+	// if zktx.Stage == zktx.Send {
+	// 	fmt.Println("cannot send Redeem after sendTx")
+	// 	return common.Hash{}, nil
+	// }
 	if zktx.SNfile == nil {
 		fmt.Println("SNfile does not exist")
 		return common.Hash{}, nil
@@ -2007,10 +1872,10 @@ func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, ar
 	exist = state.Exist(common.BytesToAddress(zktx.SequenceNumber.SN.Bytes()))
 
 	if exist == false && *(zktx.SequenceNumber.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
-		if zktx.Stage == zktx.Update {
-			fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
-			return common.Hash{}, nil
-		}
+		// if zktx.Stage == zktx.Update {
+		// 	fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
+		// 	return common.Hash{}, nil
+		// }
 		zktx.SequenceNumberAfter = zktx.SequenceNumber
 	}
 
@@ -2077,7 +1942,7 @@ func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, ar
 		zktx.SequenceNumber = zktx.SequenceNumberAfter
 		zktx.SequenceNumberAfter = &zktx.Sequence{SN: newSN, CMT: newCMT, Random: newRandom, Value: newValue}
 		zktx.Stage = zktx.Redeem
-		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.SNS,nil,nil , zktx.Redeem}
+		SNS := zktx.SequenceS{*zktx.SequenceNumber, *zktx.SequenceNumberAfter, zktx.SNS, nil, nil, zktx.Redeem}
 
 		SNSBytes, err := rlp.EncodeToBytes(SNS)
 		if err != nil {
@@ -2097,6 +1962,7 @@ func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, ar
 	
 	return hash, err
 }
+
 //=============================================================================
 
 // SendRawTransaction will add the signed transaction to the transaction pool.

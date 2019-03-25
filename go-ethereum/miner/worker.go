@@ -461,7 +461,7 @@ func (self *worker) commitNewWork() {
 	var cmt []*common.Hash = make([]*common.Hash, 0)
 	for _, tx := range work.txs {
 		if tx.Code() == types.SendTx {
-			cmt = append(cmt, tx.ZKCMT())
+			cmt = append(cmt, tx.ZKCMTS())
 		}
 	}
 	header.CMT = cmt

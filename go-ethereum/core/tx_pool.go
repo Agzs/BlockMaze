@@ -629,14 +629,8 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 		}
 	}
 	if txCode == types.SendTx {
-		err = zktx.VerifySendProof(tx.ZKSN(), tx.ZKCMT(), tx.ZKProof()) //TBD
-		if err != nil {
-			return err
-		}
-	}
-	if txCode == types.UpdateTx {
 		cmtbalance := pool.currentState.GetCMTBalance(from)
-		err = zktx.VerifyUpdateProof(&cmtbalance, tx.RTcmt(), tx.ZKCMT(), tx.ZKProof())
+		err = zktx.VerifySendProof(tx.ZKSN(), tx.ZKCMTS(), tx.ZKProof(), &cmtbalance, tx.ZKCMT()) //TBD
 		if err != nil {
 			return err
 		}
@@ -653,7 +647,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	//fmt.Println("***** Verify transaction Cost Time (ms): ", verProofEnd.Sub(verProofStart).Nanoseconds() / 1000000)
 
 
-	if txCode == types.UpdateTx || txCode == types.DepositTx {
+	if txCode == types.DepositTx {
 		var cmtsForMerkle []*common.Hash
 		cmtblocknumbers := tx.CMTBlocks()
 		for i, _ := range cmtblocknumbers {
@@ -692,6 +686,7 @@ func (pool *TxPool) add(tx *types.Transaction, local bool) (bool, error) {
 	if err := pool.validateTx(tx, local); err != nil {
 		log.Trace("Discarding invalid transaction", "hash", hash, "err", err)
 		invalidTxCounter.Inc(1)
+		fmt.Println("add txpool err", err)
 		return false, err
 	}
 	// If the transaction pool is full, discard underpriced transactions
