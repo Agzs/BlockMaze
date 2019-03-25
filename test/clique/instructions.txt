@@ -7,19 +7,19 @@ geth --datadir node1/data account new
 
 clear
 
-geth --datadir node1/data init pow.json
+geth --datadir node1/data init clique.json
 
-geth --datadir node1/data --networkid 55661 --port 2007 --unlock 156669f9f391aa6a77c494ec6bd4a7761a6541b7 --password node1/passwd.txt console
-
+geth --datadir node1/data --networkid 55661 --port 2007 --unlock 799ad5ef734ff6b0ece2f80826abc299934d6845 --password node1/passwd.txt console
+exit
 ===================================================================
 
 geth --datadir node2/data account new
 
 clear
 
-geth --datadir node2/data init pow.json
+geth --datadir node2/data init clique.json
 
-geth --datadir node2/data --networkid 55661 --port 2008 --unlock be95e7fc69d14f993bd8dc5f6d9c338c11c64f79 --password node2/passwd.txt console
+geth --datadir node2/data --networkid 55661 --port 2008 --unlock f5acda449a0bdeed4de774383541d5594963a4e7 --password node2/passwd.txt console
 
 ===================================================================
 
@@ -28,9 +28,9 @@ geth --datadir signer1/data account new
 
 clear
 
-geth --datadir signer1/data init pow.json
+geth --datadir signer1/data init clique.json
 
-geth --datadir signer1/data --networkid 55661 --port 2005 --unlock 492f3232b3e2affb484ddebd3bc84c091b68626f --password signer1/passwd.txt console
+geth --datadir signer1/data --networkid 55661 --port 2005 --unlock 9063f79a994169f8b4f991e431abe0d28cfc9e4c --password signer1/passwd.txt console
 
 eth.sendPublicTransaction({from:eth.accounts[0],to:"156669f9f391aa6a77c494ec6bd4a7761a6541b7",value:web3.toWei(0.05, "ether")})
 
