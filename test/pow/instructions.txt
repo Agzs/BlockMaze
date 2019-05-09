@@ -9,7 +9,7 @@ clear
 
 geth --datadir signer1/data init pow.json
 
-geth --datadir signer1/data --networkid 55661 --port 2007 --unlock b1176ad0de2dc7c2b42f31546479e0682b440795 --password signer1/passwd.txt console 2>> signer1debug.log
+geth --datadir signer1/data --networkid 55661 --port 2007 --unlock 56d93f2191c722bafdb9c2e41702f0432763d30d --password signer1/passwd.txt console 2>> signer1debug.log
 
 eth.sendPublicTransaction({from:eth.accounts[0],to:"156669f9f391aa6a77c494ec6bd4a7761a6541b7",value:web3.toWei(0.05, "ether")})
 
@@ -27,7 +27,7 @@ clear
 
 geth --datadir signer2/data init pow.json
 
-geth --datadir signer2/data --networkid 55661 --port 2008 --unlock 34c09031d03b935c569def72ae8116357bda3169 --password signer2/passwd.txt console 2>> signer2debug.log
+geth --datadir signer2/data --networkid 55661 --port 2008 --unlock 78a73820d91cb58c82b4486c531013847772256d --password signer2/passwd.txt console 2>> signer2debug.log
 
 
 tail -f signer2debug.log
@@ -40,7 +40,7 @@ clear
 
 geth --datadir signer3/data init pow.json
 
-geth --datadir signer3/data --networkid 55661 --port 2005 --unlock 88874231c5db3d6e9afa5a57effa981bc06d16c9 --password signer3/passwd.txt console 2>> signer3debug.log
+geth --datadir signer3/data --networkid 55661 --port 2005 --unlock 604ab4a508c0ef949bbab6cea9dd97a9ac1547bb --password signer3/passwd.txt console 2>> signer3debug.log
 
 
 
@@ -84,9 +84,11 @@ miner.start()
 
 eth.sendMintTransaction({from:eth.accounts[0],value:"0x1234"})
 
+eth.getTransaction("0xa5c676a13fdc2c441662bdb6b9612babb1c0621909347ea19a46ff81554cddb1")
+
 eth.getPubKeyRLP(eth.accounts[0],"")
 
-eth.sendSendTransaction({from:eth.accounts[0],value:"0x123",pubKey:"0xf842a0c9e20642d6e367a0ce02f066edffc72ae4e3d09e9e7c1aea4e41df52620c7764a06f0029a171693dd44383c3f791f5aa0616a268bdb9989eeccef4cae5099b3efb"})
+eth.sendSendTransaction({from:eth.accounts[0],value:"0x123",pubKey:"0xf842a031afbc05b61635d32b395068295ead751a89be6d0f18d4fab243c5fc9f408384a099899558d251f6d3199e5c3e5ed12d62c4023514be9f7cb4476724ed3aa23b8b"})
 
 
 eth.sendDepositTransaction({from:eth.accounts[0],txHash:"0x523d73b6ca49473e1f6b1f72b89adaa0eb3710fd1f74c621db2a255c0f7d0141",key:""})
