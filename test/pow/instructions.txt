@@ -82,19 +82,33 @@ eth.sendPublicTransaction({from:eth.accounts[0],to:"be95e7fc69d14f993bd8dc5f6d9c
 
 miner.start()
 
+===================
+
 eth.sendMintTransaction({from:eth.accounts[0],value:"0x1234"})
 
 eth.getTransaction("0xa5c676a13fdc2c441662bdb6b9612babb1c0621909347ea19a46ff81554cddb1")
+
+===================
 
 eth.getPubKeyRLP(eth.accounts[0],"")
 
 eth.sendSendTransaction({from:eth.accounts[0],value:"0x123",pubKey:"0xf842a031afbc05b61635d32b395068295ead751a89be6d0f18d4fab243c5fc9f408384a099899558d251f6d3199e5c3e5ed12d62c4023514be9f7cb4476724ed3aa23b8b"})
 
+eth.getTransaction("0xeb7149695dc5265bd8b900d9c1beb42dd5f536afee67e0e108e541bf74692ca8")
 
-eth.sendDepositTransaction({from:eth.accounts[0],txHash:"0x523d73b6ca49473e1f6b1f72b89adaa0eb3710fd1f74c621db2a255c0f7d0141",key:""})
+===================
 
+eth.sendDepositTransaction({from:eth.accounts[0],txHash:"0xeb7149695dc5265bd8b900d9c1beb42dd5f536afee67e0e108e541bf74692ca8",key:""})
+
+eth.getTransaction("0xa4138df6d21af5ebefea58276acf06261248d5e5c146df43928ccb8c4919034d")
+
+===================
 
 eth.sendRedeemTransaction({from:eth.accounts[0], value:"0x123"})
+
+eth.getTransaction("0x37c6787d4663b573d861124a4144bb42d33bf3b833d210833c4286158a928611")
+
+===================
 
 txpool.status
 
