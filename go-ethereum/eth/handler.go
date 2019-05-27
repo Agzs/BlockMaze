@@ -42,7 +42,6 @@ import (
 	"github.com/ethereum/go-ethereum/p2p/discover"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/ethereum/go-ethereum/node"
 )
 
 const (
@@ -215,9 +214,6 @@ func (pm *ProtocolManager) Start(maxPeers int) {
 	pm.minedBlockSub = pm.eventMux.Subscribe(core.NewMinedBlockEvent{})
 	go pm.minedBroadcastLoop()
 
-	//=> for shared peers --Agzs 1.15
-	go pm.processPeersMsg()
-
 	// start sync handlers
 	go pm.syncer()
 	go pm.txsyncLoop()
@@ -339,30 +335,6 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 	case msg.Code == StatusMsg:
 		// Status messages should never arrive after the handshake
 		return errResp(ErrExtraStatusMsg, "uncontrolled status message")
-
-	//=================================================>start<=========================== --Agzs
-	case msg.Code == AddPeerMsg:
-		var requestAddPeerMsg *string
-		if err := msg.Decode(&requestAddPeerMsg); err != nil {
-			log.Info("Decode exists error!!!") //=>test. --Agzs
-			return errResp(ErrDecode, "%v: %v", msg, err)
-		}
-		//log.Info("recvAddPeerMsg", "AddPeerMsg", *requestAddPeerMsg) //=>test. --Agzs
-		addPeerMsgHash := types.Hash(requestAddPeerMsg)
-		p.MarkAddPeerMsg(addPeerMsgHash)
-		node.GetPrivateAdminAPI().OutCallAddPeer(requestAddPeerMsg)
-	case msg.Code == RemovePeerMsg:
-		var requestRemovePeerMsg *string
-		if err := msg.Decode(&requestRemovePeerMsg); err != nil {
-			log.Info("Decode exists error!!!") //=>test. --Agzs
-			return errResp(ErrDecode, "%v: %v", msg, err)
-		}
-		//log.Info("recvAddPeerMsg", "RemovePeerMsg", *requestRemovePeerMsg) //=>test. --Agzs
-		removePeerMsgHash := types.Hash(requestRemovePeerMsg)
-		p.MarkRemovePeerMsg(removePeerMsgHash)
-		node.GetPrivateAdminAPI().OutCallRemovePeer(requestRemovePeerMsg)
-
-	//=================================================>end<=========================== --Agzs
 
 	// Block header query, collect the requested headers and reply
 	case msg.Code == GetBlockHeadersMsg:
@@ -783,56 +755,6 @@ func (pm *ProtocolManager) minedBroadcastLoop() {
 		}
 	}
 }
-
-//////////////////////////////////////////////////////
-/// Process peer messages. 
-/// Broadcast any peer message from commChan, which is
-/// used by engine to pass the messages to ProtocolManager for broadcast.
-func (self *ProtocolManager) processPeersMsg() {
-	/// Get message from commChan, which is sent by PBFT consensus algorithm.
-
-	for addPeerMsg := range node.AddPeerComm {
-		self.BroadcastAddPeers(addPeerMsg)
-	}
-
-	for removePeerMsg := range node.RemovePeerComm {
-		self.BroadcastRemovePeers(removePeerMsg)
-	}
-}
-
-// BroadcastAddPeers will propagate a addPeerMsg to all peers which are not known to
-// already have the given addPeerMsg.
-//=>--Agzs 11.15
-func (pm *ProtocolManager) BroadcastAddPeers(addPeerMsg *string) {
-	//=> add PeerWithoutMsg() start. --Agzs
-
-	hash := types.Hash(addPeerMsg)
-	peers := pm.peers.PeersWithoutAddPeerMsg(hash)
-
-	for _, peer := range peers {
-		peer.SendAddPeerMsg(addPeerMsg)
-	}
-
-	log.Trace("Broadcast addPeersMsg", "hash", hash, "recipients", len(pm.peers.peers)) //=> peers ->  pm.peers.peers --Agzs
-}
-
-// BroadcastRemovePeers will propagate a removePeerMsg to all peers which are not known to
-// already have the given removePeerMsg.
-//=>--Agzs 11.15
-func (pm *ProtocolManager) BroadcastRemovePeers(removePeerMsg *string) {
-	//=> add PeerWithoutMsg() start. --Agzs
-
-	hash := types.Hash(removePeerMsg)
-	peers := pm.peers.PeersWithoutRemovePeerMsg(hash)
-
-	for _, peer := range peers {
-		peer.SendRemovePeerMsg(removePeerMsg)
-	}
-
-	log.Trace("Broadcast removePeersMsg", "hash", hash, "recipients", len(pm.peers.peers)) //=> peers ->  pm.peers.peers --Agzs
-}
-
-//////////////////////////////////////////////////////
 
 func (pm *ProtocolManager) txBroadcastLoop() {
 	for {

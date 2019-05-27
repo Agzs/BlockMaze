@@ -62,9 +62,6 @@ const (
 	NodeDataMsg    = 0x0e
 	GetReceiptsMsg = 0x0f
 	ReceiptsMsg    = 0x10
-
-	AddPeerMsg    = 0x11 //=>for addPeer--Agzs 1.15
-    RemovePeerMsg = 0x12 //=>for removePeer --Agzs 1.15
 )
 
 type errCode int

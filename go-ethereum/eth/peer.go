@@ -56,10 +56,6 @@ const (
 	maxQueuedAnns = 4
 
 	handshakeTimeout = 5 * time.Second
-
-	//=> add maxKnownAddPeerMsgs --Agzs 11.15
-	maxKnownAddPeerMsgs    = 1024 // Maximum addPeerMsgs hashes to keep in the known list (prevent DOS)
-	maxKnownRemovePeerMsgs = 1024 // Maximum removePeerMsgs hashes to keep in the known list (prevent DOS)
 )
 
 // PeerInfo represents a short summary of the Ethereum sub-protocol metadata known
@@ -96,9 +92,6 @@ type peer struct {
 	queuedAnns  chan *types.Block         // Queue of blocks to announce to the peer
 	term        chan struct{}             // Termination channel to stop the broadcaster
 
-	//=> add knownXXXPeerMsg to add or remove peer --Agzs 11.15
-	knownAddPeerMsg    mapset.Set // Set of addPeerMsg hashes known to be known by this peer
-	knownRemovePeerMsg mapset.Set // Set of removePeerMsg hashes known to be known by this peer
 }
 
 func newPeer(version int, p *p2p.Peer, rw p2p.MsgReadWriter) *peer {
@@ -113,8 +106,6 @@ func newPeer(version int, p *p2p.Peer, rw p2p.MsgReadWriter) *peer {
 		queuedProps: make(chan *propEvent, maxQueuedProps),
 		queuedAnns:  make(chan *types.Block, maxQueuedAnns),
 		term:        make(chan struct{}),
-		knownAddPeerMsg:    mapset.NewSet(), //=>add knownAddPeerMsg. --Agzs 11.15
-		knownRemovePeerMsg: mapset.NewSet(), //=>add knownRemovePeerMsg. --Agzs
 	}
 }
 
@@ -203,28 +194,6 @@ func (p *peer) MarkTransaction(hash common.Hash) {
 	p.knownTxs.Add(hash)
 }
 
-//=> add MarkAddPeerMsg() for knownAddPeerMsg --Agzs 11.15
-// MarkAddPeerMsg marks a addPeerMsg as known for the peer, ensuring that the addPeerMsg will
-// never be propagated to this particular peer.
-func (p *peer) MarkAddPeerMsg(hash common.Hash) {
-	// If we reached the memory allowance, drop a previously known block hash
-	for p.knownAddPeerMsg.Cardinality() >= maxKnownAddPeerMsgs {
-		p.knownAddPeerMsg.Pop()
-	}
-	p.knownAddPeerMsg.Add(hash)
-}
-
-//=> add MarkRemovePeerMsg() for knownRemovePeerMsg
-// MarkRemovePeerMsg marks a removePeerMsg as known for the peer, ensuring that the removePeerMsg will
-// never be propagated to this particular peer.
-func (p *peer) MarkRemovePeerMsg(hash common.Hash) {
-	// If we reached the memory allowance, drop a previously known block hash
-	for p.knownRemovePeerMsg.Cardinality() >= maxKnownRemovePeerMsgs {
-		p.knownRemovePeerMsg.Pop()
-	}
-	p.knownRemovePeerMsg.Add(hash)
-}
-
 // SendTransactions sends transactions to the peer and includes the hashes
 // in its transaction hash set for future reference.
 func (p *peer) SendTransactions(txs types.Transactions) error {
@@ -289,31 +258,6 @@ func (p *peer) AsyncSendNewBlock(block *types.Block, td *big.Int) {
 		p.Log().Debug("Dropping block propagation", "number", block.NumberU64(), "hash", block.Hash())
 	}
 }
-
-/////////////////////////////////////
-/// Used by BroadcastMsg of ProtocolManager.
-/// TODO: message are encoded using RLP, may not use Protobuf
-func (p *peer) SendAddPeerMsg(addPeerMsg *string) error {
-	p.knownAddPeerMsg.Add(types.Hash(addPeerMsg))
-	err := p2p.Send(p.rw, AddPeerMsg, addPeerMsg)
-	if err != nil {
-		return err
-	}
-	return nil
-
-}
-
-func (p *peer) SendRemovePeerMsg(removePeerMsg *string) error {
-	p.knownRemovePeerMsg.Add(types.Hash(removePeerMsg))
-	err := p2p.Send(p.rw, RemovePeerMsg, removePeerMsg)
-	if err != nil {
-		return err
-	}
-	return nil
-
-}
-
-/////////////////////////////////////
 
 // SendBlockHeaders sends a batch of block headers to the remote peer.
 func (p *peer) SendBlockHeaders(headers []*types.Header) error {
@@ -543,38 +487,6 @@ func (ps *peerSet) PeersWithoutTx(hash common.Hash) []*peer {
 	list := make([]*peer, 0, len(ps.peers))
 	for _, p := range ps.peers {
 		if !p.knownTxs.Contains(hash) {
-			list = append(list, p)
-		}
-	}
-	return list
-}
-
-//=> add for KnownAddPeerMsg. --Agzs
-// PeersWithoutAddPeerMsg retrieves a list of peers that do not have a given addPeerMsg
-// in their set of known hashes.
-func (ps *peerSet) PeersWithoutAddPeerMsg(hash common.Hash) []*peer {
-	ps.lock.RLock()
-	defer ps.lock.RUnlock()
-
-	list := make([]*peer, 0, len(ps.peers))
-	for _, p := range ps.peers {
-		if !p.knownAddPeerMsg.Contains(hash) {
-			list = append(list, p)
-		}
-	}
-	return list
-}
-
-//=> add for KnownRemovePeerMsg. --Agzs
-// PeersWithoutRemovePeerMsg retrieves a list of peers that do not have a given removePeerMsg
-// in their set of known hashes.
-func (ps *peerSet) PeersWithoutRemovePeerMsg(hash common.Hash) []*peer {
-	ps.lock.RLock()
-	defer ps.lock.RUnlock()
-
-	list := make([]*peer, 0, len(ps.peers))
-	for _, p := range ps.peers {
-		if !p.knownRemovePeerMsg.Contains(hash) {
 			list = append(list, p)
 		}
 	}

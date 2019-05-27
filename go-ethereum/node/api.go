@@ -28,76 +28,15 @@ import (
 	"github.com/ethereum/go-ethereum/p2p"
 	"github.com/ethereum/go-ethereum/p2p/discover"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/ethereum/go-ethereum/log"
 )
 
 //=======================================================>
 var privateAdminAPI *PrivateAdminAPI //=>add --Agzs 11.15
 
-var AddPeerComm chan *string = make(chan *string)    // trigger to BroadcastAddPeerMsg()
-var RemovePeerComm chan *string = make(chan *string) // trigger to BroadcastRemovePeerMsg()
-
-var AddPeerUrlArray []*string    // maintain a current active url table added peers.
-var RemovePeerUrlArray []*string // maintain a current active url table removed peers.
-
 // GetPrivateAdminAPI for getting api to call AddPeer() --Agzs 11.15
 func GetPrivateAdminAPI() *PrivateAdminAPI {
 	return privateAdminAPI
 }
-
-// OutCallAddPeer will call AddPeer to add peer
-func (api *PrivateAdminAPI) OutCallAddPeer(url *string) {
-	if findItemInArray(AddPeerUrlArray, *url) { // existed in AddPeerUrlArray?
-		return
-	}
-	flag, err := api.AddPeer(*url)
-	if !flag {
-		log.Warn("Add peers faild", "error", err, "url", url)
-	} else {
-		// delete new url from RemovePeerUrlArray, if it existed in RemovePeerUrlArray
-		// ensure a url can reuse, ex(a url add, then remove, and add now)
-		RemovePeerUrlArray = deleteItemInArray(RemovePeerUrlArray, *url)
-	}
-
-}
-
-// OutCallAddPeer will call RemovePeer to remove peer
-func (api *PrivateAdminAPI) OutCallRemovePeer(url *string) {
-	if findItemInArray(RemovePeerUrlArray, *url) { // existed in RemovePeerUrlArray?
-		return
-	}
-	flag, err := api.RemovePeer(*url)
-	if !flag {
-		log.Warn("remove Peers faild", "error", err, "url", url)
-	} else {
-		// delete new url from AddPeerUrlArray, if it existed in AddPeerUrlArray
-		// ensure a url can reuse, ex(a url add, then remove, and add now)
-		AddPeerUrlArray = deleteItemInArray(AddPeerUrlArray, *url)
-	}
-}
-
-// findItemInArray finds whether a url is in urlArray or not.
-func findItemInArray(urlArray []*string, url string) bool {
-	for _, u := range urlArray {
-		if *u == url {
-			return true
-		}
-	}
-	return false
-}
-
-func deleteItemInArray(urlArray []*string, url string) []*string {
-	var list []*string
-	for _, u := range urlArray {
-		if *u == url {
-			continue
-		}
-		list = append(list, u)
-	}
-	return list
-}
-
-//=======================================================>
 
 // PrivateAdminAPI is the collection of administrative API methods exposed only
 // over a secure RPC channel.
@@ -128,14 +67,6 @@ func (api *PrivateAdminAPI) AddPeer(url string) (bool, error) {
 		return false, fmt.Errorf("invalid enode: %v", err)
 	}
 	server.AddPeer(node)
-	//=================================>start<========== --Agzs 1.15
-	AddPeerUrlArray = append(AddPeerUrlArray, &url)
-	AddPeerComm <- &url
-
-	// for i, u := range AddPeerUrlArray {
-	// 	log.Info("AddPeerUrlArray:", "index", i, "url", *u)
-	// }
-    //==================================>end<===========
 
 	return true, nil
 }
@@ -153,10 +84,6 @@ func (api *PrivateAdminAPI) RemovePeer(url string) (bool, error) {
 		return false, fmt.Errorf("invalid enode: %v", err)
 	}
 	server.RemovePeer(node)
-	//=================================>start<========== --Agzs 1.15
-	RemovePeerUrlArray = append(RemovePeerUrlArray, &url)
-	RemovePeerComm <- &url
-    //==================================>end<===========
 
 	return true, nil
 }
