@@ -1230,7 +1230,7 @@ func submitTransaction(ctx context.Context, b Backend, tx *types.Transaction) (c
 		addr := crypto.CreateAddress(from, tx.Nonce())
 		log.Info("Submitted contract creation", "fullhash", tx.Hash().Hex(), "contract", addr.Hex())
 	} else {
-		log.Info("Submitted transaction", "fullhash", tx.Hash().Hex(), "recipient", tx.To())
+		log.Info("Submitted transaction", "type", tx.GetTxCodeStr(), "fullhash", tx.Hash().Hex(), "recipient", tx.To())
 	}
 	return tx.Hash(), nil
 }
@@ -1243,7 +1243,7 @@ func (s *PublicTransactionPoolAPI) SendBatchPublicTransaction(ctx context.Contex
 	log.Info("Transactions number", "number", ntxs)
 	var i hexutil.Uint
 	for i = 0; i < ntxs; i ++ {
-		time.Sleep(1 * time.Second)
+		//time.Sleep(1 * time.Second)
 		_, err = s.SendPublicTransaction(ctx, args)
 		if err != nil {
 			return err
@@ -1590,7 +1590,7 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 	}
 	tx.SetZKProof(zkProof) //proof tbd
 	AUX := zktx.ComputeAUX(randomReceiverPK, args.Value.ToInt().Uint64(), SNs, newRs, SN.SN)
-	fmt.Println("***** Compute AUX size: ", len(AUX))
+	//fmt.Println("***** Compute AUX size: ", len(AUX))
 
 	tx.SetAUX(AUX)
 	zktx.SNS = &zktx.Sequence{SN: SNs, CMT: CMTs, Random: newRs, Value: args.Value.ToInt().Uint64()}
@@ -1770,7 +1770,7 @@ loop:
 
 	randomKeyStart := time.Now()
 	randomKeyB := zktx.GenerateKeyForRandomB(&R, &KB)
-	fmt.Println("***** sum randomSKeyB size: ", randomKeyB.D.BitLen())	
+	//fmt.Println("***** sum randomSKeyB size: ", randomKeyB.D.BitLen())	
 	randomKeyEnd := time.Now()
 	fmt.Println("***** randomKey Cost Time (ms): ", randomKeyEnd.Sub(randomKeyStart).Nanoseconds() / 1000000)
 

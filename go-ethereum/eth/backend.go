@@ -346,13 +346,13 @@ func (s *Ethereum) StartMining(local bool) error {
 		}
 		clique.Authorize(eb, wallet.SignHash)
 	}
-	if local {
+	// if local { // receiving tx although it does not mine
 		// If local (CPU) mining is started, we can disable the transaction rejection
 		// mechanism introduced to speed sync times. CPU mining on mainnet is ludicrous
 		// so none will ever hit this path, whereas marking sync done on CPU mining
 		// will ensure that private networks work in single miner mode too.
-		atomic.StoreUint32(&s.protocolManager.acceptTxs, 1)
-	}
+	atomic.StoreUint32(&s.protocolManager.acceptTxs, 1)
+	//}
 	go s.miner.Start(eb)
 	return nil
 }
