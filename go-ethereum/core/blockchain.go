@@ -1195,6 +1195,14 @@ func (bc *BlockChain) insertChain(chain types.Blocks) (int, []interface{}, []*ty
 
 		cache, _ := bc.stateCache.TrieDB().Size()
 		stats.report(chain, i, cache)
+
+		/////////////////////////////////////////////////
+		if block.NumberU64() > 0 {
+			parentBlockNum, parentBlockHash := block.NumberU64()-1, block.ParentHash()
+			parentBlock := bc.GetBlock(parentBlockHash, parentBlockNum)
+			stats.report2(block, parentBlock)
+		}
+		////////////////////////////////////////////////
 	}
 	// Append a single chain head event if we've progressed the chain
 	if lastCanon != nil && bc.CurrentBlock().Hash() == lastCanon.Hash() {
@@ -1245,6 +1253,20 @@ func (st *insertStats) report(chain []*types.Block, index int, cache common.Stor
 		*st = insertStats{startTime: now, lastIndex: index + 1}
 	}
 }
+
+///////////////////////////////////////////////////////
+// report prints statistics if block has been processed
+// or more than a few seconds have passed since the last message.
+func (st *insertStats) report2(b, parentBlock *types.Block) { 
+
+	context := []interface{}{
+		"number", b.Number(), "size", b.Size().String(), "txs", len(b.Transactions()), 
+		"blockTime", new(big.Int).Sub(b.Time(), parentBlock.Time()),
+		"hash", b.Hash(),
+	}
+	log.Info("ImportedNewBlock", context...)
+}
+//////////////////////////////////////////////////////////////////
 
 func countTransactions(chain []*types.Block) (c int) {
 	for _, b := range chain {
