@@ -1197,11 +1197,11 @@ func (bc *BlockChain) insertChain(chain types.Blocks) (int, []interface{}, []*ty
 		stats.report(chain, i, cache)
 
 		/////////////////////////////////////////////////
-		if block.NumberU64() > 0 {
-			parentBlockNum, parentBlockHash := block.NumberU64()-1, block.ParentHash()
-			parentBlock := bc.GetBlock(parentBlockHash, parentBlockNum)
-			stats.report2(block, parentBlock)
-		}
+		// if block.NumberU64() > 0 {
+		// 	parentBlockNum, parentBlockHash := block.NumberU64()-1, block.ParentHash()
+		// 	parentBlock := bc.GetBlock(parentBlockHash, parentBlockNum)
+		// 	stats.report2(block, parentBlock)
+		// }
 		////////////////////////////////////////////////
 	}
 	// Append a single chain head event if we've progressed the chain

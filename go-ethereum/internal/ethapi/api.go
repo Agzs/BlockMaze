@@ -540,6 +540,95 @@ func (s *PublicBlockChainAPI) GetBlockByNumber(ctx context.Context, blockNr rpc.
 	return nil, err
 }
 
+/////////////////////////////////////////////
+// GetBlockByNumber returns the requested block. When blockNr is -1 the chain head is returned. When fullTx is true all
+// transactions in the block are returned in full detail, otherwise only the transaction hash is returned.
+func (s *PublicBlockChainAPI) PrintAllBlockByNumber(ctx context.Context, blockFromNr, blockNr rpc.BlockNumber) (error) {
+	if blockFromNr > blockNr {
+		return errors.New("StartBlock > EncBlock")
+	}
+
+	if blockNr > (rpc.BlockNumber)(s.b.CurrentBlock().NumberU64()) {
+        return errors.New("EndBlock > MaxBlock")
+	}
+
+	if blockFromNr != 0 {
+		blockFromNr = blockFromNr - 1
+	}
+
+	for i := blockFromNr; i < blockNr; i++ {
+		b, err1 := s.b.BlockByNumber(ctx, i+1) 
+		if err1 != nil {
+			return err1
+		}
+
+		parentBlock, err2 := s.b.BlockByNumber(ctx, i)
+		if err2 != nil {
+			return err2
+		}
+		
+		cntPubTx, cntMintTx, cntSendTx, cntDepositTx, cntRedeemTx := countPubTransaction(b), countMintTransaction(b), countSendTransaction(b), countDepositTransaction(b), countRedeemTransaction(b)
+		cntZKTX := cntMintTx + cntSendTx + cntDepositTx + cntRedeemTx
+		allTx := cntPubTx + cntZKTX
+		prop := 0.0
+		if allTx != 0 {
+			prop = (float64)(cntZKTX*1.0/allTx)
+		}
+
+		context := []interface{}{
+			"number", b.Number(), "size", b.Size().String(), "allTx", allTx, "zkTx", cntZKTX, "prop", prop,
+			"pubTx", cntPubTx, "mintTx", cntMintTx, "sendTx", cntSendTx, "depositTx", cntDepositTx, "redeemTx", cntRedeemTx,
+			"blockGenTime", new(big.Int).Sub(b.Time(), parentBlock.Time()),
+			"hash", b.Hash(),
+		}
+		log.Info("PrintBlock", context...)
+
+	}
+
+	return nil
+}
+
+func countPubTransaction(b *types.Block) int {
+	var cnt int = 0
+	for _, tx := range b.Transactions() {
+		if tx.Code() == types.PublicTx {cnt ++}
+	}
+	return cnt
+}
+
+func countMintTransaction(b *types.Block) int {
+	var cnt int = 0
+	for _, tx := range b.Transactions() {
+		if tx.Code() == types.MintTx {cnt ++}
+	}
+	return cnt
+}
+
+func countSendTransaction(b *types.Block) int {
+	var cnt int = 0
+	for _, tx := range b.Transactions() {
+		if tx.Code() == types.SendTx {cnt ++}
+	}
+	return cnt
+}
+
+func countDepositTransaction(b *types.Block) int {
+	var cnt int = 0
+	for _, tx := range b.Transactions() {
+		if tx.Code() == types.DepositTx {cnt ++}
+	}
+	return cnt
+}
+
+func countRedeemTransaction(b *types.Block) int {
+	var cnt int = 0
+	for _, tx := range b.Transactions() {
+		if tx.Code() == types.RedeemTx {cnt ++}
+	}
+	return cnt
+}
+////////////////////////////////////////////////
+
 // GetBlockByHash returns the requested block. When fullTx is true all transactions in the block are returned in full
 // detail, otherwise only the transaction hash is returned.
 func (s *PublicBlockChainAPI) GetBlockByHash(ctx context.Context, blockHash common.Hash, fullTx bool) (map[string]interface{}, error) {

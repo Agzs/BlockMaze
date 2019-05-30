@@ -5304,6 +5304,13 @@ var methods = function () {
         outputFormatter: formatters.outputBlockFormatter
     });
 
+    var printAllBlock = new Method({
+        name: 'printAllBlock',
+        call: 'eth_printAllBlockByNumber',
+        params: 2,
+        inputFormatter: [formatters.inputBlockNumberFormatter, formatters.inputBlockNumberFormatter]
+    });
+
     var getPubKeyRLP = new Method({
         name: 'getPubKeyRLP',
         call: 'eth_getPubKeyRLP',
@@ -5486,6 +5493,7 @@ var methods = function () {
         getStorageAt,
         getCode,
         getBlock,
+        printAllBlock,
         getUncle,
         getCompilers,
         getBlockTransactionCount,
