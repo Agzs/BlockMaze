@@ -286,7 +286,7 @@ char *genCMTS(uint64_t value_s, char *pk_string, char *sn_s_string, char *r_s_st
 
 char *genRoot(char *cmtarray, int n)
 {
-    boost::array<uint256, 32> commitments; //16个cmts
+    boost::array<uint256, 256> commitments; //256个cmts
 
     string s = cmtarray;
 
@@ -345,7 +345,7 @@ char *genDepositproof(uint64_t value,
 
     Note note = Note(value, sn, r);
 
-    boost::array<uint256, 32> commitments; //16个cmts
+    boost::array<uint256, 256> commitments; //256个cmts
     string sss = cmtarray;
 
     for (int i = 0; i < n; i++)
