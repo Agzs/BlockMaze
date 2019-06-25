@@ -1,5 +1,4 @@
 # VNT
-官方网址：http://www.vntchain.io/
 
 * test/clique can test geth using clique consensus algorithm (PoA)
 * test/pow can run test using ethash consensus algorithm (PoW)
