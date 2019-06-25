@@ -1,4 +1,4 @@
-# VNT
+# BlockMaze
 
 * test/clique can test geth using clique consensus algorithm (PoA)
 * test/pow can run test using ethash consensus algorithm (PoW)
