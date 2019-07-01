@@ -107,3 +107,7 @@ eth.sendDepositTransaction({from:"0x29eec49600049eb192b860121447bfc72fe7ebac",tx
 // Node A executes Redeem
 eth.sendRedeemTransaction({from:"0x492f3232b3e2affb484ddebd3bc84c091b68626f",value:"0x123"})
 ```
+
+### 4. Large-scale testing
+
+refer to [BlockMaze-Test](https://github.com/Agzs/BlockMaze-Test)
