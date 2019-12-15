@@ -154,6 +154,9 @@ public:
         libff::print_indent(); printf("* G1 elements in PK: %zu\n", this->G1_size());
         libff::print_indent(); printf("* G2 elements in PK: %zu\n", this->G2_size());
         libff::print_indent(); printf("* PK size in bits: %zu\n", this->size_in_bits());
+        libff::print_indent(); printf("* PK size in bytes: %.2f\n", this->size_in_bits()/8.0);
+        libff::print_indent(); printf("* PK size in KB: %.2f\n", this->size_in_bits()/(8.0*1000));
+        libff::print_indent(); printf("* PK size in MB: %.2f\n", this->size_in_bits()/(8.0*1000*1000));        
     }
 
     bool operator==(const r1cs_se_ppzksnark_proving_key<ppT> &other) const;
@@ -237,6 +240,7 @@ public:
             this->G2_size());
         libff::print_indent(); printf("* VK size in bits: %zu\n",
             this->size_in_bits());
+        libff::print_indent(); printf("* VK size in bytes: %.2f\n", this->size_in_bits()/8.0);
     }
 
     bool operator==(const r1cs_se_ppzksnark_verification_key<ppT> &other) const;
@@ -363,6 +367,7 @@ public:
             this->G2_size());
         libff::print_indent(); printf("* Proof size in bits: %zu\n",
             this->size_in_bits());
+        libff::print_indent(); printf("* Proof size in bytes: %.2f\n", this->size_in_bits()/8.0);      
     }
 
     bool is_well_formed() const
