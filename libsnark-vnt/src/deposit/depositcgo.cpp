@@ -8,8 +8,8 @@
 #include <boost/format.hpp>
 #include <boost/array.hpp>
 
-#include "libsnark/zk_proof_systems/ppzksnark/r1cs_se_ppzksnark/r1cs_se_ppzksnark.hpp"
-#include "libsnark/common/default_types/r1cs_se_ppzksnark_pp.hpp"
+#include "libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp"
+#include "libsnark/common/default_types/r1cs_gg_ppzksnark_pp.hpp"
 #include <libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_gadget.hpp>
 #include "libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp"
 #include "libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_read_gadget.hpp"
@@ -84,34 +84,34 @@ T loadFromFile(std::string path)
     return obj;
 }
 
-void serializeProvingKeyToFile(r1cs_se_ppzksnark_proving_key<alt_bn128_pp> pk, const char *pk_path)
+void serializeProvingKeyToFile(r1cs_gg_ppzksnark_proving_key<alt_bn128_pp> pk, const char *pk_path)
 {
     writeToFile(pk_path, pk);
 }
 
-void vkToFile(r1cs_se_ppzksnark_verification_key<alt_bn128_pp> vk, const char *vk_path)
+void vkToFile(r1cs_gg_ppzksnark_verification_key<alt_bn128_pp> vk, const char *vk_path)
 {
     writeToFile(vk_path, vk);
 }
 
-void proofToFile(r1cs_se_ppzksnark_proof<alt_bn128_pp> pro, const char *pro_path)
+void proofToFile(r1cs_gg_ppzksnark_proof<alt_bn128_pp> pro, const char *pro_path)
 {
     writeToFile(pro_path, pro);
 }
 
-r1cs_se_ppzksnark_proving_key<alt_bn128_pp> deserializeProvingKeyFromFile(const char *pk_path)
+r1cs_gg_ppzksnark_proving_key<alt_bn128_pp> deserializeProvingKeyFromFile(const char *pk_path)
 {
-    return loadFromFile<r1cs_se_ppzksnark_proving_key<alt_bn128_pp>>(pk_path);
+    return loadFromFile<r1cs_gg_ppzksnark_proving_key<alt_bn128_pp>>(pk_path);
 }
 
-r1cs_se_ppzksnark_verification_key<alt_bn128_pp> deserializevkFromFile(const char *vk_path)
+r1cs_gg_ppzksnark_verification_key<alt_bn128_pp> deserializevkFromFile(const char *vk_path)
 {
-    return loadFromFile<r1cs_se_ppzksnark_verification_key<alt_bn128_pp>>(vk_path);
+    return loadFromFile<r1cs_gg_ppzksnark_verification_key<alt_bn128_pp>>(vk_path);
 }
 
-r1cs_se_ppzksnark_proof<alt_bn128_pp> deserializeproofFromFile(const char *pro_path)
+r1cs_gg_ppzksnark_proof<alt_bn128_pp> deserializeproofFromFile(const char *pro_path)
 {
-    return loadFromFile<r1cs_se_ppzksnark_proof<alt_bn128_pp>>(pro_path);
+    return loadFromFile<r1cs_gg_ppzksnark_proof<alt_bn128_pp>>(pro_path);
 }
 
 std::string HexStringFromLibsnarkBigint(libff::bigint<libff::alt_bn128_r_limbs> _x)
@@ -178,13 +178,13 @@ std::string outputPointG2AffineAsHex(libff::alt_bn128_G2 _p)
     }
     return x_1 + x_0 + y_1 + y_0;
 }
-std::string string_proof_as_hex(libsnark::r1cs_se_ppzksnark_proof<libff::alt_bn128_pp> proof)
+std::string string_proof_as_hex(libsnark::r1cs_gg_ppzksnark_proof<libff::alt_bn128_pp> proof)
 {
-    std::string A = outputPointG1AffineAsHex(proof.A);
+    std::string A = outputPointG1AffineAsHex(proof.g_A);
 
-    std::string B = outputPointG2AffineAsHex(proof.B);
+    std::string B = outputPointG2AffineAsHex(proof.g_B);
 
-    std::string C = outputPointG1AffineAsHex(proof.C);
+    std::string C = outputPointG1AffineAsHex(proof.g_C);
 
     std::string proof_string = A + B + C;
 
@@ -192,7 +192,7 @@ std::string string_proof_as_hex(libsnark::r1cs_se_ppzksnark_proof<libff::alt_bn1
 }
 
 template <typename ppzksnark_ppT>
-r1cs_se_ppzksnark_proof<ppzksnark_ppT> generate_deposit_proof(r1cs_se_ppzksnark_proving_key<ppzksnark_ppT> proving_key,
+r1cs_gg_ppzksnark_proof<ppzksnark_ppT> generate_deposit_proof(r1cs_gg_ppzksnark_proving_key<ppzksnark_ppT> proving_key,
                                                            const NoteS &note_s,
                                                            const Note &note_old,
                                                            const Note &note,
@@ -214,17 +214,17 @@ r1cs_se_ppzksnark_proof<ppzksnark_ppT> generate_deposit_proof(r1cs_se_ppzksnark_
     { // 三元组R1CS是否满足  < A , X > * < B , X > = < C , X >
         //throw std::invalid_argument("Constraint system not satisfied by inputs");
         cout << "can not generate deposit proof" << endl;
-        return r1cs_se_ppzksnark_proof<ppzksnark_ppT>();
+        return r1cs_gg_ppzksnark_proof<ppzksnark_ppT>();
     }
 
     // 调用libsnark库中生成proof的函数
-    return r1cs_se_ppzksnark_prover<ppzksnark_ppT>(proving_key, pb.primary_input(), pb.auxiliary_input());
+    return r1cs_gg_ppzksnark_prover<ppzksnark_ppT>(proving_key, pb.primary_input(), pb.auxiliary_input());
 }
 
 // 验证proof
 template <typename ppzksnark_ppT>
-bool verify_deposit_proof(r1cs_se_ppzksnark_verification_key<ppzksnark_ppT> verification_key,
-                          r1cs_se_ppzksnark_proof<ppzksnark_ppT> proof,
+bool verify_deposit_proof(r1cs_gg_ppzksnark_verification_key<ppzksnark_ppT> verification_key,
+                          r1cs_gg_ppzksnark_proof<ppzksnark_ppT> proof,
                           // const uint256& merkle_root,
                           const uint256 &rt,
                           const uint160 &pk_recv,
@@ -242,7 +242,7 @@ bool verify_deposit_proof(r1cs_se_ppzksnark_verification_key<ppzksnark_ppT> veri
         cmtB);
 
     // 调用libsnark库中验证proof的函数
-    return r1cs_se_ppzksnark_verifier_strong_IC<ppzksnark_ppT>(verification_key, input, proof);
+    return r1cs_gg_ppzksnark_verifier_strong_IC<ppzksnark_ppT>(verification_key, input, proof);
 }
 
 //func GenCMT(value uint64, sn []byte, r []byte)
@@ -387,7 +387,7 @@ char *genDepositproof(uint64_t value,
     double timeuse;
     gettimeofday(&t1,NULL);
 
-    r1cs_se_ppzksnark_keypair<alt_bn128_pp> keypair;
+    r1cs_gg_ppzksnark_keypair<alt_bn128_pp> keypair;
     //cout << "Trying to read deposit proving key file..." << endl;
     //cout << "Please be patient as this may take about 64 seconds. " << endl;
     keypair.pk = deserializeProvingKeyFromFile("/usr/local/prfKey/depositpk.txt");
@@ -399,7 +399,7 @@ char *genDepositproof(uint64_t value,
     // 生成proof
     cout << "Trying to generate deposit proof..." << endl;
 
-    libsnark::r1cs_se_ppzksnark_proof<libff::alt_bn128_pp> proof = generate_deposit_proof<alt_bn128_pp>(keypair.pk,
+    libsnark::r1cs_gg_ppzksnark_proof<libff::alt_bn128_pp> proof = generate_deposit_proof<alt_bn128_pp>(keypair.pk,
                                                                                                      note_s,
                                                                                                      note_old,
                                                                                                      note,
@@ -433,14 +433,14 @@ bool verifyDepositproof(char *data, char *RT, char *pk, char *cmtb_old, char *sn
     double timeuse;
     gettimeofday(&t1,NULL);
 
-    r1cs_se_ppzksnark_keypair<alt_bn128_pp> keypair;
+    r1cs_gg_ppzksnark_keypair<alt_bn128_pp> keypair;
     keypair.vk = deserializevkFromFile("/usr/local/prfKey/depositvk.txt");
 
     gettimeofday(&t2,NULL);
     timeuse = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
     // printf("\n\n reading deposit vk Use Time:%fs\n\n",timeuse);
 
-    libsnark::r1cs_se_ppzksnark_proof<libff::alt_bn128_pp> proof;
+    libsnark::r1cs_gg_ppzksnark_proof<libff::alt_bn128_pp> proof;
 
     uint8_t A_x[64];
     uint8_t A_y[64];
@@ -493,16 +493,16 @@ bool verifyDepositproof(char *data, char *RT, char *pk, char *cmtb_old, char *sn
     libff::bigint<libff::alt_bn128_r_limbs> c_y = libsnarkBigintFromBytes(C_y);
 
     //ecc element
-    proof.A.X = a_x;
-    proof.A.Y = a_y;
+    proof.g_A.X = a_x;
+    proof.g_A.Y = a_y;
     
-    proof.B.X.c1 = b_x_1;
-    proof.B.X.c0 = b_x_0;
-    proof.B.Y.c1 = b_y_1;
-    proof.B.Y.c0 = b_y_0;
+    proof.g_B.X.c1 = b_x_1;
+    proof.g_B.X.c0 = b_x_0;
+    proof.g_B.Y.c1 = b_y_1;
+    proof.g_B.Y.c0 = b_y_0;
    
-    proof.C.X = c_x;
-    proof.C.Y = c_y;
+    proof.g_C.X = c_x;
+    proof.g_C.Y = c_y;
 
     bool result = verify_deposit_proof(keypair.vk,
                                        proof,
