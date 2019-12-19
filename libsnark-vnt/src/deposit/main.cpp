@@ -313,13 +313,13 @@ int main () {
 
     gettimeofday(&t2,NULL);
     timeuse = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
-    printf("\n\Depoist Use Time:%fs\n\n",timeuse);
+    printf("\n\nDepoist Use Time:%fs\n\n",timeuse);
 
     libff::print_header("#             testing deposit gadget");
 
-    uint64_t value = uint64_t(264); 
-    uint64_t value_old = uint64_t(255); 
-    uint64_t value_s = uint64_t(9);
+    uint64_t value = uint64_t(20); 
+    uint64_t value_old = uint64_t(20); 
+    uint64_t value_s = uint64_t(0);
 
     test_deposit_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(value, value_old, value_s, keypair);
 
