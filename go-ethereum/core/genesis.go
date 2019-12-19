@@ -33,6 +33,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/ethereum/go-ethereum/merkle"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/zktx"
@@ -232,9 +233,28 @@ func (g *Genesis) ToBlock(db ethdb.Database) *types.Block {
 		for key, value := range account.Storage {
 			statedb.SetState(addr, key, value)
 		}
-		statedb.SetCMT(addr, zktx.GenCMT(0, common.Hash{}.Bytes(), common.Hash{}.Bytes()))
+		ssn := common.HexToHash("1234") //--zy
+		sn := &ssn
+		rr := common.HexToHash("2345") //--zy
+		r := &rr
+		statedb.SetCMT(addr, zktx.GenCMT(1000, sn.Bytes(), r.Bytes()))
+		//statedb.SetCMT(addr, zktx.GenCMT(0, common.Hash{}.Bytes(), common.Hash{}.Bytes()))
 	}
 	root := statedb.IntermediateRoot(false)
+
+	/** 
+	 * The cmts.hex: 0x526cec89784eedf4c603480d72b35dc26444515127fc14e0dbd4ca807af3f0b5
+	 * The cmts.string: 0x526cec89784eedf4c603480d72b35dc26444515127fc14e0dbd4ca807af3f0b5
+     * The cmts.bytes: [82 108 236 137 120 78 237 244 198 3 72 13 114 179 93 194 100 68 81 81 39 252 20 224 219 212 202 128 122 243 240 181]
+     * The cmts: [82 108 236 137 120 78 237 244 198 3 72 13 114 179 93 194 100 68 81 81 39 252 20 224 219 212 202 128 122 243 240 181]
+	 */
+	var CMTS []*common.Hash = make([]*common.Hash, 0)
+	ZKCMTS := common.HexToHash("0x526cec89784eedf4c603480d72b35dc26444515127fc14e0dbd4ca807af3f0b5")
+	fixCMTS := & ZKCMTS
+	CMTS = append(CMTS, fixCMTS)
+	// CMTS = append(CMTS, fixCMTS)
+	// CMTS = append(CMTS, fixCMTS)
+	
 	head := &types.Header{
 		Number:     new(big.Int).SetUint64(g.Number),
 		Nonce:      types.EncodeNonce(g.Nonce),
@@ -247,6 +267,8 @@ func (g *Genesis) ToBlock(db ethdb.Database) *types.Block {
 		MixDigest:  g.Mixhash,
 		Coinbase:   g.Coinbase,
 		Root:       root,
+		RTCMT:      merkle.CMTRoot(CMTS),
+		CMT:        CMTS,
 	}
 	if g.GasLimit == 0 {
 		head.GasLimit = params.GenesisGasLimit

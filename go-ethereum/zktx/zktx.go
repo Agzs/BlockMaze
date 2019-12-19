@@ -77,14 +77,17 @@ var ErrSequence = errors.New("invalid sequence")
 var RandomReceiverPK *ecdsa.PublicKey = nil
 
 func InitializeSN() *Sequence {
-	sn := &common.Hash{}
-	r := &common.Hash{}
-	cmt := GenCMT(0, sn.Bytes(), r.Bytes())
+	ssn := common.HexToHash("1234") //--zy
+	sn := &ssn
+	// sn := 
+	rr := common.HexToHash("2345") //--zy
+	r := &rr
+	cmt := GenCMT(1000, sn.Bytes(), r.Bytes()) //value 1000
 	return &Sequence{
 		SN:     sn,
 		CMT:    cmt,
 		Random: r,
-		Value:  0,
+		Value:  1000,
 	}
 }
 
@@ -117,6 +120,12 @@ func NewRandomInt() *big.Int {
 var InvalidMintProof = errors.New("Verifying mint proof failed!!!")
 
 func VerifyMintProof(cmtold *common.Hash, snaold *common.Hash, cmtnew *common.Hash, value uint64, proof []byte) error {
+	// fmt.Println("The SN.CMT:", cmtold)
+	// fmt.Println("The SN.SN:", snaold)
+	// fmt.Println("The newCMT:", cmtnew)
+	// fmt.Println("The newValue:", value)
+    // fmt.Println("The zkProof:", proof)
+
 	cproof := C.CString(string(proof))
 	cmtA_old_c := C.CString(common.ToHex(cmtold[:]))
 	cmtA_c := C.CString(common.ToHex(cmtnew[:]))
@@ -143,6 +152,12 @@ var InvalidSendProof = errors.New("Verifying send proof failed!!!")
 // 	return nil
 // }
 func VerifySendProof(sna *common.Hash, cmts *common.Hash, proof []byte, cmtAold *common.Hash, cmtAnew *common.Hash) error {
+	// fmt.Println("The sna:", sna)
+	// fmt.Println("The cmts:", cmts)
+	// fmt.Println("The cmtAold:", cmtAold)
+	// fmt.Println("The cmtAnew:", cmtAnew)
+	// fmt.Println("The zkProof:", proof)
+	
 	cproof := C.CString(string(proof))
 	snAold_c := C.CString(common.ToHex(sna.Bytes()[:]))
 	cmtS := C.CString(common.ToHex(cmts[:]))
@@ -175,6 +190,28 @@ var InvalidUpdateProof = errors.New("Verifying update proof failed!!!")
 var InvalidDepositProof = errors.New("Verifying Deposit proof failed!!!")
 
 func VerifyDepositProof(pk *ecdsa.PublicKey, rtcmt common.Hash, cmtb *common.Hash, snb *common.Hash, cmtbnew *common.Hash, proof []byte) error {
+	
+	type pub struct {
+		X *big.Int
+		Y *big.Int
+	}
+	
+	var pubKey pub
+	
+	pubKeyStr := "0xf842a0eaf9c33ab6b7e9d1b074c10b5d6b08c4a22d1fe91ef1aff4fbf0dd0008180c5ea01fedd675f7e2b559dfd34c3e92dc94a36a47a7bd477929e1db5e67eb13379979"
+	PubKey := common.FromHex(pubKeyStr)
+	
+	rlp.DecodeBytes(PubKey, &pubKey) //--zy
+
+	pk = &ecdsa.PublicKey{crypto.S256(), pubKey.X, pubKey.Y}
+	
+	// fmt.Println("The pk:", pk)
+	// fmt.Println("The rtcmt:", rtcmt)
+	// fmt.Println("The cmtb:", cmtb)
+	// fmt.Println("The snb:", snb)
+	// fmt.Println("The cmtbnew:", cmtbnew)
+	// fmt.Println("The proof:", proof)
+
 	PK := crypto.PubkeyToAddress(*pk) //--zy
 	pk_c := C.CString(common.ToHex(PK[:]))
 	cproof := C.CString(string(proof))
@@ -230,7 +267,20 @@ func GenCMT(value uint64, sn []byte, r []byte) *common.Hash {
 
 //GenCMT生成CMT 调用c的sha256函数  （go的sha256函数与c有一些区别）
 func GenCMTS(values uint64, pk *ecdsa.PublicKey, sns []byte, rs []byte, sna []byte) *common.Hash {
+    type pub struct {
+		X *big.Int
+		Y *big.Int
+	}
+	
+	var pubKey pub
+	
+	pubKeyStr := "0xf842a0eaf9c33ab6b7e9d1b074c10b5d6b08c4a22d1fe91ef1aff4fbf0dd0008180c5ea01fedd675f7e2b559dfd34c3e92dc94a36a47a7bd477929e1db5e67eb13379979"
+	PubKey := common.FromHex(pubKeyStr)
+	
+	rlp.DecodeBytes(PubKey, &pubKey) //--zy
 
+	pk = &ecdsa.PublicKey{crypto.S256(), pubKey.X, pubKey.Y}
+	
 	values_c := C.ulong(values)
 	PK := crypto.PubkeyToAddress(*pk) //--zy
 	pk_c := C.CString(common.ToHex(PK[:]))

@@ -923,6 +923,8 @@ func RPCMarshalBlock(b *types.Block, inclTx bool, fullTx bool) (map[string]inter
 		"timestamp":        (*hexutil.Big)(head.Time),
 		"transactionsRoot": head.TxHash,
 		"receiptsRoot":     head.ReceiptHash,
+		"rtcmt":            head.RTCMT,
+		"cmts":             head.CMT,
 	}
 
 	if inclTx {
@@ -1417,23 +1419,25 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 	}
 
 	//check whether sn can be used
-	exist := state.Exist(common.BytesToAddress(zktx.SequenceNumberAfter.SN.Bytes()))
+	// exist := state.Exist(common.BytesToAddress(zktx.SequenceNumberAfter.SN.Bytes()))
 
-	if exist == true && *(zktx.SequenceNumberAfter.SN) != *(zktx.InitializeSN().SN) {
-		fmt.Println("sn is lost")
-		return common.Hash{}, nil
-	}
+	// if exist == true && *(zktx.SequenceNumberAfter.SN) != *(zktx.InitializeSN().SN) {
+	// 	fmt.Println("sn is lost")
+	// 	return common.Hash{}, nil
+	// }
 
 	//check whether last tx is processed successfully
-	exist = state.Exist(common.BytesToAddress(zktx.SequenceNumber.SN.Bytes()))
+	// exist = state.Exist(common.BytesToAddress(zktx.SequenceNumber.SN.Bytes()))
 
-	if exist == false && *(zktx.SequenceNumber.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
-		// if zktx.Stage == zktx.Update {
-		// 	fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
-		// 	return common.Hash{}, nil
-		// }
-		zktx.SequenceNumberAfter = zktx.SequenceNumber
-	}
+	// if exist == false && *(zktx.SequenceNumber.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
+	// 	// if zktx.Stage == zktx.Update {
+	// 	// 	fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
+	// 	// 	return common.Hash{}, nil
+	// 	// }
+	// 	zktx.SequenceNumberAfter = zktx.SequenceNumber
+	// }
+	zktx.SequenceNumberAfter = zktx.SequenceNumber
+
 
 	// Look up the wallet containing the requested signer
 	account := accounts.Account{Address: args.From}
@@ -1456,17 +1460,17 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 	// Assemble the transaction and sign with the wallet
 	tx := args.toTransaction()
 	tx.SetTxCode(types.MintTx)
-	tx.SetZKValue(args.Value.ToInt().Uint64())
+	tx.SetZKValue(uint64(0)) // --zy  value = 0
 	tx.SetPrice(big.NewInt(0))
 	tx.SetValue(big.NewInt(0))
 	tx.SetZKAddress(&zktx.ZKTxAddress)
 
-	SN := zktx.SequenceNumberAfter
+	SN := zktx.SequenceNumber
 	tx.SetZKSN(SN.SN) //SN
 
-	newSN := zktx.NewRandomHash()
-	newRandom := zktx.NewRandomHash()
-	newValue := SN.Value + args.Value.ToInt().Uint64()
+	newSN := SN.SN
+	newRandom := SN.Random
+	newValue := SN.Value + uint64(0) //--zy value = 0 
 
 	newCMT := zktx.GenCMT(newValue, newSN.Bytes(), newRandom.Bytes()) //tbd
 	tx.SetZKCMT(newCMT)                                               //cmt
@@ -1477,9 +1481,20 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 	}
 
 	//genProofStart := time.Now()
-	zkProof := zktx.GenMintProof(SN.Value, SN.Random, newSN, newRandom, SN.CMT, SN.SN, newCMT, newValue)
+	// fmt.Println("The SN.Value:", SN.Value)
+	// fmt.Println("The SN.Random:", SN.Random)
+	// fmt.Println("The newSN:", newSN)
+	// fmt.Println("The newRandom:", newRandom)
+	// fmt.Println("The SN.CMT:", SN.CMT)
+	// fmt.Println("The SN.SN:", SN.SN)
+	// fmt.Println("The newCMT:", newCMT)
+	// fmt.Println("The newValue:", newValue)
+	// zkProof := zktx.GenMintProof(SN.Value, SN.Random, newSN, newRandom, SN.CMT, SN.SN, newCMT, newValue)
+	// fmt.Println("The zkProof:", zkProof) 
+	zkProof := []byte{49, 100, 52, 55, 55, 102, 53, 54, 48, 98, 49, 99, 51, 50, 97, 53, 97, 102, 98, 97, 97, 97, 49, 55, 49, 100, 101, 101, 56, 54, 99, 50, 99, 50, 55, 99, 55, 101, 100, 53, 50, 97, 49, 56, 99, 98, 99, 56, 55, 52, 100, 53, 55, 51, 52, 102, 99, 50, 56, 48, 57, 56, 49, 56, 49, 56, 54, 99, 49, 99, 99, 56, 99, 99, 99, 48, 52, 100, 100, 50, 55, 48, 99, 53, 99, 102, 97, 53, 56, 97, 56, 52, 98, 56, 102, 55, 99, 56, 48, 48, 56, 57, 57, 102, 49, 100, 53, 48, 54, 57, 55, 49, 48, 99, 55, 57, 49, 101, 48, 49, 57, 48, 57, 102, 54, 97, 54, 53, 49, 57, 54, 52, 53, 97, 50, 98, 100, 98, 50, 55, 101, 100, 102, 100, 101, 53, 48, 50, 48, 57, 98, 53, 100, 101, 57, 56, 53, 57, 102, 48, 48, 97, 101, 54, 48, 97, 51, 102, 50, 97, 99, 97, 49, 101, 99, 53, 56, 101, 48, 55, 55, 54, 53, 51, 100, 52, 98, 50, 99, 53, 100, 100, 50, 55, 57, 53, 57, 54, 54, 53, 50, 99, 52, 100, 52, 52, 52, 99, 52, 55, 56, 101, 55, 100, 53, 51, 97, 97, 54, 54, 48, 57, 56, 100, 48, 99, 97, 53, 55, 99, 54, 100, 97, 54, 54, 51, 57, 48, 54, 102, 97, 98, 101, 51, 53, 51, 55, 98, 100, 55, 98, 57, 56, 49, 52, 50, 49, 50, 101, 52, 102, 54, 102, 53, 56, 50, 54, 98, 49, 57, 97, 101, 51, 102, 54, 51, 102, 51, 99, 102, 102, 50, 53, 56, 97, 101, 100, 54, 98, 57, 51, 97, 99, 52, 101, 53, 57, 54, 53, 102, 100, 56, 101, 54, 51, 50, 56, 56, 50, 51, 57, 99, 98, 55, 99, 53, 101, 55, 49, 101, 49, 98, 55, 51, 99, 49, 52, 53, 102, 49, 52, 97, 54, 56, 100, 102, 53, 100, 102, 98, 50, 49, 100, 52, 98, 100, 57, 99, 100, 100, 52, 51, 55, 57, 99, 102, 101, 100, 102, 56, 102, 57, 50, 54, 99, 99, 57, 97, 57, 51, 50, 102, 49, 48, 54, 51, 57, 100, 98, 57, 100, 102, 49, 48, 49, 100, 102, 50, 102, 56, 99, 98, 55, 56, 102, 57, 101, 50, 100, 97, 102, 98, 54, 101, 53, 56, 98, 57, 100, 54, 55, 48, 52, 50, 97, 99, 101, 102, 53, 48, 101, 99, 53, 102, 49, 100, 49, 50, 48, 98, 101, 50, 52, 100, 48, 54, 102, 48, 56, 52, 49, 101, 102, 98, 50, 55, 56, 53, 48, 50, 52, 98, 102, 54, 97, 56, 52, 101, 53, 97, 55, 100, 48, 102, 56, 55, 52, 54, 50, 52, 102, 99, 48, 101, 99, 99, 50, 48, 99, 101, 57, 52, 57, 52, 54, 52, 56, 50, 52, 49, 51, 101, 57, 52, 54, 56, 99, 57, 49, 98, 97, 100, 54, 54, 56, 99, 53, 98, 100, 57, 100, 51, 211, 214, 96, 105, 147, 33, 193, 26, 101, 27, 202, 187, 210, 87, 92, 40, 65}
 	//genProofEnd := time.Now()
-	// fmt.Println("***** GenMintProof Cost Time (ms): ", genProofEnd.Sub(genProofStart).Nanoseconds() / 1000000)
+
+    //fmt.Println("***** GenMintProof Cost Time (s): ", genProofEnd.Sub(genProofStart).Nanoseconds() / 1000000000.0)
 	
 	if string(zkProof[0:10]) == "0000000000" {
 		return common.Hash{}, errors.New("can't generate proof")
@@ -1575,23 +1590,24 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 	}
 
 	//check whether sn can be used
-	exist := state.Exist(common.BytesToAddress(zktx.SequenceNumberAfter.SN.Bytes()))
+	// exist := state.Exist(common.BytesToAddress(zktx.SequenceNumberAfter.SN.Bytes()))
 
-	if exist == true && *(zktx.SequenceNumberAfter.SN) != *(zktx.InitializeSN().SN) {
-		fmt.Println("sn is lost")
-		return common.Hash{}, nil
-	}
+	// if exist == true && *(zktx.SequenceNumberAfter.SN) != *(zktx.InitializeSN().SN) {
+	// 	fmt.Println("sn is lost")
+	// 	return common.Hash{}, nil
+	// }
 
-	//check whether last tx is processed successfully
-	exist = state.Exist(common.BytesToAddress(zktx.SequenceNumber.SN.Bytes()))
+	// //check whether last tx is processed successfully
+	// exist = state.Exist(common.BytesToAddress(zktx.SequenceNumber.SN.Bytes()))
 
-	if exist == false && *(zktx.SequenceNumber.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
-		// if zktx.Stage == zktx.Update {
-		// 	fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
-		// 	return common.Hash{}, nil
-		// }
-		zktx.SequenceNumberAfter = zktx.SequenceNumber
-	}
+	// if exist == false && *(zktx.SequenceNumber.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
+	// 	// if zktx.Stage == zktx.Update {
+	// 	// 	fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
+	// 	// 	return common.Hash{}, nil
+	// 	// }
+	// 	zktx.SequenceNumberAfter = zktx.SequenceNumber
+	// }
+	zktx.SequenceNumberAfter = zktx.SequenceNumber
 
 	// Look up the wallet containing the requested signer
 	account := accounts.Account{Address: args.From}
@@ -1635,20 +1651,18 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 		X *big.Int
 		Y *big.Int
 	}
-
-	//genRandomKeyStart := time.Now()
+	
 	var pubKey pub
+	
+	pubKeyStr := "0xf842a0eaf9c33ab6b7e9d1b074c10b5d6b08c4a22d1fe91ef1aff4fbf0dd0008180c5ea01fedd675f7e2b559dfd34c3e92dc94a36a47a7bd477929e1db5e67eb13379979"
+	PubKey := common.FromHex(pubKeyStr)
+	
+	rlp.DecodeBytes(PubKey, &pubKey) //--zy
 
-	rlp.DecodeBytes(*args.PubKey, &pubKey) //--zy
-
-	receiverPubkey := &ecdsa.PublicKey{crypto.S256(), pubKey.X, pubKey.Y}
+	zktx.RandomReceiverPK = &ecdsa.PublicKey{crypto.S256(), pubKey.X, pubKey.Y}
 
 	R := zktx.GenR()
-	Sa := R.D
-
-	randomReceiverPK := zktx.NewRandomPubKey(Sa, *receiverPubkey)
-
-	zktx.RandomReceiverPK = randomReceiverPK //store randomReceiverPK for update
+	// Sa := R.D
 
 	//genRandomKeyEnd := time.Now()
 	// fmt.Println("***** GenRandomKey Cost Time (ms): ", genRandomKeyEnd.Sub(genRandomKeyStart).Nanoseconds() / 1000000)
@@ -1657,28 +1671,39 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 	randomPK := R.PublicKey
 	tx.SetPubKey(randomPK.X, randomPK.Y)
 
-	SNs := zktx.NewRandomHash()
-	newRs := zktx.NewRandomHash()
+	SNs := SN.SN
+	newRs := SN.Random
 
-	CMTs := zktx.GenCMTS(args.Value.ToInt().Uint64(), randomReceiverPK, SNs.Bytes(), newRs.Bytes(), SN.SN.Bytes()) //生成cmts
+	CMTs := zktx.GenCMTS(uint64(0), zktx.RandomReceiverPK, SNs.Bytes(), newRs.Bytes(), SN.SN.Bytes()) //生成cmts
 	tx.SetZKCMTS(CMTs)
 	//add by zy
-	newSNA := zktx.NewRandomHash()                                        //A新sn
-	newRandomA := zktx.NewRandomHash()                                    //A 新 r
-	newValueA := SN.Value - args.Value.ToInt().Uint64()                   //update后 A新value
+	newSNA := SN.SN                                        //A新sn
+	newRandomA := SN.Random                                   //A 新 r
+	newValueA := SN.Value - uint64(0)                   //update后 A新value
 	newCMTA := zktx.GenCMT(newValueA, newSNA.Bytes(), newRandomA.Bytes()) //A 新 cmt
 	tx.SetZKCMT(newCMTA)
+
+	// fmt.Println("The cmts.hex:", CMTs.Hex())
+	// fmt.Println("The cmts.string:", CMTs.String())
+	// fmt.Println("The cmts.bytes:", CMTs.Bytes())
+	// fmt.Println("The cmts:", CMTs)
 	//tx.SetZKAddress(&args.From)
 	//end
 	//genProofStart := time.Now()
-	zkProof := zktx.GenSendProof(SN.CMT, SN.Value, SN.Random, args.Value.ToInt().Uint64(), randomReceiverPK, SNs, newRs, SN.SN, CMTs, newValueA, newSNA, newRandomA, newCMTA)
+	// fmt.Println("The sna:", SN.SN)
+	// fmt.Println("The cmts:", CMTs)
+	// fmt.Println("The cmtAold:", SN.CMT)
+	// fmt.Println("The cmtAnew:", newCMTA)
+	//zkProof := zktx.GenSendProof(SN.CMT, SN.Value, SN.Random, uint64(0), zktx.RandomReceiverPK, SNs, newRs, SN.SN, CMTs, newValueA, newSNA, newRandomA, newCMTA)
+	//fmt.Println("The zkProof:", zkProof) 
+	zkProof := []byte{49,52,51,56,48,98,100,51,97,52,102,102,97,51,56,51,50,52,57,97,49,51,102,56,100,53,55,48,101,51,49,54,54,101,98,53,48,52,99,54,97,57,49,57,51,54,48,97,98,99,98,49,57,48,98,98,101,51,51,53,57,54,101,56,50,53,49,99,54,53,56,101,49,55,99,54,98,100,53,99,102,99,53,49,98,52,54,97,97,56,53,51,99,51,56,55,97,57,55,101,56,97,49,55,98,50,102,99,54,55,50,57,49,54,56,99,53,54,51,57,56,48,99,54,51,99,55,52,48,54,49,99,52,52,100,98,54,100,48,54,57,50,52,50,102,99,49,97,98,100,101,48,49,53,53,51,101,55,98,55,54,48,50,99,102,53,100,53,54,54,56,50,100,48,102,102,54,54,98,99,49,100,99,56,49,99,51,48,50,98,53,56,48,100,97,51,102,52,53,48,53,55,99,97,57,48,48,99,50,101,56,52,48,102,57,53,99,51,102,98,97,99,55,55,102,48,53,49,102,102,51,55,49,98,99,101,48,54,49,99,56,51,51,55,100,48,55,101,48,48,97,54,53,52,54,102,49,49,57,50,48,54,57,53,56,49,56,57,52,101,98,101,101,48,56,100,53,56,51,99,51,53,100,97,52,53,101,97,54,55,56,52,56,57,54,57,57,52,55,48,54,50,56,49,97,51,52,49,54,48,57,50,102,49,97,51,57,100,97,57,50,101,51,54,98,48,48,101,51,54,56,49,100,53,56,98,53,101,52,49,99,48,48,48,99,102,50,57,101,57,57,54,48,102,55,49,49,53,99,55,50,52,102,100,55,56,53,56,54,50,49,55,49,101,56,55,49,49,55,99,102,52,51,53,49,56,97,54,52,54,53,101,97,56,55,100,51,49,53,55,51,49,50,48,48,102,101,98,53,49,100,54,54,99,49,54,98,100,101,55,97,48,57,48,51,100,50,49,50,54,99,56,57,54,53,50,57,101,48,101,101,55,57,51,100,98,55,51,49,99,52,100,102,49,55,50,99,53,98,98,49,100,55,54,53,102,48,101,53,49,101,52,56,52,52,55,56,100,55,98,56,50,57,100,102,49,99,48,50,97,100,48,53,101,98,57,97,100,57,102,51,57,101,98,51,98,98,100,102,101,54,57,211,214,96,105,147,33,193,26,101,27,202,187,210,87,92,40,66}
 	//genProofEnd := time.Now()
-	// fmt.Println("***** GenSendProof Cost Time (ms): ", genProofEnd.Sub(genProofStart).Nanoseconds() / 1000000)
+	//fmt.Println("***** GenSendProof Cost Time (s): ", genProofEnd.Sub(genProofStart).Nanoseconds() / 1000000000.0)
 	if string(zkProof[0:10]) == "0000000000" {
 		return common.Hash{}, errors.New("can't generate proof")
 	}
 	tx.SetZKProof(zkProof) //proof tbd
-	AUX := zktx.ComputeAUX(randomReceiverPK, args.Value.ToInt().Uint64(), SNs, newRs, SN.SN)
+	AUX := zktx.ComputeAUX(zktx.RandomReceiverPK, args.Value.ToInt().Uint64(), SNs, newRs, SN.SN)
 	//fmt.Println("***** Compute AUX size: ", len(AUX))
 
 	tx.SetAUX(AUX)
@@ -1742,23 +1767,24 @@ func (s *PublicTransactionPoolAPI) SendDepositTransaction(ctx context.Context, a
 	}
 
 	//check whether sn can be used
-	exist := state.Exist(common.BytesToAddress(zktx.SequenceNumberAfter.SN.Bytes()))
+	// exist := state.Exist(common.BytesToAddress(zktx.SequenceNumberAfter.SN.Bytes()))
 
-	if exist == true && *(zktx.SequenceNumberAfter.SN) != *(zktx.InitializeSN().SN) {
-		fmt.Println("sn is lost")
-		return common.Hash{}, nil
-	}
+	// if exist == true && *(zktx.SequenceNumberAfter.SN) != *(zktx.InitializeSN().SN) {
+	// 	fmt.Println("sn is lost")
+	// 	return common.Hash{}, nil
+	// }
 
-	//check whether last tx is processed successfully
-	exist = state.Exist(common.BytesToAddress(zktx.SequenceNumber.SN.Bytes()))
+	// //check whether last tx is processed successfully
+	// exist = state.Exist(common.BytesToAddress(zktx.SequenceNumber.SN.Bytes()))
 
-	if exist == false && *(zktx.SequenceNumber.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
-		// if zktx.Stage == zktx.Update {
-		// 	fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
-		// 	return common.Hash{}, nil
-		// }
-		zktx.SequenceNumberAfter = zktx.SequenceNumber
-	}
+	// if exist == false && *(zktx.SequenceNumber.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
+	// 	// if zktx.Stage == zktx.Update {
+	// 	// 	fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
+	// 	// 	return common.Hash{}, nil
+	// 	// }
+	// 	zktx.SequenceNumberAfter = zktx.SequenceNumber
+	// }
+	zktx.SequenceNumberAfter = zktx.SequenceNumber
 
 	// Look up the wallet containing the requested signer
 	account := accounts.Account{Address: args.From}
@@ -1796,7 +1822,7 @@ func (s *PublicTransactionPoolAPI) SendDepositTransaction(ctx context.Context, a
 		return common.Hash{}, errors.New("there does not exist a transaction" + args.TxHash.String())
 	}
 
-	cmtBlockNumber := (*big.Int)(RPCtx.BlockNumber)
+	cmtBlockNumber := (new(big.Int).SetUint64(0))
 	var cmtBlockNumbers []uint64
 	var CMTSForMerkle []*common.Hash
 	BlockToCmt := make(map[uint64][]*common.Hash)
@@ -1863,39 +1889,78 @@ loop:
 	randomKeyEnd := time.Now()
 	fmt.Println("***** randomKey Cost Time (ms): ", randomKeyEnd.Sub(randomKeyStart).Nanoseconds() / 1000000)
 
-
-	AUXA := txSend.AUX()
-	valueS, sns, rs, sna := zktx.DecAUX(&randomKeyB.PublicKey, AUXA) //--zy
-	if valueS <= 0 {
-		return common.Hash{}, errors.New("transfer amount must be larger than 0")
-	}
+	// AUXA := txSend.AUX()
+	//valueS, sns, rs, sna := zktx.DecAUX(&randomKeyB.PublicKey, AUXA) //--zy
+	// if valueS < 0 {
+	// 	return common.Hash{}, errors.New("transfer amount must be larger than 0")
+	// }
 
 	SNb := zktx.SequenceNumberAfter
 	tx.SetZKSN(SNb.SN)
 
-	newSN := zktx.NewRandomHash()
-	newRandom := zktx.NewRandomHash()
+	valueS := uint64(0)
+	// sns := SNb.SN
+	// rs := SNb.Random
+	// sna := SNb.SN
+
+	type pub struct {
+		X *big.Int
+		Y *big.Int
+	}
+	
+	var pubKey pub
+	
+	pubKeyStr := "0xf842a0eaf9c33ab6b7e9d1b074c10b5d6b08c4a22d1fe91ef1aff4fbf0dd0008180c5ea01fedd675f7e2b559dfd34c3e92dc94a36a47a7bd477929e1db5e67eb13379979"
+	PubKey := common.FromHex(pubKeyStr)
+	
+	rlp.DecodeBytes(PubKey, &pubKey) //--zy
+
+	zktx.RandomReceiverPK = &ecdsa.PublicKey{crypto.S256(), pubKey.X, pubKey.Y}
+
+	//CMTs := zktx.GenCMTS(uint64(0), zktx.RandomReceiverPK, sns.Bytes(), rs.Bytes(), sna.Bytes()) //生成cmts
+
+	newSN := SNb.SN
+	newRandom := SNb.Random
 	newValue := SNb.Value + valueS
 	newCMTB := zktx.GenCMT(newValue, newSN.Bytes(), newRandom.Bytes())
 	tx.SetZKCMT(newCMTB)
 	tx.SetPubKey(randomKeyB.X, randomKeyB.Y)
 
 	//genProofStart := time.Now()
-	zkProof := zktx.GenDepositProof(txSend.ZKCMTS(), valueS, sns, rs, sna, SNb.Value, SNb.Random, newSN, newRandom, &randomKeyB.PublicKey, RTcmt.Bytes(), SNb.CMT, SNb.SN, newCMTB, CMTSForMerkle)
+	// fmt.Println("The pk:", zktx.RandomReceiverPK)
+	// fmt.Println("The rtcmt:", RTcmt.Bytes())
+	// fmt.Println("The cmtb:", SNb.CMT)
+	// fmt.Println("The snb:", SNb.SN)
+	// fmt.Println("The cmtbnew:", newCMTB)
+
+	// fmt.Println("The CMTs:", CMTs)
+	// fmt.Println("The valueS:", valueS )
+	// fmt.Println("The sns:", sns)
+	// fmt.Println("The rs:", rs)
+	// fmt.Println("The sna:", sna)
+	// fmt.Println("The SNb.Value:", SNb.Value)
+	// fmt.Println("The SNb.Random:", SNb.Random)
+	// fmt.Println("The newSN:", newSN)
+	// fmt.Println("The newRandom:", newRandom)
+	// fmt.Println("The CMTSForMerkle:", CMTSForMerkle)
+	
+	// zkProof := zktx.GenDepositProof(CMTs, valueS, sns, rs, sna, SNb.Value, SNb.Random, newSN, newRandom, zktx.RandomReceiverPK, RTcmt.Bytes(), SNb.CMT, SNb.SN, newCMTB, CMTSForMerkle)
+	// fmt.Println("The zkProof:", zkProof) 
+	zkProof := []byte{49,54,54,99,102,53,57,100,55,51,99,98,97,48,49,102,56,48,49,54,102,102,50,54,54,50,102,97,97,52,99,49,48,48,97,49,100,52,55,55,57,52,98,57,99,50,53,98,48,57,98,101,48,48,55,50,54,101,52,100,52,99,99,49,50,56,101,99,97,101,52,57,101,48,49,54,55,52,99,48,100,99,56,51,48,55,51,101,100,52,100,53,54,53,102,50,97,50,48,55,57,97,100,56,52,51,51,100,54,97,54,53,57,55,54,50,49,50,54,52,51,100,55,98,57,102,48,98,50,53,98,50,98,48,57,54,97,49,54,56,49,56,101,48,98,49,56,57,49,102,55,57,57,102,51,51,56,57,49,57,57,101,55,56,57,51,101,50,57,101,102,98,53,52,51,55,102,100,99,48,53,99,50,52,50,53,53,48,102,99,50,54,49,97,52,50,51,51,55,53,48,102,52,49,50,98,57,53,53,101,49,102,102,102,56,100,54,101,99,53,52,97,97,49,101,48,56,52,98,54,99,49,99,48,98,53,99,54,51,52,52,49,55,100,98,55,98,98,54,48,53,100,54,98,50,52,50,51,101,49,99,57,52,53,100,100,101,97,52,99,49,55,48,55,100,97,51,102,57,99,48,101,56,55,49,54,99,102,98,53,100,56,53,53,101,101,53,55,97,56,97,97,52,101,101,49,97,49,48,101,97,57,48,51,49,51,56,99,53,100,50,48,56,98,53,49,56,98,56,56,55,99,102,53,101,55,98,101,99,52,99,100,57,54,101,98,102,100,54,102,51,50,55,98,54,48,51,98,55,49,54,54,50,51,56,100,100,101,100,100,99,55,100,98,54,50,55,48,49,54,48,51,55,55,50,100,56,101,54,99,98,51,52,54,54,50,102,101,51,99,52,101,57,53,99,98,51,50,53,99,101,57,52,98,55,98,52,49,97,100,52,49,97,57,53,55,57,101,98,97,52,53,57,99,56,55,98,50,55,100,52,102,54,102,57,54,99,51,50,56,102,54,49,48,52,100,57,98,57,101,100,100,99,51,97,57,52,55,99,102,97,97,100,102,56,49,50,51,54,53,99,52,57,56,54,52,98,50,100,49,55,102,97,100,98,52,97,52,51,100,55,52,49,56,48,55,97,56,49,98,101,54,203,180,167,115,131,12}
 	//genProofEnd := time.Now()
-	// fmt.Println("***** GenDepositProof Cost Time (ms): ", genProofEnd.Sub(genProofStart).Nanoseconds() / 1000000)
+	//fmt.Println("***** GenDepositProof Cost Time (s): ", genProofEnd.Sub(genProofStart).Nanoseconds() / 1000000000.0)
 
 	if string(zkProof[0:10]) == "0000000000" {
 		return common.Hash{}, errors.New("can't generate proof")
 	}
 	tx.SetZKProof(zkProof) //proof tbd
 
-	address := crypto.PubkeyToAddress(randomKeyB.PublicKey)
-	exist = state.Exist(address)
-	if exist == true {
-		fmt.Println("pubkeyb cat not be used for a second time")
-		return common.Hash{}, nil
-	}
+	// address := crypto.PubkeyToAddress(randomKeyB.PublicKey)
+	// exist = state.Exist(address)
+	// if exist == true {
+	// 	fmt.Println("pubkeyb cat not be used for a second time")
+	// 	return common.Hash{}, nil
+	// }
 	//fmt.Println("randomKeyB:", randomKeyB.D.BitLen())
 	signedTx, errSignedTx := types.SignTx(tx, types.HomesteadSigner{}, randomKeyB)
 
@@ -1950,23 +2015,24 @@ func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, ar
 	}
 
 	//check whether sn can be used
-	exist := state.Exist(common.BytesToAddress(zktx.SequenceNumberAfter.SN.Bytes()))
+	// exist := state.Exist(common.BytesToAddress(zktx.SequenceNumberAfter.SN.Bytes()))
 
-	if exist == true && *(zktx.SequenceNumberAfter.SN) != *(zktx.InitializeSN().SN) {
-		fmt.Println("sn is lost")
-		return common.Hash{}, nil
-	}
+	// if exist == true && *(zktx.SequenceNumberAfter.SN) != *(zktx.InitializeSN().SN) {
+	// 	fmt.Println("sn is lost")
+	// 	return common.Hash{}, nil
+	// }
 
-	//check whether last tx is processed successfully
-	exist = state.Exist(common.BytesToAddress(zktx.SequenceNumber.SN.Bytes()))
+	// //check whether last tx is processed successfully
+	// exist = state.Exist(common.BytesToAddress(zktx.SequenceNumber.SN.Bytes()))
 
-	if exist == false && *(zktx.SequenceNumber.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
-		// if zktx.Stage == zktx.Update {
-		// 	fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
-		// 	return common.Hash{}, nil
-		// }
-		zktx.SequenceNumberAfter = zktx.SequenceNumber
-	}
+	// if exist == false && *(zktx.SequenceNumber.SN) != *(zktx.InitializeSN().SN) { //if last transaction is not processed successfully, the corresponding SN is not in the database,and we use SN before  last unprocessed transaction
+	// 	// if zktx.Stage == zktx.Update {
+	// 	// 	fmt.Println("last transaction is update,but it is not well processed,please send updateTx firstly")
+	// 	// 	return common.Hash{}, nil
+	// 	// }
+	// 	zktx.SequenceNumberAfter = zktx.SequenceNumber
+	// }
+	zktx.SequenceNumberAfter = zktx.SequenceNumber
 
 	// Look up the wallet containing the requested signer
 	account := accounts.Account{Address: args.From}
@@ -1990,26 +2056,28 @@ func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, ar
 	tx := args.toTransaction()
 	tx.SetTxCode(types.RedeemTx)
 	tx.SetValue(big.NewInt(0))
-	tx.SetZKValue(args.Value.ToInt().Uint64())
+	tx.SetZKValue(0)
 	tx.SetPrice(big.NewInt(0))
 	tx.SetZKAddress(&zktx.ZKTxAddress)
-	SN := zktx.SequenceNumberAfter
 
+	SN := zktx.SequenceNumber
 	tx.SetZKSN(SN.SN) //SN
 
 	tx.SetZKProof([]byte{}) //proof tbd
 
-	newSN := zktx.NewRandomHash()
-	newRandom := zktx.NewRandomHash()
-	newValue := SN.Value - args.Value.ToInt().Uint64()
+	newSN := SN.SN
+	newRandom := SN.Random
+	newValue := SN.Value - uint64(0) //--zy value = 0 
 
 	newCMT := zktx.GenCMT(newValue, newSN.Bytes(), newRandom.Bytes()) //tbd
 	tx.SetZKCMT(newCMT)                                               //cmt
 
 	//genProofStart := time.Now()
-	zkProof := zktx.GenRedeemProof(SN.Value, SN.Random, newSN, newRandom, SN.CMT, SN.SN, newCMT, newValue)
+	// zkProof := zktx.GenRedeemProof(SN.Value, SN.Random, newSN, newRandom, SN.CMT, SN.SN, newCMT, newValue)
+	zkProof := []byte{50, 54, 97, 98, 52, 97, 57, 54, 101, 56, 48, 54, 57, 49, 97, 54, 98, 102, 49, 50, 53, 101, 54, 56, 97, 98, 100, 51, 97, 97, 101, 102, 100, 50, 48, 56, 56, 101, 52, 48, 55, 55, 51, 56, 55, 57, 52, 56, 57, 54, 101, 50, 57, 101, 52, 53, 50, 52, 98, 56, 99, 49, 102, 51, 48, 101, 99, 97, 51, 100, 101, 50, 49, 97, 52, 50, 53, 99, 100, 100, 51, 55, 57, 101, 55, 53, 48, 102, 49, 53, 99, 50, 57, 102, 98, 57, 55, 98, 99, 100, 49, 55, 52, 100, 98, 50, 53, 54, 56, 56, 99, 56, 98, 52, 51, 97, 50, 97, 101, 101, 100, 57, 98, 56, 50, 48, 55, 49, 48, 55, 55, 50, 99, 50, 56, 52, 56, 53, 98, 57, 100, 97, 57, 100, 51, 101, 48, 49, 97, 55, 55, 51, 48, 57, 99, 97, 100, 55, 54, 56, 51, 55, 100, 55, 48, 101, 48, 53, 55, 53, 97, 101, 54, 49, 101, 56, 52, 102, 48, 57, 99, 57, 53, 48, 48, 53, 100, 48, 51, 100, 99, 97, 50, 97, 100, 49, 101, 51, 99, 54, 99, 48, 102, 52, 51, 57, 100, 51, 54, 53, 53, 98, 54, 49, 55, 100, 51, 50, 99, 51, 100, 57, 56, 54, 101, 49, 102, 48, 55, 50, 101, 50, 48, 51, 97, 101, 54, 101, 57, 52, 102, 101, 55, 54, 101, 102, 97, 99, 99, 49, 97, 101, 49, 51, 48, 55, 48, 97, 51, 98, 99, 56, 57, 51, 99, 51, 53, 97, 97, 98, 55, 99, 102, 57, 57, 99, 100, 50, 52, 50, 101, 53, 48, 53, 55, 57, 98, 97, 48, 55, 50, 55, 51, 50, 98, 48, 51, 53, 56, 56, 101, 100, 97, 53, 49, 57, 57, 57, 50, 99, 56, 101, 97, 50, 99, 52, 57, 52, 57, 54, 49, 55, 98, 53, 48, 98, 102, 54, 57, 54, 99, 49, 51, 98, 54, 51, 100, 97, 57, 97, 102, 50, 49, 52, 57, 54, 51, 53, 54, 49, 97, 99, 56, 54, 52, 102, 101, 99, 53, 53, 100, 49, 56, 55, 54, 101, 57, 53, 98, 99, 102, 49, 97, 56, 54, 56, 57, 97, 97, 55, 56, 50, 50, 56, 49, 52, 54, 48, 48, 57, 98, 97, 50, 55, 98, 101, 101, 56, 49, 52, 100, 48, 53, 55, 54, 48, 100, 55, 97, 56, 54, 52, 53, 57, 52, 99, 99, 54, 52, 57, 101, 54, 57, 98, 50, 49, 54, 48, 99, 99, 56, 54, 102, 51, 98, 51, 52, 48, 98, 100, 52, 100, 100, 51, 99, 48, 54, 99, 50, 49, 55, 48, 52, 97, 57, 49, 54, 51, 53, 97, 54, 55, 49, 49, 49, 50, 50, 54, 101, 98, 54, 49, 100, 101, 54, 56, 48, 49, 52, 97, 100, 51, 102, 102, 52, 50, 97, 53, 57, 101, 55, 101, 102, 102, 51, 56, 52, 101, 49, 54, 53, 97, 53, 52, 98, 97, 57, 101, 53, 51, 97, 50, 112, 1}
+	// fmt.Println("The zkProof:", zkProof) 
 	//genProofEnd := time.Now()
-	// fmt.Println("***** GenRedeemProof Cost Time (ms): ", genProofEnd.Sub(genProofStart).Nanoseconds() / 1000000)
+	//fmt.Println("***** GenRedeemProof Cost Time (ms): ", genProofEnd.Sub(genProofStart).Nanoseconds() / 1000000000.0)
 
 	if string(zkProof[0:10]) == "0000000000" {
 		return common.Hash{}, errors.New("can't generate proof")

@@ -110,8 +110,14 @@ func newObject(db *StateDB, address common.Address, data Account) *stateObject {
 		data.Balance = new(big.Int)
 	}
 	if data.CMT == (common.Hash{}) {
-		h := &common.Hash{}
-		cmt := zktx.GenCMT(0, h.Bytes(), h.Bytes())
+		// h := &common.Hash{}
+		// cmt := zktx.GenCMT(0, h.Bytes(), h.Bytes())
+
+		ssn := common.HexToHash("1234") //--zy
+		sn := &ssn
+		rr := common.HexToHash("2345") //--zy
+		r := &rr
+		cmt := zktx.GenCMT(1000, sn.Bytes(), r.Bytes()) //value 1000
 		data.CMT = *cmt
 	}
 	if data.CodeHash == nil {
