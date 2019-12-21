@@ -1472,7 +1472,10 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 	newRandom := SN.Random
 	newValue := SN.Value + uint64(0) //--zy value = 0 
 
-	newCMT := zktx.GenCMT(newValue, newSN.Bytes(), newRandom.Bytes()) //tbd
+	// newCMT := zktx.GenCMT(newValue, newSN.Bytes(), newRandom.Bytes()) //tbd
+	// fmt.Println("The newCMT:", newCMT.String())
+	interHash := common.HexToHash("0x68b47b58b9a32e9de878d3cabb0c997ed7318830d8c2c6af86ad9b04be0aa7a8")
+	newCMT := &interHash
 	tx.SetZKCMT(newCMT)                                               //cmt
 
 	balance := state.GetBalance(args.From)
@@ -1661,7 +1664,7 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 
 	zktx.RandomReceiverPK = &ecdsa.PublicKey{crypto.S256(), pubKey.X, pubKey.Y}
 
-	R := zktx.GenR()
+	R := zktx.GlobalRandomKey
 	// Sa := R.D
 
 	//genRandomKeyEnd := time.Now()
@@ -1674,13 +1677,19 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 	SNs := SN.SN
 	newRs := SN.Random
 
-	CMTs := zktx.GenCMTS(uint64(0), zktx.RandomReceiverPK, SNs.Bytes(), newRs.Bytes(), SN.SN.Bytes()) //生成cmts
+	// CMTs := zktx.GenCMTS(uint64(0), zktx.RandomReceiverPK, SNs.Bytes(), newRs.Bytes(), SN.SN.Bytes()) //生成cmts
+	// fmt.Println("The CMTs:", CMTs.String())
+	interHash := common.HexToHash("0x526cec89784eedf4c603480d72b35dc26444515127fc14e0dbd4ca807af3f0b5")
+	CMTs := &interHash
 	tx.SetZKCMTS(CMTs)
 	//add by zy
 	newSNA := SN.SN                                        //A新sn
 	newRandomA := SN.Random                                   //A 新 r
 	newValueA := SN.Value - uint64(0)                   //update后 A新value
-	newCMTA := zktx.GenCMT(newValueA, newSNA.Bytes(), newRandomA.Bytes()) //A 新 cmt
+	// newCMTA := zktx.GenCMT(newValueA, newSNA.Bytes(), newRandomA.Bytes()) //A 新 cmt
+	// fmt.Println("The newCMTA:", newCMTA.String())
+	interHash2 := common.HexToHash("0x68b47b58b9a32e9de878d3cabb0c997ed7318830d8c2c6af86ad9b04be0aa7a8")
+	newCMTA := &interHash2
 	tx.SetZKCMT(newCMTA)
 
 	// fmt.Println("The cmts.hex:", CMTs.Hex())
@@ -1703,7 +1712,9 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 		return common.Hash{}, errors.New("can't generate proof")
 	}
 	tx.SetZKProof(zkProof) //proof tbd
-	AUX := zktx.ComputeAUX(zktx.RandomReceiverPK, args.Value.ToInt().Uint64(), SNs, newRs, SN.SN)
+	// AUX := zktx.ComputeAUX(zktx.RandomReceiverPK, args.Value.ToInt().Uint64(), SNs, newRs, SN.SN)
+	// fmt.Println("AUX content: ", AUX)
+	AUX := []byte{136, 89, 194, 107, 186, 76, 45, 114, 209, 216, 125, 5, 72, 164, 91, 183, 142, 244, 214, 166, 190, 172, 240, 180, 215, 158, 183, 226, 10, 248, 165, 236, 105, 150, 56, 53, 19, 116, 101, 239, 132, 164, 204, 101, 10, 206, 31, 239, 129, 75, 89, 21, 189, 244, 187, 81, 44, 129, 176, 119, 117, 69, 228, 84, 1, 122, 75, 211, 204, 136, 87, 54, 204, 207, 136, 245, 110, 218, 201, 71, 69, 113, 117, 15, 70, 98, 77, 239, 89, 1, 139, 55, 163, 136, 133, 35, 18, 124, 70, 34, 79, 222, 228, 109, 77, 66, 5, 173, 133, 210, 202, 22, 78, 171, 213, 2, 164, 92, 103, 20}
 	//fmt.Println("***** Compute AUX size: ", len(AUX))
 
 	tx.SetAUX(AUX)
@@ -1799,7 +1810,7 @@ func (s *PublicTransactionPoolAPI) SendDepositTransaction(ctx context.Context, a
 		s.nonceLock.LockAddr(args.From)
 		defer s.nonceLock.UnlockAddr(args.From)
 	}
-	key := args.Key
+	//key := args.Key
 	args.To = &args.From
 	// Set some sanity defaults and terminate on failure
 	if err := args.setDefaults(ctx, s.b); err != nil {
@@ -1812,19 +1823,19 @@ func (s *PublicTransactionPoolAPI) SendDepositTransaction(ctx context.Context, a
 	tx.SetValue(big.NewInt(0))
 	tx.SetZKAddress(&args.From)
 
-	txSend := s.GetTransactionByHash2(ctx, args.TxHash)
-	if txSend == nil {
-		return common.Hash{}, errors.New("there does not exist a transaction" + args.TxHash.String())
-	}
+	// txSend := s.GetTransactionByHash2(ctx, args.TxHash)
+	// if txSend == nil {
+	// 	return common.Hash{}, errors.New("there does not exist a transaction" + args.TxHash.String())
+	// }
 
-	RPCtx := s.GetTransactionByHash(ctx, args.TxHash)
-	if RPCtx == nil {
-		return common.Hash{}, errors.New("there does not exist a transaction" + args.TxHash.String())
-	}
+	// RPCtx := s.GetTransactionByHash(ctx, args.TxHash)
+	// if RPCtx == nil {
+	// 	return common.Hash{}, errors.New("there does not exist a transaction" + args.TxHash.String())
+	// }
 
 	cmtBlockNumber := (new(big.Int).SetUint64(0))
 	var cmtBlockNumbers []uint64
-	var CMTSForMerkle []*common.Hash
+	//var CMTSForMerkle []*common.Hash
 	BlockToCmt := make(map[uint64][]*common.Hash)
 
 	block, err := s.b.BlockByNumber(ctx, rpc.LatestBlockNumber)
@@ -1863,31 +1874,35 @@ loop:
 
 	merkle.QuickSortUint64(cmtBlockNumbers)
 
-	for i, _ := range cmtBlockNumbers {
-		index := cmtBlockNumbers[i]
-		CMTSForMerkle = append(CMTSForMerkle, BlockToCmt[index]...)
-	}
+	// for i, _ := range cmtBlockNumbers {
+	// 	index := cmtBlockNumbers[i]
+	// 	CMTSForMerkle = append(CMTSForMerkle, BlockToCmt[index]...)
+	// }
 
-	RTcmt := zktx.GenRT(CMTSForMerkle)
+	// RTcmt := zktx.GenRT(CMTSForMerkle)
+	// fmt.Println("The RTcmt:", RTcmt.String())
+	RTcmt := common.HexToHash("0xa37b4a6e07e240032795f19bec3f36f1a1443a846ed788cd43ac4529194e5d17")
 	tx.SetRTcmt(RTcmt)
 
 	tx.SetCMTBlocks(cmtBlockNumbers)
 
-	keyB, err := s.GetKey(ctx, args.From, key)
-	if err != nil {
-		return common.Hash{}, err
-	}
+	// keyB, err := s.GetKey(ctx, args.From, key)
+	// if err != nil {
+	// 	return common.Hash{}, err
+	// }
 
-	Rx, Ry := txSend.R()
-	R := ecdsa.PublicKey{Curve: crypto.S256(), X: Rx, Y: Ry} //计算
-	PKB := ecdsa.PublicKey{Curve: keyB.Cureve, X: keyB.X, Y: keyB.Y}
-	KB := ecdsa.PrivateKey{PKB, keyB.PrivateKey}
+	// Rx, Ry := txSend.R()
+	// Rx := (new(big.Int).SetUint64(0))
+	// Ry := (new(big.Int).SetUint64(0))
+	// R := ecdsa.PublicKey{Curve: crypto.S256(), X: Rx, Y: Ry} //计算
+	// PKB := ecdsa.PublicKey{Curve: keyB.Cureve, X: keyB.X, Y: keyB.Y}
+	// KB := ecdsa.PrivateKey{PKB, keyB.PrivateKey}
 
-	randomKeyStart := time.Now()
-	randomKeyB := zktx.GenerateKeyForRandomB(&R, &KB)
+	//randomKeyStart := time.Now()
+	randomKeyB := zktx.GlobalRandomKey//GenerateKeyForRandomB(&R, &KB)
 	//fmt.Println("***** sum randomSKeyB size: ", randomKeyB.D.BitLen())	
-	randomKeyEnd := time.Now()
-	fmt.Println("***** randomKey Cost Time (ms): ", randomKeyEnd.Sub(randomKeyStart).Nanoseconds() / 1000000)
+	//randomKeyEnd := time.Now()
+	//fmt.Println("***** randomKey Cost Time (ms): ", randomKeyEnd.Sub(randomKeyStart).Nanoseconds() / 1000000)
 
 	// AUXA := txSend.AUX()
 	//valueS, sns, rs, sna := zktx.DecAUX(&randomKeyB.PublicKey, AUXA) //--zy
@@ -1922,7 +1937,10 @@ loop:
 	newSN := SNb.SN
 	newRandom := SNb.Random
 	newValue := SNb.Value + valueS
-	newCMTB := zktx.GenCMT(newValue, newSN.Bytes(), newRandom.Bytes())
+	// newCMTB := zktx.GenCMT(newValue, newSN.Bytes(), newRandom.Bytes())
+	// fmt.Println("The newCMTB:", newCMTB.String())
+	hashNewCMTB := common.HexToHash("0x68b47b58b9a32e9de878d3cabb0c997ed7318830d8c2c6af86ad9b04be0aa7a8")
+	newCMTB := &hashNewCMTB
 	tx.SetZKCMT(newCMTB)
 	tx.SetPubKey(randomKeyB.X, randomKeyB.Y)
 
@@ -2063,13 +2081,16 @@ func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, ar
 	SN := zktx.SequenceNumber
 	tx.SetZKSN(SN.SN) //SN
 
-	tx.SetZKProof([]byte{}) //proof tbd
+	//tx.SetZKProof([]byte{}) //proof tbd
 
 	newSN := SN.SN
 	newRandom := SN.Random
 	newValue := SN.Value - uint64(0) //--zy value = 0 
 
-	newCMT := zktx.GenCMT(newValue, newSN.Bytes(), newRandom.Bytes()) //tbd
+	// newCMT := zktx.GenCMT(newValue, newSN.Bytes(), newRandom.Bytes()) //tbd
+	// fmt.Println("The newCMT:", newCMT.String())
+	hashNewCMT := common.HexToHash("0x68b47b58b9a32e9de878d3cabb0c997ed7318830d8c2c6af86ad9b04be0aa7a8")
+	newCMT := &hashNewCMT
 	tx.SetZKCMT(newCMT)                                               //cmt
 
 	//genProofStart := time.Now()

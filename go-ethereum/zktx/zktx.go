@@ -76,6 +76,8 @@ var ZKCMTNODES = 1 // max is 32  because of merkle leaves in libnsark is 32
 var ErrSequence = errors.New("invalid sequence")
 var RandomReceiverPK *ecdsa.PublicKey = nil
 
+var GlobalRandomKey = GenR()
+
 func InitializeSN() *Sequence {
 	ssn := common.HexToHash("1234") //--zy
 	sn := &ssn
