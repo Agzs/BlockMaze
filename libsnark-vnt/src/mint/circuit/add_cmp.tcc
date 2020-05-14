@@ -14,11 +14,10 @@ public:
         pb_variable_array<FieldT> &value,
         pb_variable_array<FieldT> &value_old,
         pb_variable_array<FieldT> &value_s,
+        std::shared_ptr<digest_variable<FieldT>> &sk,
         std::shared_ptr<digest_variable<FieldT>> &r,
-        std::shared_ptr<digest_variable<FieldT>> &r_old,
-        std::shared_ptr<digest_variable<FieldT>> &sn,
-        std::shared_ptr<digest_variable<FieldT>> &sn_old
-    ) : note_gadget_with_packing<FieldT>(pb, value, value_old, value_s, r, r_old, sn, sn_old)
+        std::shared_ptr<digest_variable<FieldT>> &r_old
+    ) : note_gadget_with_packing<FieldT>(pb, value, value_old, value_s, sk, r, r_old)
     { }
 
     void generate_r1cs_constraints() { // const Note& note
@@ -30,7 +29,7 @@ public:
 
     }
     
-    void generate_r1cs_witness(const Note& note_old, const Note& note, uint64_t v_s) { // 为变量生成约束
-        note_gadget_with_packing<FieldT>::generate_r1cs_witness(note_old, note, v_s);
+    void generate_r1cs_witness(const Note& note_old, const Note& note, uint64_t v_s, uint256 sk) { // 为变量生成约束
+        note_gadget_with_packing<FieldT>::generate_r1cs_witness(note_old, note, v_s, sk);
     }
 };

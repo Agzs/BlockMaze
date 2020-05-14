@@ -38,12 +38,21 @@ public:
     pb_variable_array<FieldT> value;
     pb_variable_array<FieldT> value_old;
     pb_variable_array<FieldT> value_s;
+    std::shared_ptr<digest_variable<FieldT>> sk;
     std::shared_ptr<digest_variable<FieldT>> r;
     std::shared_ptr<digest_variable<FieldT>> r_old;
-    std::shared_ptr<digest_variable<FieldT>> sn;
-    std::shared_ptr<digest_variable<FieldT>> sn_old;
+    // std::shared_ptr<digest_variable<FieldT>> sn; 
+    // std::shared_ptr<digest_variable<FieldT>> sn_old; 
 
     std::shared_ptr<note_gadget_with_comparison_and_addition_for_balance<FieldT>> ncab;
+
+    // new serial number with sha256_one_block_gadget
+    std::shared_ptr<digest_variable<FieldT>> sn; // sn = SHA256(sk,r)
+    std::shared_ptr<sha256_one_block_gadget<FieldT>> prf_to_inputs_sn; // serial_number 
+
+    // old serial number with sha256_one_block_gadget
+    std::shared_ptr<digest_variable<FieldT>> sn_old; // sn_old = SHA256(sk,r_old)
+    std::shared_ptr<sha256_one_block_gadget<FieldT>> prf_to_inputs_sn_old; // serial_number
 
     // old commitment with sha256_two_block_gadget
     std::shared_ptr<digest_variable<FieldT>> cmtA_old; // cm
@@ -95,8 +104,10 @@ public:
         value.allocate(pb, 64);
         value_old.allocate(pb, 64);
         //value_s.allocate(pb, 64);
+        sk.reset(new digest_variable<FieldT>(pb, 256, "private key"));
         r.reset(new digest_variable<FieldT>(pb, 256, "random number"));
         r_old.reset(new digest_variable<FieldT>(pb, 256, "old random number"));
+
         sn.reset(new digest_variable<FieldT>(pb, 256, "serial number"));
         //sn_old.reset(new digest_variable<FieldT>(pb, 256, "old serial number"));
         
@@ -105,12 +116,27 @@ public:
             value,
             value_old,
             value_s,
+            sk,
             r,
-            r_old,
-            sn,
-            sn_old
+            r_old
         ));
         // cmtA_old.reset(new digest_variable<FieldT>(pb, 256, "cmtA_old"));
+
+        prf_to_inputs_sn.reset(new sha256_one_block_gadget<FieldT>( 
+            pb,
+            ZERO,
+            sk->bits,   // 256bits private key
+            r->bits,    // 256bits random number
+            sn          // 256bits serial number
+        ));
+
+        prf_to_inputs_sn_old.reset(new sha256_one_block_gadget<FieldT>( 
+            pb,
+            ZERO,
+            sk->bits,       // 256bits private key
+            r_old->bits,    // 256bits random number
+            sn_old          // 256bits serial number
+        ));
 
         commit_to_inputs_cmt_old.reset(new sha256_two_block_gadget<FieldT>( 
             pb,
@@ -145,6 +171,14 @@ public:
 
         // TODO: These constraints may not be necessary if SHA256
         // already boolean constrains its outputs.
+        sn->generate_r1cs_constraints();
+
+        prf_to_inputs_sn->generate_r1cs_constraints();
+
+        sn_old->generate_r1cs_constraints();
+
+        prf_to_inputs_sn_old->generate_r1cs_constraints();
+
         cmtA_old->generate_r1cs_constraints();
 
         commit_to_inputs_cmt_old->generate_r1cs_constraints();
@@ -160,13 +194,30 @@ public:
         const Note& note, 
         uint256 cmtA_old_data,
         uint256 cmtA_data,
-        uint64_t v_s
+        uint64_t v_s,
+        uint256 sk_data
     ) {
         //(const Note& note_old, const Note& note, uint64_t v_s, uint64_t b)
-        ncab->generate_r1cs_witness(note_old, note, v_s);
+        ncab->generate_r1cs_witness(note_old, note, v_s, sk_data);
 
         // Witness `zero`
         this->pb.val(ZERO) = FieldT::zero();
+
+        prf_to_inputs_sn->generate_r1cs_witness();
+
+        // [SANITY CHECK] Ensure the commitment is
+        // valid.
+        sn->bits.fill_with_bits(
+            this->pb,
+            uint256_to_bool_vector(note.sn)
+        );
+
+        prf_to_inputs_sn_old->generate_r1cs_witness();
+
+        sn_old->bits.fill_with_bits(
+            this->pb,
+            uint256_to_bool_vector(note_old.sn)
+        );
 
         // Witness the commitment of the input note
         commit_to_inputs_cmt_old->generate_r1cs_witness();
@@ -222,7 +273,7 @@ public:
         acc += 256; // cmtA
         
         acc += 64; // value_s
-
+        
         return acc;
     }
 
