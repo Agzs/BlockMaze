@@ -29,7 +29,8 @@ boost::optional<r1cs_gg_ppzksnark_proof<ppzksnark_ppT>> generate_send_proof(r1cs
                                                                     const Note& note,
                                                                     uint256 cmtA_old,
                                                                     uint256 cmtS,
-                                                                    uint256 cmtA
+                                                                    uint256 cmtA,
+                                                                    uint256 sk_data
                                                                    )
 {
     typedef Fr<ppzksnark_ppT> FieldT;
@@ -38,7 +39,7 @@ boost::optional<r1cs_gg_ppzksnark_proof<ppzksnark_ppT>> generate_send_proof(r1cs
     send_gadget<FieldT> send(pb); // 构造新模型
     send.generate_r1cs_constraints(); // 生成约束
 
-    send.generate_r1cs_witness(note_old, notes, note, cmtA_old, cmtS, cmtA); // 为新模型的参数生成证明
+    send.generate_r1cs_witness(note_old, notes, note, cmtA_old, cmtS, cmtA, sk_data); // 为新模型的参数生成证明
 
     cout << "pb.is_satisfied() is " << pb.is_satisfied() << endl;
 
@@ -118,20 +119,22 @@ bool test_send_gadget_with_instance(
     // uint256 sn_test = random_uint256();
     // uint256 r_test = random_uint256();
    
-    uint256 sn_old = uint256S("123456");//random_uint256();
+    uint256 sk = uint256S("1");//random_uint256();
+    uint256 wrong_sk = uint256S("2");//random_uint256();
+   
     uint256 r_old = uint256S("123456");//random_uint256();
+    uint256 sn_old = Compute_PRF_CRH(sk, r_old);//random_uint256();
     Note note_old = Note(value_old, sn_old, r_old);
     uint256 cmtA_old = note_old.cm();
 
     uint160 pk = uint160S("123");
-    uint256 sn_s = uint256S("123");//random_uint256();
     uint256 r_s = uint256S("123");//random_uint256();
-    NoteS notes = NoteS(value_s, pk, sn_s, r_s, sn_old);
+    NoteS notes = NoteS(value_s, pk, r_s, sn_old);
     uint256 cmtS = notes.cm();
 
     //printf("value_old+value_s = %zu\n", value_old+value_s);
-    uint256 sn = uint256S("12");//random_uint256();
     uint256 r = uint256S("12");//random_uint256();
+    uint256 sn = Compute_PRF_CRH(sk, r);//random_uint256();
     Note note = Note(value, sn, r);
     uint256 cmtA = note.cm();
 
@@ -168,7 +171,8 @@ bool test_send_gadget_with_instance(
                                                             note,
                                                             cmtA_old, // wrong_cmtA_old
                                                             cmtS, // wrong_cmtS
-                                                            cmtA // wrong_cmtA
+                                                            cmtA, // wrong_cmtA
+                                                            sk
                                                             );
 
     gettimeofday(&gen_end,NULL);
@@ -246,7 +250,7 @@ int main () {
 
     gettimeofday(&t2,NULL);
     timeuse = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
-    printf("\n\Send Use Time:%fs\n\n",timeuse);
+    printf("\n\Send Setup Time Usage:%fs\n\n",timeuse);
 
     libff::print_header("#             testing send gadget");
 
