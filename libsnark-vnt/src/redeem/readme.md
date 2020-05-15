@@ -3,7 +3,7 @@
 #### 1、circuit 目录
 
 ##### 1.1 commitment.tcc文件
-基于`libsnark`自带的`sha256`的电路，重新构造`sha256_two_block_gadget`电路，支持两个`blocks`的哈希，
+基于`libsnark`自带的`sha256`的电路，重新构造`sha256_CMTA_gadget`电路，支持两个`blocks`的哈希，
 
 证明`cmt_A = sha256(value, sn, r)`
 

@@ -6,7 +6,7 @@
 /***********************************************************
  * 模块整合，主要包括验证proof时所需要的publicData的输入
  ***********************************************************
- * sha256_two_block_gadget, Add_gadget, Comparison_gadget
+ * sha256_CMTA_gadget, Add_gadget, Comparison_gadget
  ***************************************************************
  * sha256(data+padding), 512bits < data.size() < 1024-64-1bits
  * *************************************************************
@@ -46,23 +46,23 @@ public:
 
     std::shared_ptr<note_gadget_with_comparison_and_addition_for_balance<FieldT>> ncab;
 
-    // new serial number with sha256_one_block_gadget
+    // new serial number with sha256_PRF_CRH_gadget
     std::shared_ptr<digest_variable<FieldT>> sn; // sn = SHA256(sk,r)
-    std::shared_ptr<sha256_one_block_gadget<FieldT>> prf_to_inputs_sn; // serial_number 
+    std::shared_ptr<sha256_PRF_CRH_gadget<FieldT>> prf_to_inputs_sn; // serial_number 
 
-    // old serial number with sha256_one_block_gadget
+    // old serial number with sha256_PRF_CRH_gadget
     // actually, each proof only proves that sn = SHA256(sk,r), because 
     // the former proof has proved that sn_old = SHA256(sk,r_old)
     std::shared_ptr<digest_variable<FieldT>> sn_old; // sn_old = SHA256(sk,r_old)
-    //std::shared_ptr<sha256_one_block_gadget<FieldT>> prf_to_inputs_sn_old; // serial_number
+    //std::shared_ptr<sha256_PRF_CRH_gadget<FieldT>> prf_to_inputs_sn_old; // serial_number
 
-    // old commitment with sha256_two_block_gadget
+    // old commitment with sha256_CMTA_gadget
     std::shared_ptr<digest_variable<FieldT>> cmtA_old; // cm
-    std::shared_ptr<sha256_two_block_gadget<FieldT>> commit_to_inputs_cmt_old; // note_commitment
+    std::shared_ptr<sha256_CMTA_gadget<FieldT>> commit_to_inputs_cmt_old; // note_commitment
 
-    // new commitment with sha256_two_block_gadget
+    // new commitment with sha256_CMTA_gadget
     std::shared_ptr<digest_variable<FieldT>> cmtA; // cm
-    std::shared_ptr<sha256_two_block_gadget<FieldT>> commit_to_inputs_cmt; // note_commitment
+    std::shared_ptr<sha256_CMTA_gadget<FieldT>> commit_to_inputs_cmt; // note_commitment
     
     // comparison_gadget inherited from note_gadget_with_comparison_and_addition_for_balance
 
@@ -124,7 +124,7 @@ public:
         ));
         // cmtA_old.reset(new digest_variable<FieldT>(pb, 256, "cmtA_old"));
 
-        prf_to_inputs_sn.reset(new sha256_one_block_gadget<FieldT>( 
+        prf_to_inputs_sn.reset(new sha256_PRF_CRH_gadget<FieldT>( 
             pb,
             ZERO,
             sk->bits,   // 256bits private key
@@ -132,7 +132,7 @@ public:
             sn          // 256bits serial number
         ));
 
-        // prf_to_inputs_sn_old.reset(new sha256_one_block_gadget<FieldT>( 
+        // prf_to_inputs_sn_old.reset(new sha256_PRF_CRH_gadget<FieldT>( 
         //     pb,
         //     ZERO,
         //     sk->bits,       // 256bits private key
@@ -140,7 +140,7 @@ public:
         //     sn_old          // 256bits serial number
         // ));
 
-        commit_to_inputs_cmt_old.reset(new sha256_two_block_gadget<FieldT>( 
+        commit_to_inputs_cmt_old.reset(new sha256_CMTA_gadget<FieldT>( 
             pb,
             ZERO,
             value_old,      // 64bits value for Mint
@@ -151,7 +151,7 @@ public:
 
         //cmtA.reset(new digest_variable<FieldT>(pb, 256, "cmtA"));
 
-        commit_to_inputs_cmt.reset(new sha256_two_block_gadget<FieldT>( 
+        commit_to_inputs_cmt.reset(new sha256_CMTA_gadget<FieldT>( 
             pb,
             ZERO,
             value,       // 64bits value for Mint
