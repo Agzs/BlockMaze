@@ -51,8 +51,10 @@ public:
     std::shared_ptr<sha256_one_block_gadget<FieldT>> prf_to_inputs_sn; // serial_number 
 
     // old serial number with sha256_one_block_gadget
+    // actually, each proof only proves that sn = SHA256(sk,r), because 
+    // the former proof has proved that sn_old = SHA256(sk,r_old)
     std::shared_ptr<digest_variable<FieldT>> sn_old; // sn_old = SHA256(sk,r_old)
-    std::shared_ptr<sha256_one_block_gadget<FieldT>> prf_to_inputs_sn_old; // serial_number
+    //std::shared_ptr<sha256_one_block_gadget<FieldT>> prf_to_inputs_sn_old; // serial_number
 
     // old commitment with sha256_two_block_gadget
     std::shared_ptr<digest_variable<FieldT>> cmtA_old; // cm
@@ -130,13 +132,13 @@ public:
             sn          // 256bits serial number
         ));
 
-        prf_to_inputs_sn_old.reset(new sha256_one_block_gadget<FieldT>( 
-            pb,
-            ZERO,
-            sk->bits,       // 256bits private key
-            r_old->bits,    // 256bits random number
-            sn_old          // 256bits serial number
-        ));
+        // prf_to_inputs_sn_old.reset(new sha256_one_block_gadget<FieldT>( 
+        //     pb,
+        //     ZERO,
+        //     sk->bits,       // 256bits private key
+        //     r_old->bits,    // 256bits random number
+        //     sn_old          // 256bits serial number
+        // ));
 
         commit_to_inputs_cmt_old.reset(new sha256_two_block_gadget<FieldT>( 
             pb,
@@ -177,7 +179,7 @@ public:
 
         sn_old->generate_r1cs_constraints();
 
-        prf_to_inputs_sn_old->generate_r1cs_constraints();
+        // prf_to_inputs_sn_old->generate_r1cs_constraints();
 
         cmtA_old->generate_r1cs_constraints();
 
@@ -212,7 +214,7 @@ public:
             uint256_to_bool_vector(note.sn)
         );
 
-        prf_to_inputs_sn_old->generate_r1cs_witness();
+        // prf_to_inputs_sn_old->generate_r1cs_witness();
 
         sn_old->bits.fill_with_bits(
             this->pb,
