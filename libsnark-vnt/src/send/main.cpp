@@ -30,7 +30,8 @@ boost::optional<r1cs_gg_ppzksnark_proof<ppzksnark_ppT>> generate_send_proof(r1cs
                                                                     uint256 cmtA_old,
                                                                     uint256 cmtS,
                                                                     uint256 cmtA,
-                                                                    uint256 sk_data
+                                                                    uint256 sk_data,
+                                                                    uint160 pk_data
                                                                    )
 {
     typedef Fr<ppzksnark_ppT> FieldT;
@@ -39,7 +40,7 @@ boost::optional<r1cs_gg_ppzksnark_proof<ppzksnark_ppT>> generate_send_proof(r1cs
     send_gadget<FieldT> send(pb); // 构造新模型
     send.generate_r1cs_constraints(); // 生成约束
 
-    send.generate_r1cs_witness(note_old, notes, note, cmtA_old, cmtS, cmtA, sk_data); // 为新模型的参数生成证明
+    send.generate_r1cs_witness(note_old, notes, note, cmtA_old, cmtS, cmtA, sk_data, pk_data); // 为新模型的参数生成证明
 
     cout << "pb.is_satisfied() is " << pb.is_satisfied() << endl;
 
@@ -123,20 +124,22 @@ bool test_send_gadget_with_instance(
     uint256 wrong_sk = uint256S("2");//random_uint256();
    
     uint256 r_old = uint256S("123456");//random_uint256();
-    uint256 sn_old = Compute_PRF_CRH(sk, r_old);//random_uint256();
+    uint256 sn_old = Compute_PRF(sk, r_old);//random_uint256();
     Note note_old = Note(value_old, sn_old, r_old);
     uint256 cmtA_old = note_old.cm();
 
-    uint160 pk = uint160S("123");
-    uint256 r_s = uint256S("123");//random_uint256();
-    NoteS notes = NoteS(value_s, pk, r_s, sn_old);
-    uint256 cmtS = notes.cm();
-
-    //printf("value_old+value_s = %zu\n", value_old+value_s);
+     //printf("value_old+value_s = %zu\n", value_old+value_s);
     uint256 r = uint256S("12");//random_uint256();
-    uint256 sn = Compute_PRF_CRH(sk, r);//random_uint256();
+    uint256 sn = Compute_PRF(sk, r);//random_uint256();
     Note note = Note(value, sn, r);
     uint256 cmtA = note.cm();
+
+    uint160 pk_sender = uint160S("456");
+
+    uint160 pk_recv = uint160S("123");
+    uint256 r_s = Compute_CRH(pk_sender, r);;//random_uint256();
+    NoteS notes = NoteS(value_s, pk_recv, r_s, sn_old);
+    uint256 cmtS = notes.cm();
 
     // wrong test data
     uint256 wrong_sn_old = uint256S("666");
@@ -172,7 +175,8 @@ bool test_send_gadget_with_instance(
                                                             cmtA_old, // wrong_cmtA_old
                                                             cmtS, // wrong_cmtS
                                                             cmtA, // wrong_cmtA
-                                                            sk
+                                                            sk,
+                                                            pk_sender
                                                             );
 
     gettimeofday(&gen_end,NULL);

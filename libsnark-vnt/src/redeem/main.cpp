@@ -122,12 +122,12 @@ bool test_redeem_gadget_with_instance(
     uint256 wrong_sk = uint256S("2");//random_uint256();
 
     uint256 r_old = uint256S("123456");//random_uint256();   
-    uint256 sn_old = Compute_PRF_CRH(sk, r_old);//random_uint256();
+    uint256 sn_old = Compute_PRF(sk, r_old);//random_uint256();
     Note note_old = Note(value_old, sn_old, r_old);
     uint256 cmtA_old = note_old.cm();
 
     uint256 r = uint256S("123");//random_uint256();
-    uint256 sn = Compute_PRF_CRH(sk, r);//random_uint256();
+    uint256 sn = Compute_PRF(sk, r);//random_uint256();
     Note note = Note(value, sn, r);
     uint256 cmtA = note.cm();
 

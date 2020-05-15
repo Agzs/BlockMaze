@@ -262,6 +262,59 @@ public:
     }
 };
 
+// sha256(data+padding), 1024bits < data.size() < 1536-64-1bits
+template<typename FieldT>
+class sha256_randomNum_gadget : gadget<FieldT> {
+private:
+    std::shared_ptr<block_variable<FieldT>> block1;
+    std::shared_ptr<sha256_compression_function_gadget<FieldT>> hasher1;
+
+public:
+    sha256_randomNum_gadget(                // r_s = sha256(r, pk_A, padding)
+        protoboard<FieldT> &pb,
+        pb_variable<FieldT>& ZERO,
+        pb_variable_array<FieldT>& pk_sender, // a random 160bits sender's address
+        pb_variable_array<FieldT>& r,         // 256bits random number
+        std::shared_ptr<digest_variable<FieldT>> r_s // 256bits hash
+    ) : gadget<FieldT>(pb, "sha256_randomNum_gadget") {
+
+        // final padding = base_padding + length
+        pb_variable_array<FieldT> length_padding =
+            from_bits({
+                1,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, // 1*4*8 = 224bits
+
+                // length of message (416 bits)
+                0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,1, 1,0,1,0,0,0,0,0 // 2*4*8 = 64bits
+            }, ZERO); // 3*4*8=96bits
+
+        block1.reset(new block_variable<FieldT>(pb, {
+            pk_sender,          // 160bits
+            r,                // 256bits
+            length_padding   // 96bits
+        }, "sha256_randomNum_gadget_block1"));
+
+        pb_linear_combination_array<FieldT> IV = SHA256_default_IV(pb);
+
+        hasher1.reset(new sha256_compression_function_gadget<FieldT>(
+            pb,
+            IV,
+            block1->bits,
+            *r_s,
+        "sha256_randomNum_block_hash1"));
+    }
+
+    void generate_r1cs_constraints() {
+        // TODO: This may not be necessary if SHA256 constrains
+        // its output digests to be boolean anyway.
+        hasher1->generate_r1cs_constraints();
+    }
+
+    void generate_r1cs_witness() {
+        hasher1->generate_r1cs_witness();
+    }
+};
+
 /*
 // sha256(data+padding), 1024bits < data.size() < 1536-64-1bits
 template<typename FieldT>

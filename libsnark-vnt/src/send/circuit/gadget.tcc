@@ -38,7 +38,8 @@ public:
     // cmtS = sha256(value_s, pk, r_s, sn_old, padding)
     pb_variable_array<FieldT> value_s;
     std::shared_ptr<digest_variable<FieldT>> pk_recv; // a random 160bits receiver's address
-    std::shared_ptr<digest_variable<FieldT>> r_s;     // 256bits random number
+    std::shared_ptr<digest_variable<FieldT>> pk_sender; // a random 160bits sender's address
+    std::shared_ptr<digest_variable<FieldT>> r_s;     // 256bits random number r_s = CRH(r||pk_sender)
 
     // cmtA = sha256(value, sn, r) && value = value_old - value_s
     pb_variable_array<FieldT> value;
@@ -52,6 +53,9 @@ public:
 
     // note gadget and subtraction constraint
     std::shared_ptr<note_gadget_with_packing_and_SUB<FieldT>> noteSUB;
+
+    // new random number r_s with sha256_PRF_CRH_gadget
+    std::shared_ptr<sha256_randomNum_gadget<FieldT>> crh_to_inputs_r_s; // serial_number 
 
     // new serial number with sha256_PRF_CRH_gadget
     std::shared_ptr<sha256_PRF_CRH_gadget<FieldT>> prf_to_inputs_sn; // serial_number 
@@ -109,6 +113,7 @@ public:
 
         value_s.allocate(pb, 64);
         pk_recv.reset(new digest_variable<FieldT>(pb, 160, "random address"));
+        pk_sender.reset(new digest_variable<FieldT>(pb, 160, "random address"));
         r_s.reset(new digest_variable<FieldT>(pb, 256, "random number"));
 
         value.allocate(pb, 64);
@@ -138,7 +143,16 @@ public:
             value, 
             sn,
             r,
-            sk
+            sk,
+            pk_sender
+        ));
+
+        crh_to_inputs_r_s.reset(new sha256_randomNum_gadget<FieldT>( 
+            pb,
+            ZERO,
+            pk_sender->bits,   // 256bits private key
+            r->bits,    // 256bits random number
+            r_s          // 256bits serial number
         ));
 
         prf_to_inputs_sn.reset(new sha256_PRF_CRH_gadget<FieldT>( 
@@ -192,6 +206,9 @@ public:
 
         // TODO: These constraints may not be necessary if SHA256
         // already boolean constrains its outputs.
+        r_s->generate_r1cs_constraints();
+        crh_to_inputs_r_s->generate_r1cs_constraints();
+
         sn->generate_r1cs_constraints();
         prf_to_inputs_sn->generate_r1cs_constraints();
 
@@ -215,17 +232,19 @@ public:
         uint256 cmtA_old_data,
         uint256 cmtS_data,
         uint256 cmtA_data,
-        uint256 sk_data
+        uint256 sk_data,
+        uint160 pk_data
     ) {
         //(const Note& note_old, const Note& note, uint64_t v_s, uint64_t b)
         lessCMP->generate_r1cs_witness(note_old, note_s);
 
-        noteSUB->generate_r1cs_witness(note_s, note_old, note, sk_data);
+        noteSUB->generate_r1cs_witness(note_s, note_old, note, sk_data, pk_data);
 
         // Witness `zero`
         this->pb.val(ZERO) = FieldT::zero();
 
         // Witness the commitment of the input note
+        crh_to_inputs_r_s->generate_r1cs_witness();
         prf_to_inputs_sn->generate_r1cs_witness();
 
         commit_to_inputs_cmt_old->generate_r1cs_witness();

@@ -229,18 +229,32 @@ std::vector<unsigned char> vectorSlice(const std::vector<unsigned char>& vec, si
     return slice;
 }
 
-// sn = PRF(sk, r) or r_v = CRH(pk||r_new)
-uint256 Compute_PRF_CRH(uint256 sk, uint256 r) {
+// sn = PRF(sk, r)
+uint256 Compute_PRF(uint256 sk, uint256 r) {
 
-     CSHA256 hasher;
+    CSHA256 hasher;
 
-     hasher.Write(sk.begin(), 32);
+    hasher.Write(sk.begin(), 32);
     hasher.Write(r.begin(), 32);
 
-     uint256 sn;
+    uint256 sn;
     hasher.Finalize(sn.begin());
 
-     return sn;
+    return sn;
+} 
+
+// r_s = CRH(pk||r_new)
+uint256 Compute_CRH(uint160 pk, uint256 r) {
+
+    CSHA256 hasher;
+
+    hasher.Write(pk.begin(), 20);
+    hasher.Write(r.begin(), 32);
+
+    uint256 r_s;
+    hasher.Finalize(r_s.begin());
+
+    return r_s;
 } 
 
 
