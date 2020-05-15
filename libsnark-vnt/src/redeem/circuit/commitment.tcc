@@ -144,11 +144,11 @@ public:
         block1.reset(new block_variable<FieldT>(pb, {
             sk,      // 256bits
             rho        // 256bits
-        }, "sha256_PRF_CRH_gadget1"));
+        }, "sha256_PRF_CRH_block1"));
 
         block2.reset(new block_variable<FieldT>(pb, {
             length_padding  // 512bits
-        }, "sha256_PRF_CRH_gadget2"));
+        }, "sha256_PRF_CRH_block2"));
 
         pb_linear_combination_array<FieldT> IV = SHA256_default_IV(pb);
 
@@ -157,7 +157,7 @@ public:
             IV,
             block1->bits,
             *intermediate_hash,
-        "sha256_PRF_CRH_block_hash1"));
+        "sha256_PRF_CRH_hash1"));
 
         pb_linear_combination_array<FieldT> IV2(intermediate_hash->bits); // hash迭代
 
@@ -166,7 +166,7 @@ public:
             IV2,
             block2->bits,
             *sn,
-        "sha256_PRF_CRH_block_hash2"));
+        "sha256_PRF_CRH_hash2"));
     }
 
     void generate_r1cs_constraints() {

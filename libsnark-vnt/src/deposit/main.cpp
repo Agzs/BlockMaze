@@ -35,7 +35,9 @@ boost::optional<r1cs_gg_ppzksnark_proof<ppzksnark_ppT>> generate_deposit_proof(r
                                                                     uint256 cmtB_old,
                                                                     uint256 cmtB,
                                                                     const uint256& rt,
-                                                                     const MerklePath& path
+                                                                    const MerklePath& path,
+                                                                    uint256 sn_s_data,
+                                                                    uint256 sk_data
                                                                    )
 {
     typedef Fr<ppzksnark_ppT> FieldT;
@@ -44,7 +46,7 @@ boost::optional<r1cs_gg_ppzksnark_proof<ppzksnark_ppT>> generate_deposit_proof(r
     deposit_gadget<FieldT> deposit(pb); // 构造新模型
     deposit.generate_r1cs_constraints(); // 生成约束
 
-    deposit.generate_r1cs_witness(note_s, note_old, note, cmtS, cmtB_old, cmtB, rt, path); // 为新模型的参数生成证明
+    deposit.generate_r1cs_witness(note_s, note_old, note, cmtS, cmtB_old, cmtB, rt, path, sn_s_data, sk_data); // 为新模型的参数生成证明
 
     cout << "pb.is_satisfied() is " << pb.is_satisfied() << endl;
 
@@ -64,7 +66,8 @@ bool verify_deposit_proof(r1cs_gg_ppzksnark_verification_key<ppzksnark_ppT> veri
                     const uint160& pk_recv,
                     const uint256& cmtB_old,
                     const uint256& sn_old,
-                    const uint256& cmtB                  )
+                    const uint256& cmtB,
+                    const uint256& sn_s                  )
 {
     typedef Fr<ppzksnark_ppT> FieldT;
 
@@ -73,7 +76,8 @@ bool verify_deposit_proof(r1cs_gg_ppzksnark_verification_key<ppzksnark_ppT> veri
         pk_recv,
         cmtB_old,
         sn_old,
-        cmtB
+        cmtB,
+        sn_s
     ); 
 
     // 调用libsnark库中验证proof的函数
@@ -124,21 +128,25 @@ bool test_deposit_gadget_with_instance(
 
     // uint256 sn_test = random_uint256();
     // uint256 r_test = random_uint256();
+    uint256 sk = uint256S("1");//random_uint256();
+    uint256 wrong_sk = uint256S("2");//random_uint256();
    
-    uint256 sn_old = uint256S("123456");//random_uint256();
     uint256 r_old = uint256S("123456");//random_uint256();
+    uint256 sn_old = Compute_PRF(sk, r_old);//random_uint256();
     Note note_old = Note(value_old, sn_old, r_old);
     uint256 cmtB_old = note_old.cm();
 
     uint160 pk_recv = uint160S("123");
-    uint256 sn_s = uint256S("123");//random_uint256();
     uint256 r_s = uint256S("123");//random_uint256();
+    uint256 wrong_r_s = uint256S("345");//random_uint256();
+    uint256 sn_s = Compute_PRF(sk, r_s);//random_uint256();
+    uint256 wrong_sn_s = Compute_PRF(sk, wrong_r_s);//random_uint256();
     uint256 sn_A_old = uint256S("123");
-    NoteS note_s = NoteS(value_s, pk_recv, sn_s, r_s, sn_A_old);
+    NoteS note_s = NoteS(value_s, pk_recv, r_s, sn_A_old);
     uint256 cmtS = note_s.cm();
 
-    uint256 sn = uint256S("12");//random_uint256();
     uint256 r = uint256S("12");//random_uint256();
+    uint256 sn = Compute_PRF(sk, r);//random_uint256();
     Note note = Note(value, sn, r);
     uint256 cmtB = note.cm();
 
@@ -237,7 +245,9 @@ bool test_deposit_gadget_with_instance(
                                                             cmtB_old,
                                                             cmtB,
                                                             rt, //wrong_rt
-                                                            path //wrong_path
+                                                            path, //wrong_path
+                                                            sn_s,
+                                                            sk
                                                             );
 
     gettimeofday(&gen_end,NULL);
@@ -263,7 +273,8 @@ bool test_deposit_gadget_with_instance(
                                     pk_recv,
                                     cmtB_old,
                                     sn_old,
-                                    cmtB
+                                    cmtB,
+                                    sn_s
                                    );
 
         gettimeofday(&ver_end, NULL);
@@ -313,7 +324,7 @@ int main () {
 
     gettimeofday(&t2,NULL);
     timeuse = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
-    printf("\n\Depoist Use Time:%fs\n\n",timeuse);
+    printf("\n\Depoist Setup Time Usage:%fs\n\n",timeuse);
 
     libff::print_header("#             testing deposit gadget");
 
