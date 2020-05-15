@@ -251,6 +251,20 @@ char *genCMT(uint64_t value, char *sn_string, char *r_string)
     return p;
 }
 
+char* computePRF(char* sk_string, char* r_string)
+{
+    uint256 sk = uint256S(sk_string);
+    uint256 r = uint256S(r_string);
+    uint256 sn = Compute_PRF(sk, r);
+    std::string sn_c = sn.ToString();
+
+    char *p = new char[65]; //必须使用new开辟空间 不然cgo调用该函数结束全为0
+    sn_c.copy(p, 64, 0);
+    *(p + 64) = '\0'; //手动加结束符
+
+    return p;
+}
+
 char *genMintproof(uint64_t value,
                    uint64_t value_old,
                    char *sn_old_string,

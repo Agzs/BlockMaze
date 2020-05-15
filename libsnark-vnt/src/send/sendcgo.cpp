@@ -270,6 +270,34 @@ char *genCMTS(uint64_t value_s, char *pk_recv_string, char *r_s_string, char *sn
     return p;
 }
 
+
+char* computePRF(char* sk_string, char* r_string)
+{
+    uint256 sk = uint256S(sk_string);
+    uint256 r = uint256S(r_string);
+    uint256 sn = Compute_PRF(sk, r);
+    std::string sn_c = sn.ToString();
+
+    char *p = new char[65]; //必须使用new开辟空间 不然cgo调用该函数结束全为0
+    sn_c.copy(p, 64, 0);
+    *(p + 64) = '\0'; //手动加结束符
+
+    return p;
+}
+
+char* computeCRH(char* pk_string, char* r_string){
+    uint160 pk = uint160S(pk_string);
+    uint256 r = uint256S(r_string);
+    uint256 r_s = Compute_CRH(pk, r);
+    std::string r_s_c = r_s.ToString();
+
+    char *p = new char[65]; //必须使用new开辟空间 不然cgo调用该函数结束全为0
+    r_s_c.copy(p, 64, 0);
+    *(p + 64) = '\0'; //手动加结束符
+
+    return p;
+}
+
 char *genSendproof(uint64_t value_A,
                    char *sn_s_string,
                    char *r_s_string,
