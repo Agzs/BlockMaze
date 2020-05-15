@@ -16,7 +16,9 @@ extern "C"
                         char *r_string,
                         char *cmtA_old_string, 
                         char *cmtA_string, 
-                        uint64_t value_s);
+                        uint64_t value_s,
+                        char *sk_string
+                      );
 
    bool verifyRedeemproof(char *data, char *cmtA_old_string, char *sn_old_string, char *cmtA_string, uint64_t value_s);
 

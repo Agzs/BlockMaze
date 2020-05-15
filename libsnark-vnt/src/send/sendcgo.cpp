@@ -194,7 +194,9 @@ r1cs_gg_ppzksnark_proof<ppzksnark_ppT> generate_send_proof(r1cs_gg_ppzksnark_pro
                                                         Note& note,
                                                         uint256 cmtA_old,
                                                         uint256 cmtS,
-                                                        uint256 cmtA)
+                                                        uint256 cmtA,
+                                                        uint256 sk_data,
+                                                        uint160 pk_data                                            )
 {
     typedef Fr<ppzksnark_ppT> FieldT;
 
@@ -202,7 +204,7 @@ r1cs_gg_ppzksnark_proof<ppzksnark_ppT> generate_send_proof(r1cs_gg_ppzksnark_pro
     send_gadget<FieldT> g(pb);     // 构造新模型
     g.generate_r1cs_constraints(); // 生成约束
 
-    g.generate_r1cs_witness(note_old, notes, note, cmtA_old, cmtS, cmtA); // 为新模型的参数生成证明
+    g.generate_r1cs_witness(note_old, notes, note, cmtA_old, cmtS, cmtA, sk_data, pk_data); // 为新模型的参数生成证明
 
     if (!pb.is_satisfied())
     { // 三元组R1CS是否满足  < A , X > * < B , X > = < C , X >
@@ -251,13 +253,12 @@ char *genCMT(uint64_t value, char *sn_string, char *r_string)
     return p;
 }
 
-char *genCMTS(uint64_t value_s, char *pk_string, char *sn_s_string, char *r_s_string, char *sn_old_string)
+char *genCMTS(uint64_t value_s, char *pk_recv_string, char *r_s_string, char *sn_old_string)
 {
-    uint160 pk = uint160S(pk_string);
-    uint256 sn_s = uint256S(sn_s_string);
+    uint160 pk_recv = uint160S(pk_recv_string);
     uint256 r_s = uint256S(r_s_string);
     uint256 sn = uint256S(sn_old_string);
-    NoteS notes = NoteS(value_s, pk, sn_s, r_s, sn);
+    NoteS notes = NoteS(value_s, pk_recv, r_s, sn);
     uint256 cmtS = notes.cm();
 
     std::string cmtS_c = cmtS.ToString();
@@ -277,11 +278,13 @@ char *genSendproof(uint64_t value_A,
                    char *cmt_s_string,
                    char *cmtA_string,
                    uint64_t value_s,
-                   char *pk_string,
+                   char *pk_recv_string,
                    uint64_t value_A_new,
                    char *sn_A_new,
                    char *r_A_new,
-                   char *cmt_A_new)
+                   char *cmt_A_new,
+                   char *sk_string,
+                   char *pk_sender_string)
 {
     //从字符串转uint256
     uint256 sn_s = uint256S(sn_s_string);
@@ -290,15 +293,17 @@ char *genSendproof(uint64_t value_A,
     uint256 r = uint256S(r_string);
     uint256 cmtS = uint256S(cmt_s_string); //--zy
     uint256 cmtA = uint256S(cmtA_string);
-    uint160 pk = uint160S(pk_string);
+    uint160 pk_recv = uint160S(pk_recv_string);
     uint256 snAnew = uint256S(sn_A_new);
     uint256 rAnew = uint256S(r_A_new);
     uint256 cmtAnew = uint256S(cmt_A_new);
-
+    uint256 sk = uint256S(sk_string);
+    uint160 pk_sender = uint160S(pk_sender_string);
+    
 
     //计算sha256
     Note note_old = Note(value_A, sn, r);
-    NoteS notes = NoteS(value_s, pk, sn_s, r_s, sn);
+    NoteS notes = NoteS(value_s, pk_recv, r_s, sn);
     Note note_new = Note(value_A_new, snAnew, rAnew);
 
     //初始化参数
@@ -320,7 +325,7 @@ char *genSendproof(uint64_t value_A,
     // 生成proof
     cout << "Trying to generate send proof..." << endl;
 
-    libsnark::r1cs_gg_ppzksnark_proof<libff::alt_bn128_pp> proof = generate_send_proof<alt_bn128_pp>(keypair.pk, note_old, notes, note_new, cmtA, cmtS , cmtAnew);
+    libsnark::r1cs_gg_ppzksnark_proof<libff::alt_bn128_pp> proof = generate_send_proof<alt_bn128_pp>(keypair.pk, note_old, notes, note_new, cmtA, cmtS , cmtAnew, sk, pk_sender);
 
     //proof转字符串
     std::string proof_string = string_proof_as_hex(proof);

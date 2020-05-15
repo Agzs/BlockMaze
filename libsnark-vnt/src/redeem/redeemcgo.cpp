@@ -193,7 +193,9 @@ r1cs_gg_ppzksnark_proof<ppzksnark_ppT> generate_redeem_proof(r1cs_gg_ppzksnark_p
                                                           Note &note,
                                                           uint256 cmtA_old,
                                                           uint256 cmtA,
-                                                          uint64_t value_s)
+                                                          uint64_t value_s,
+                                                          uint256 sk_data
+                                                          )
 {
     typedef Fr<ppzksnark_ppT> FieldT;
 
@@ -201,7 +203,7 @@ r1cs_gg_ppzksnark_proof<ppzksnark_ppT> generate_redeem_proof(r1cs_gg_ppzksnark_p
     redeem_gadget<FieldT> g(pb);   // 构造新模型
     g.generate_r1cs_constraints(); // 生成约束
 
-    g.generate_r1cs_witness(note_old, note, cmtA_old, cmtA, value_s); // 为新模型的参数生成证明
+    g.generate_r1cs_witness(note_old, note, cmtA_old, cmtA, value_s, sk_data); // 为新模型的参数生成证明
 
     if (!pb.is_satisfied())
     { // 三元组R1CS是否满足  < A , X > * < B , X > = < C , X >
@@ -258,7 +260,9 @@ char *genRedeemproof(uint64_t value,
                      char *r_string,
                      char *cmtA_old_string,
                      char *cmtA_string,
-                     uint64_t value_s)
+                     uint64_t value_s,
+                     char *sk_string
+                     )
 {
     //从字符串转uint256
     uint256 sn_old = uint256S(sn_old_string);
@@ -267,6 +271,7 @@ char *genRedeemproof(uint64_t value,
     uint256 r = uint256S(r_string);
     uint256 cmtA_old = uint256S(cmtA_old_string);
     uint256 cmtA = uint256S(cmtA_string);
+    uint256 sk = uint256S(sk_string);
     //计算sha256
     Note note_old = Note(value_old, sn_old, r_old);
     Note note = Note(value, sn, r);
@@ -290,7 +295,7 @@ char *genRedeemproof(uint64_t value,
     // 生成proof
     cout << "Trying to generate redeem proof..." << endl;
 
-    libsnark::r1cs_gg_ppzksnark_proof<libff::alt_bn128_pp> proof = generate_redeem_proof<alt_bn128_pp>(keypair.pk, note_old, note, cmtA_old, cmtA, value_s);
+    libsnark::r1cs_gg_ppzksnark_proof<libff::alt_bn128_pp> proof = generate_redeem_proof<alt_bn128_pp>(keypair.pk, note_old, note, cmtA_old, cmtA, value_s, sk);
 
     //proof转字符串
     std::string proof_string = string_proof_as_hex(proof);

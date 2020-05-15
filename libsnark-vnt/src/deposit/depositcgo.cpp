@@ -200,7 +200,10 @@ r1cs_gg_ppzksnark_proof<ppzksnark_ppT> generate_deposit_proof(r1cs_gg_ppzksnark_
                                                            uint256 cmtB_old,
                                                            uint256 cmtB,
                                                            const uint256 &rt,
-                                                           const MerklePath &path)
+                                                           const MerklePath &path,
+                                                           uint256 sn_s_data,
+                                                           uint256 sk_data
+                                                           )
 {
     typedef Fr<ppzksnark_ppT> FieldT;
 
@@ -208,7 +211,7 @@ r1cs_gg_ppzksnark_proof<ppzksnark_ppT> generate_deposit_proof(r1cs_gg_ppzksnark_
     deposit_gadget<FieldT> deposit(pb);  // 构造新模型
     deposit.generate_r1cs_constraints(); // 生成约束
 
-    deposit.generate_r1cs_witness(note_s, note_old, note, cmtS, cmtB_old, cmtB, rt, path); // 为新模型的参数生成证明
+    deposit.generate_r1cs_witness(note_s, note_old, note, cmtS, cmtB_old, cmtB, rt, path, sn_s_data, sk_data); // 为新模型的参数生成证明
 
     if (!pb.is_satisfied())
     { // 三元组R1CS是否满足  < A , X > * < B , X > = < C , X >
@@ -230,7 +233,9 @@ bool verify_deposit_proof(r1cs_gg_ppzksnark_verification_key<ppzksnark_ppT> veri
                           const uint160 &pk_recv,
                           const uint256 &cmtB_old,
                           const uint256 &sn_old,
-                          const uint256 &cmtB)
+                          const uint256 &cmtB,
+                          const uint256& sn_s
+                          )
 {
     typedef Fr<ppzksnark_ppT> FieldT;
 
@@ -239,7 +244,9 @@ bool verify_deposit_proof(r1cs_gg_ppzksnark_verification_key<ppzksnark_ppT> veri
         pk_recv,
         cmtB_old,
         sn_old,
-        cmtB);
+        cmtB,
+        sn_s
+    );
 
     // 调用libsnark库中验证proof的函数
     return r1cs_gg_ppzksnark_verifier_strong_IC<ppzksnark_ppT>(verification_key, input, proof);
@@ -261,13 +268,12 @@ char *genCMT(uint64_t value, char *sn_string, char *r_string)
     return p;
 }
 
-char *genCMTS(uint64_t value_s, char *pk_string, char *sn_s_string, char *r_s_string, char *sn_old_string)
+char *genCMTS(uint64_t value_s, char *pk_string, char *r_s_string, char *sn_old_string)
 {
     uint160 pk = uint160S(pk_string);
-    uint256 sn_s = uint256S(sn_s_string);
     uint256 r_s = uint256S(r_s_string);
     uint256 sn = uint256S(sn_old_string);
-    NoteS notes = NoteS(value_s, pk, sn_s, r_s, sn);
+    NoteS notes = NoteS(value_s, pk, r_s, sn);
     uint256 cmtS = notes.cm();
 
     std::string cmtS_c = cmtS.ToString();
@@ -320,7 +326,8 @@ char *genDepositproof(uint64_t value,
                       char *cmtS_string,
                       char *cmtarray,
                       int n,
-                      char *RT)
+                      char *RT,
+                      char *sk_string)
 {
     uint256 sn_old = uint256S(sn_old_string);
     uint256 r_old = uint256S(r_old_string);
@@ -333,10 +340,11 @@ char *genDepositproof(uint64_t value,
     uint160 pk_recv = uint160S(pk_string);
     uint256 sn_A_old = uint256S(sn_A_oldstring);
     uint256 cmtS = uint256S(cmtS_string);
+    uint256 sk = uint256S(sk_string);
 
     Note note_old = Note(value_old, sn_old, r_old);
 
-    NoteS note_s = NoteS(value_s, pk_recv, sn_s, r_s, sn_A_old);
+    NoteS note_s = NoteS(value_s, pk_recv, r_s, sn_A_old);
 
     Note note = Note(value, sn, r);
 
@@ -407,7 +415,9 @@ char *genDepositproof(uint64_t value,
                                                                                                      cmtB_old,
                                                                                                      cmtB,
                                                                                                      rt,
-                                                                                                     path);
+                                                                                                     path,
+                                                                                                     sn_s,
+                                                                                                     sk);
 
     //proof转字符串
     std::string proof_string = string_proof_as_hex(proof);
@@ -419,13 +429,14 @@ char *genDepositproof(uint64_t value,
     return p;
 }
 
-bool verifyDepositproof(char *data, char *RT, char *pk, char *cmtb_old, char *snold, char *cmtb)
+bool verifyDepositproof(char *data, char *RT, char *pk, char *cmtb_old, char *snold, char *cmtb, char *sns)
 {
     uint256 rt = uint256S(RT);
     uint160 pk_recv = uint160S(pk);
     uint256 cmtB_old = uint256S(cmtb_old);
     uint256 sn_old = uint256S(snold);
     uint256 cmtB = uint256S(cmtb);
+    uint256 sn_s = uint256S(sns);
 
     alt_bn128_pp::init_public_params();
 
@@ -510,7 +521,8 @@ bool verifyDepositproof(char *data, char *RT, char *pk, char *cmtb_old, char *sn
                                        pk_recv,
                                        cmtB_old,
                                        sn_old,
-                                       cmtB);
+                                       cmtB,
+                                       sn_s);
 
     if (!result)
     {
