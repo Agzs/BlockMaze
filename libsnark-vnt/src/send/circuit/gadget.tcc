@@ -54,11 +54,11 @@ public:
     // note gadget and subtraction constraint
     std::shared_ptr<note_gadget_with_packing_and_SUB<FieldT>> noteSUB;
 
-    // new random number r_s with sha256_PRF_CRH_gadget
-    std::shared_ptr<sha256_randomNum_gadget<FieldT>> crh_to_inputs_r_s; // serial_number 
+    // new random number r_s with sha256_PRF_gadget
+    std::shared_ptr<sha256_CRH_gadget<FieldT>> crh_to_inputs_r_s; // serial_number 
 
-    // new serial number with sha256_PRF_CRH_gadget
-    std::shared_ptr<sha256_PRF_CRH_gadget<FieldT>> prf_to_inputs_sn; // serial_number 
+    // new serial number with sha256_PRF_gadget
+    std::shared_ptr<sha256_PRF_gadget<FieldT>> prf_to_inputs_sn; // serial_number 
 
     // old commitment with sha256_CMTA_gadget
     std::shared_ptr<digest_variable<FieldT>> cmtA_old; // cm
@@ -147,7 +147,7 @@ public:
             pk_sender
         ));
 
-        crh_to_inputs_r_s.reset(new sha256_randomNum_gadget<FieldT>( 
+        crh_to_inputs_r_s.reset(new sha256_CRH_gadget<FieldT>( 
             pb,
             ZERO,
             pk_sender->bits,   // 256bits private key
@@ -155,7 +155,7 @@ public:
             r_s          // 256bits serial number
         ));
 
-        prf_to_inputs_sn.reset(new sha256_PRF_CRH_gadget<FieldT>( 
+        prf_to_inputs_sn.reset(new sha256_PRF_gadget<FieldT>( 
             pb,
             ZERO,
             sk->bits,   // 256bits private key

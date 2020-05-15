@@ -46,15 +46,15 @@ public:
 
     std::shared_ptr<note_gadget_with_comparison_and_addition_for_balance<FieldT>> ncab;
 
-    // new serial number with sha256_PRF_CRH_gadget
+    // new serial number with sha256_PRF_gadget
     std::shared_ptr<digest_variable<FieldT>> sn; // sn = SHA256(sk,r)
-    std::shared_ptr<sha256_PRF_CRH_gadget<FieldT>> prf_to_inputs_sn; // serial_number 
+    std::shared_ptr<sha256_PRF_gadget<FieldT>> prf_to_inputs_sn; // serial_number 
 
-    // old serial number with sha256_PRF_CRH_gadget
+    // old serial number with sha256_PRF_gadget
     // actually, each proof only proves that sn = SHA256(sk,r), because 
     // the former proof has proved that sn_old = SHA256(sk,r_old)
     std::shared_ptr<digest_variable<FieldT>> sn_old; // sn_old = SHA256(sk,r_old)
-    //std::shared_ptr<sha256_PRF_CRH_gadget<FieldT>> prf_to_inputs_sn_old; // serial_number
+    //std::shared_ptr<sha256_PRF_gadget<FieldT>> prf_to_inputs_sn_old; // serial_number
 
     // old commitment with sha256_CMTA_gadget
     std::shared_ptr<digest_variable<FieldT>> cmtA_old; // cm
@@ -124,7 +124,7 @@ public:
         ));
         // cmtA_old.reset(new digest_variable<FieldT>(pb, 256, "cmtA_old"));
 
-        prf_to_inputs_sn.reset(new sha256_PRF_CRH_gadget<FieldT>( 
+        prf_to_inputs_sn.reset(new sha256_PRF_gadget<FieldT>( 
             pb,
             ZERO,
             sk->bits,   // 256bits private key
@@ -132,7 +132,7 @@ public:
             sn          // 256bits serial number
         ));
 
-        // prf_to_inputs_sn_old.reset(new sha256_PRF_CRH_gadget<FieldT>( 
+        // prf_to_inputs_sn_old.reset(new sha256_PRF_gadget<FieldT>( 
         //     pb,
         //     ZERO,
         //     sk->bits,       // 256bits private key
