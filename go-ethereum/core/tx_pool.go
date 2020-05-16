@@ -638,7 +638,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	if txCode == types.DepositTx {
 		cmtbalance := pool.currentState.GetCMTBalance(from)
 		ppp := &ecdsa.PublicKey{crypto.S256(), tx.X(), tx.Y()}
-		err = zktx.VerifyDepositProof(ppp, tx.RTcmt(), &cmtbalance, tx.ZKSN(), tx.ZKCMT(), tx.ZKProof())
+		err = zktx.VerifyDepositProof(ppp, tx.RTcmt(), &cmtbalance, tx.ZKSN(), tx.ZKCMT(), tx.ZKSNS(), tx.ZKProof())
 		if err != nil {
 			return err
 		}

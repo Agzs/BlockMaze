@@ -72,6 +72,7 @@ type txdata struct {
 
 	ZKValue   uint64
 	ZKSN      *common.Hash
+	ZKSNS     *common.Hash
 	ZKNounce  uint64
 	ZKAdrress *common.Address
 	ZKCMT     *common.Hash
@@ -136,6 +137,7 @@ func newTransaction(nonce uint64, to *common.Address, amount *big.Int, gasLimit 
 		X:            new(big.Int),
 		Y:            new(big.Int),
 		ZKSN:         &common.Hash{},
+		ZKSNS:        &common.Hash{},
 		ZKCMT:        &common.Hash{},
 		ZKCMTS:       &common.Hash{},
 		ZKAdrress:    &common.Address{},
@@ -269,6 +271,16 @@ func (tx *Transaction) ZKSN() *common.Hash {
 //
 func (tx *Transaction) SetZKSN(hash *common.Hash) {
 	tx.data.ZKSN = hash
+}
+
+//
+func (tx *Transaction) ZKSNS() *common.Hash {
+	return tx.data.ZKSNS
+}
+
+//
+func (tx *Transaction) SetZKSNS(hash *common.Hash) {
+	tx.data.ZKSNS = hash
 }
 
 //

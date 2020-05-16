@@ -142,7 +142,7 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 		if err != nil || addr1 != addr2 {
 			return nil, 0, errors.New("invalid depositTx signature ")
 		}
-		if err = zktx.VerifyDepositProof(&ppp, tx.RTcmt(), &cmtbalance, tx.ZKSN(), tx.ZKCMT(), tx.ZKProof()); err != nil {
+		if err = zktx.VerifyDepositProof(&ppp, tx.RTcmt(), &cmtbalance, tx.ZKSN(), tx.ZKCMT(), tx.ZKSNS(), tx.ZKProof()); err != nil {
 			fmt.Println("invalid zk deposit proof: ", err)
 			return nil, 0, err
 		}
