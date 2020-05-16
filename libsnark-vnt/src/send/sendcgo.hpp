@@ -12,7 +12,6 @@ extern "C"
     char* computeCRH(char* pk_string, char* r_string);
 
     char *genSendproof(uint64_t value_A,
-                   char *sn_s_string,
                    char *r_s_string,
                    char *sn_string,
                    char *r_string,

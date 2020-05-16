@@ -299,7 +299,6 @@ char* computeCRH(char* pk_string, char* r_string){
 }
 
 char *genSendproof(uint64_t value_A,
-                   char *sn_s_string,
                    char *r_s_string,
                    char *sn_string,
                    char *r_string,
@@ -315,7 +314,6 @@ char *genSendproof(uint64_t value_A,
                    char *pk_sender_string)
 {
     //从字符串转uint256
-    uint256 sn_s = uint256S(sn_s_string);
     uint256 r_s = uint256S(r_s_string);
     uint256 sn = uint256S(sn_string);
     uint256 r = uint256S(r_string);
