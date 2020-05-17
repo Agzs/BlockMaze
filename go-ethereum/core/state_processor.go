@@ -103,9 +103,11 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 	// about the transaction and calling mechanisms.
 	vmenv := vm.NewEVM(context, statedb, config, cfg)
 
-	if tx.TxCode() == types.MintTx {
-		if exist := statedb.Exist(common.BytesToAddress(tx.ZKSN().Bytes())); exist == true && (*(tx.ZKSN()) != common.Hash{}) { //if sn is already exist,
-			return nil, 0, errors.New("sn is already used ")
+	initSN := zktx.ComputePRF(zktx.ZKTxAddress.Hash().Bytes(), common.Hash{}.Bytes())
+
+	if tx.TxCode() == types.MintTx { // 
+		if exist := statedb.Exist(common.BytesToAddress(tx.ZKSN().Bytes())); exist == true && (*(tx.ZKSN()) != *(initSN)) { //if sn is already exist,
+			return nil, 0, errors.New("sn is already used")
 		}
 		cmtbalance := statedb.GetCMTBalance(msg.From())
 		if err = zktx.VerifyMintProof(&cmtbalance, tx.ZKSN(), tx.ZKCMT(), tx.ZKValue(), tx.ZKProof()); err != nil {
@@ -116,7 +118,7 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 		statedb.SetNonce(common.BytesToAddress(tx.ZKSN().Bytes()), 1)
 	} else if tx.TxCode() == types.SendTx {
 		cmtbalance := statedb.GetCMTBalance(msg.From())
-		if exist := statedb.Exist(common.BytesToAddress(tx.ZKSN().Bytes())); exist == true && (*(tx.ZKSN()) != common.Hash{}) { //if sn is already exist,
+		if exist := statedb.Exist(common.BytesToAddress(tx.ZKSN().Bytes())); exist == true && (*(tx.ZKSN()) != *(initSN)) { //if sn is already exist,
 			return nil, 0, errors.New("sn is already used ")
 		}
 		if err = zktx.VerifySendProof(tx.ZKSN(), tx.ZKCMTS(), tx.ZKProof(), &cmtbalance, tx.ZKCMT()); err != nil {
@@ -132,7 +134,7 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 		// 		return nil, 0, err
 		// 	}
 	} else if tx.TxCode() == types.DepositTx {
-		if exist := statedb.Exist(common.BytesToAddress(tx.ZKSN().Bytes())); exist == true && (*(tx.ZKSN()) != common.Hash{}) { //if sn is already exist,
+		if exist := statedb.Exist(common.BytesToAddress(tx.ZKSN().Bytes())); exist == true && (*(tx.ZKSN()) != *(initSN)) { //if sn is already exist,
 			return nil, 0, errors.New("sn in deposit tx has been already used")
 		}
 		cmtbalance := statedb.GetCMTBalance(msg.From())
@@ -149,7 +151,7 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 		statedb.CreateAccount(common.BytesToAddress(tx.ZKSN().Bytes()))
 		statedb.SetNonce(common.BytesToAddress(tx.ZKSN().Bytes()), 1)
 	} else if tx.TxCode() == types.RedeemTx {
-		if exist := statedb.Exist(common.BytesToAddress(tx.ZKSN().Bytes())); exist == true && (*(tx.ZKSN()) != common.Hash{}) { //if sn is already exist,
+		if exist := statedb.Exist(common.BytesToAddress(tx.ZKSN().Bytes())); exist == true && (*(tx.ZKSN()) != *(initSN)) { //if sn is already exist,
 			return nil, 0, errors.New("sn is already used ")
 		}
 		cmtbalance := statedb.GetCMTBalance(msg.From())
