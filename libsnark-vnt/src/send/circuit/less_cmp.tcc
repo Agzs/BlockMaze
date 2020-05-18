@@ -16,9 +16,8 @@ public:
         std::shared_ptr<digest_variable<FieldT>> &r_old,
         pb_variable_array<FieldT> &value_s,
         std::shared_ptr<digest_variable<FieldT>> &pk,
-        std::shared_ptr<digest_variable<FieldT>> &sn_s,
         std::shared_ptr<digest_variable<FieldT>> &r_s
-    ) : note_gadget_with_packing<FieldT>(pb, value_old, sn_old, r_old, value_s, pk, sn_s, r_s)
+    ) : note_gadget_with_packing<FieldT>(pb, value_old, sn_old, r_old, value_s, pk, r_s)
     {
         less_cmp.reset(new less_comparison_gadget<FieldT>(pb, this->value_s_packed, this->value_old_packed,
                                                     FMT(this->annotation_prefix, " less_cmp")));

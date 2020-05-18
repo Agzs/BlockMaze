@@ -232,7 +232,17 @@ func (g *Genesis) ToBlock(db ethdb.Database) *types.Block {
 		for key, value := range account.Storage {
 			statedb.SetState(addr, key, value)
 		}
-		statedb.SetCMT(addr, zktx.GenCMT(0, common.Hash{}.Bytes(), common.Hash{}.Bytes()))
+
+		// Obtaining SK should be done as follows:
+		// key, err := s.GetKey(ctx, address, passwd)
+		// SK := key.PrivateKey
+		
+		// For large-scale test, we suppose that SK = CRH(addr), there is impossible in pratical.
+		SK := zktx.ZKTxAddress.Hash()
+		r := common.Hash{}
+		sn := zktx.ComputePRF(SK.Bytes(), r.Bytes()) // sn = PRF(sk, r)
+
+		statedb.SetCMT(addr, zktx.GenCMT(0, sn.Bytes(), r.Bytes()))
 	}
 	root := statedb.IntermediateRoot(false)
 	head := &types.Header{

@@ -5,8 +5,8 @@
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
 
-#include "libsnark/zk_proof_systems/ppzksnark/r1cs_se_ppzksnark/r1cs_se_ppzksnark.hpp"
-#include "libsnark/common/default_types/r1cs_se_ppzksnark_pp.hpp"
+#include "libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp"
+#include "libsnark/common/default_types/r1cs_gg_ppzksnark_pp.hpp"
 #include <libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_gadget.hpp>
 
 #include<sys/time.h>
@@ -23,13 +23,15 @@ using namespace std;
 
 // 生成proof
 template<typename ppzksnark_ppT>
-boost::optional<r1cs_se_ppzksnark_proof<ppzksnark_ppT>> generate_send_proof(r1cs_se_ppzksnark_proving_key<ppzksnark_ppT> proving_key,
+boost::optional<r1cs_gg_ppzksnark_proof<ppzksnark_ppT>> generate_send_proof(r1cs_gg_ppzksnark_proving_key<ppzksnark_ppT> proving_key,
                                                                     const Note& note_old,
                                                                     const NoteS& notes,
                                                                     const Note& note,
                                                                     uint256 cmtA_old,
                                                                     uint256 cmtS,
-                                                                    uint256 cmtA
+                                                                    uint256 cmtA,
+                                                                    uint256 sk_data,
+                                                                    uint160 pk_data
                                                                    )
 {
     typedef Fr<ppzksnark_ppT> FieldT;
@@ -38,7 +40,7 @@ boost::optional<r1cs_se_ppzksnark_proof<ppzksnark_ppT>> generate_send_proof(r1cs
     send_gadget<FieldT> send(pb); // 构造新模型
     send.generate_r1cs_constraints(); // 生成约束
 
-    send.generate_r1cs_witness(note_old, notes, note, cmtA_old, cmtS, cmtA); // 为新模型的参数生成证明
+    send.generate_r1cs_witness(note_old, notes, note, cmtA_old, cmtS, cmtA, sk_data, pk_data); // 为新模型的参数生成证明
 
     cout << "pb.is_satisfied() is " << pb.is_satisfied() << endl;
 
@@ -47,13 +49,13 @@ boost::optional<r1cs_se_ppzksnark_proof<ppzksnark_ppT>> generate_send_proof(r1cs
     }
 
     // 调用libsnark库中生成proof的函数
-    return r1cs_se_ppzksnark_prover<ppzksnark_ppT>(proving_key, pb.primary_input(), pb.auxiliary_input());
+    return r1cs_gg_ppzksnark_prover<ppzksnark_ppT>(proving_key, pb.primary_input(), pb.auxiliary_input());
 }
 
 // 验证proof
 template<typename ppzksnark_ppT>
-bool verify_send_proof(r1cs_se_ppzksnark_verification_key<ppzksnark_ppT> verification_key,
-                    r1cs_se_ppzksnark_proof<ppzksnark_ppT> proof,
+bool verify_send_proof(r1cs_gg_ppzksnark_verification_key<ppzksnark_ppT> verification_key,
+                    r1cs_gg_ppzksnark_proof<ppzksnark_ppT> proof,
                     const uint256& cmtA_old,
                     const uint256& sn_old,
                     const uint256& cmtS,
@@ -70,11 +72,11 @@ bool verify_send_proof(r1cs_se_ppzksnark_verification_key<ppzksnark_ppT> verific
     ); 
 
     // 调用libsnark库中验证proof的函数
-    return r1cs_se_ppzksnark_verifier_strong_IC<ppzksnark_ppT>(verification_key, input, proof);
+    return r1cs_gg_ppzksnark_verifier_strong_IC<ppzksnark_ppT>(verification_key, input, proof);
 }
 
 template<typename ppzksnark_ppT>
-void PrintProof(r1cs_se_ppzksnark_proof<ppzksnark_ppT> proof)
+void PrintProof(r1cs_gg_ppzksnark_proof<ppzksnark_ppT> proof)
 {
     printf("================== Print proof ==================================\n");
     //printf("proof is %x\n", *proof);
@@ -109,7 +111,7 @@ bool test_send_gadget_with_instance(
                             //uint256 cmtA,
                             uint64_t value_s,
                             uint64_t value,
-                            r1cs_se_ppzksnark_keypair<ppzksnark_ppT> keypair
+                            r1cs_gg_ppzksnark_keypair<ppzksnark_ppT> keypair
                         )
 {
     // Note note_old = Note(value_old, sn_old, r_old);
@@ -118,22 +120,26 @@ bool test_send_gadget_with_instance(
     // uint256 sn_test = random_uint256();
     // uint256 r_test = random_uint256();
    
-    uint256 sn_old = uint256S("123456");//random_uint256();
+    uint256 sk = uint256S("1");//random_uint256();
+    uint256 wrong_sk = uint256S("2");//random_uint256();
+   
     uint256 r_old = uint256S("123456");//random_uint256();
+    uint256 sn_old = Compute_PRF(sk, r_old);//random_uint256();
     Note note_old = Note(value_old, sn_old, r_old);
     uint256 cmtA_old = note_old.cm();
 
-    uint160 pk = uint160S("123");
-    uint256 sn_s = uint256S("123");//random_uint256();
-    uint256 r_s = uint256S("123");//random_uint256();
-    NoteS notes = NoteS(value_s, pk, sn_s, r_s, sn_old);
-    uint256 cmtS = notes.cm();
-
-    //printf("value_old+value_s = %zu\n", value_old+value_s);
-    uint256 sn = uint256S("12");//random_uint256();
+     //printf("value_old+value_s = %zu\n", value_old+value_s);
     uint256 r = uint256S("12");//random_uint256();
+    uint256 sn = Compute_PRF(sk, r);//random_uint256();
     Note note = Note(value, sn, r);
     uint256 cmtA = note.cm();
+
+    uint160 pk_sender = uint160S("456");
+
+    uint160 pk_recv = uint160S("123");
+    uint256 r_s = Compute_CRH(pk_sender, r);;//random_uint256();
+    NoteS notes = NoteS(value_s, pk_recv, r_s, sn_old);
+    uint256 cmtS = notes.cm();
 
     // wrong test data
     uint256 wrong_sn_old = uint256S("666");
@@ -153,7 +159,7 @@ bool test_send_gadget_with_instance(
     // std::cout << "Number of R1CS constraints: " << constraint_system.num_constraints() << endl;
     
     // // key pair generation
-    // r1cs_se_ppzksnark_keypair<ppzksnark_ppT> keypair = r1cs_se_ppzksnark_generator<ppzksnark_ppT>(constraint_system);
+    // r1cs_gg_ppzksnark_keypair<ppzksnark_ppT> keypair = r1cs_gg_ppzksnark_generator<ppzksnark_ppT>(constraint_system);
 
     // 生成proof
     cout << "Trying to generate proof..." << endl;
@@ -162,13 +168,15 @@ bool test_send_gadget_with_instance(
     double sendTimeUse;
     gettimeofday(&gen_start,NULL);
     
-    auto proof = generate_send_proof<default_r1cs_se_ppzksnark_pp>(keypair.pk, 
+    auto proof = generate_send_proof<default_r1cs_gg_ppzksnark_pp>(keypair.pk, 
                                                             note_old,
                                                             notes,
                                                             note,
                                                             cmtA_old, // wrong_cmtA_old
                                                             cmtS, // wrong_cmtS
-                                                            cmtA // wrong_cmtA
+                                                            cmtA, // wrong_cmtA
+                                                            sk,
+                                                            pk_sender
                                                             );
 
     gettimeofday(&gen_end,NULL);
@@ -216,8 +224,8 @@ bool test_send_gadget_with_instance(
 }
 
 template<typename ppzksnark_ppT>
-r1cs_se_ppzksnark_keypair<ppzksnark_ppT> Setup() {
-    default_r1cs_se_ppzksnark_pp::init_public_params();
+r1cs_gg_ppzksnark_keypair<ppzksnark_ppT> Setup() {
+    default_r1cs_gg_ppzksnark_pp::init_public_params();
     
     typedef libff::Fr<ppzksnark_ppT> FieldT;
 
@@ -231,7 +239,7 @@ r1cs_se_ppzksnark_keypair<ppzksnark_ppT> Setup() {
     std::cout << "Number of R1CS constraints: " << constraint_system.num_constraints() << endl;
     
     // key pair generation
-    r1cs_se_ppzksnark_keypair<ppzksnark_ppT> keypair = r1cs_se_ppzksnark_generator<ppzksnark_ppT>(constraint_system);
+    r1cs_gg_ppzksnark_keypair<ppzksnark_ppT> keypair = r1cs_gg_ppzksnark_generator<ppzksnark_ppT>(constraint_system);
 
     return keypair;
 }
@@ -241,12 +249,12 @@ int main () {
     double timeuse;
     gettimeofday(&t1,NULL);
 
-    //default_r1cs_se_ppzksnark_pp::init_public_params();
-    r1cs_se_ppzksnark_keypair<default_r1cs_se_ppzksnark_pp> keypair = Setup<default_r1cs_se_ppzksnark_pp>();
+    //default_r1cs_gg_ppzksnark_pp::init_public_params();
+    r1cs_gg_ppzksnark_keypair<default_r1cs_gg_ppzksnark_pp> keypair = Setup<default_r1cs_gg_ppzksnark_pp>();
 
     gettimeofday(&t2,NULL);
     timeuse = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
-    printf("\n\Send Use Time:%fs\n\n",timeuse);
+    printf("\n\Send Setup Time Usage:%fs\n\n",timeuse);
 
     libff::print_header("#             testing send gadget");
 
@@ -254,7 +262,7 @@ int main () {
     uint64_t value_old = uint64_t(22); 
     uint64_t value_s = uint64_t(8);
 
-    test_send_gadget_with_instance<default_r1cs_se_ppzksnark_pp>(value_old, value_s, value, keypair);
+    test_send_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(value_old, value_s, value, keypair);
 
     // Note. cmake can not compile the assert()  --Agzs
     

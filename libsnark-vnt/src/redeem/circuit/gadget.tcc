@@ -7,7 +7,7 @@
 /***********************************************************
  * 模块整合，主要包括验证proof时所需要的publicData的输入
  ***********************************************************
- * sha256_two_block_gadget, Add_gadget, Comparison_gadget
+ * sha256_CMTA_gadget, Add_gadget, Comparison_gadget
  ***************************************************************
  * sha256(data+padding), 512bits < data.size() < 1024-64-1bits
  * *************************************************************
@@ -31,21 +31,30 @@ public:
     pb_variable_array<FieldT> value;
     pb_variable_array<FieldT> value_old;
     pb_variable_array<FieldT> value_s;
+    std::shared_ptr<digest_variable<FieldT>> sk;
     std::shared_ptr<digest_variable<FieldT>> r;
     std::shared_ptr<digest_variable<FieldT>> r_old;
-    std::shared_ptr<digest_variable<FieldT>> sn;
-    std::shared_ptr<digest_variable<FieldT>> sn_old;
+    // std::shared_ptr<digest_variable<FieldT>> sn;
+    // std::shared_ptr<digest_variable<FieldT>> sn_old;
 
     // comparison_gadget
     std::shared_ptr<note_gadget_with_comparison_and_subtraction_for_value_old<FieldT>> ncsv;
 
-    // old commitment with sha256_two_block_gadget
-    std::shared_ptr<digest_variable<FieldT>> cmtA_old; // cm
-    std::shared_ptr<sha256_two_block_gadget<FieldT>> commit_to_inputs_cmt_old; // note_commitment
+    // new serial number with sha256_PRF_gadget
+    std::shared_ptr<digest_variable<FieldT>> sn; // sn = SHA256(sk,r)
+    std::shared_ptr<sha256_PRF_gadget<FieldT>> prf_to_inputs_sn; // serial_number 
 
-    // new commitment with sha256_two_block_gadget
+     // old serial number with sha256_PRF_gadget
+    std::shared_ptr<digest_variable<FieldT>> sn_old; // sn_old = SHA256(sk,r_old)
+    //std::shared_ptr<sha256_PRF_gadget<FieldT>> prf_to_inputs_sn_old; // serial_number
+
+    // old commitment with sha256_CMTA_gadget
+    std::shared_ptr<digest_variable<FieldT>> cmtA_old; // cm
+    std::shared_ptr<sha256_CMTA_gadget<FieldT>> commit_to_inputs_cmt_old; // note_commitment
+
+    // new commitment with sha256_CMTA_gadget
     std::shared_ptr<digest_variable<FieldT>> cmtA; // cm
-    std::shared_ptr<sha256_two_block_gadget<FieldT>> commit_to_inputs_cmt; // note_commitment
+    std::shared_ptr<sha256_CMTA_gadget<FieldT>> commit_to_inputs_cmt; // note_commitment
 
     pb_variable<FieldT> ZERO;
 
@@ -85,6 +94,7 @@ public:
         
         value.allocate(pb, 64);
         value_old.allocate(pb, 64);
+        sk.reset(new digest_variable<FieldT>(pb, 256, "private key"));
 
         r.reset(new digest_variable<FieldT>(pb, 256, "random number"));
         r_old.reset(new digest_variable<FieldT>(pb, 256, "old random number"));
@@ -95,13 +105,30 @@ public:
             value,
             value_old,
             value_s,
+            sk,
             r,
             r_old,
             sn,
             sn_old
         ));
 
-        commit_to_inputs_cmt_old.reset(new sha256_two_block_gadget<FieldT>( 
+        prf_to_inputs_sn.reset(new sha256_PRF_gadget<FieldT>( 
+            pb,
+            ZERO,
+            sk->bits,   // 256bits private key
+            r->bits,    // 256bits random number
+            sn          // 256bits serial number
+        ));
+
+        // prf_to_inputs_sn_old.reset(new sha256_PRF_gadget<FieldT>( 
+        //     pb,
+        //     ZERO,
+        //     sk->bits,       // 256bits private key
+        //     r_old->bits,    // 256bits random number
+        //     sn_old          // 256bits serial number
+        // ));
+
+        commit_to_inputs_cmt_old.reset(new sha256_CMTA_gadget<FieldT>( 
             pb,
             ZERO,
             value_old,      // 64bits value for Mint
@@ -110,7 +137,7 @@ public:
             cmtA_old
         ));
 
-        commit_to_inputs_cmt.reset(new sha256_two_block_gadget<FieldT>( 
+        commit_to_inputs_cmt.reset(new sha256_CMTA_gadget<FieldT>( 
             pb,
             ZERO,
             value,       // 64bits value for Mint
@@ -132,6 +159,12 @@ public:
 
         // TODO: These constraints may not be necessary if SHA256
         // already boolean constrains its outputs.
+        sn->generate_r1cs_constraints();
+        prf_to_inputs_sn->generate_r1cs_constraints();
+
+        sn_old->generate_r1cs_constraints();
+        //prf_to_inputs_sn_old->generate_r1cs_constraints();
+
         cmtA_old->generate_r1cs_constraints();
         commit_to_inputs_cmt_old->generate_r1cs_constraints();
 
@@ -145,13 +178,18 @@ public:
         const Note& note, 
         uint256 cmtA_old_data,
         uint256 cmtA_data,
-        uint64_t v_s
+        uint64_t v_s,
+        uint256 sk_data
     ) {
         //(const Note& note_old, const Note& note, uint64_t v_s, uint64_t b)
-        ncsv->generate_r1cs_witness(note_old, note, v_s);
+        ncsv->generate_r1cs_witness(note_old, note, v_s, sk_data);
 
         // Witness `zero`
         this->pb.val(ZERO) = FieldT::zero();
+
+        prf_to_inputs_sn->generate_r1cs_witness();
+
+        //prf_to_inputs_sn_old->generate_r1cs_witness();
 
         // Witness the commitment of the input note
         commit_to_inputs_cmt_old->generate_r1cs_witness();
