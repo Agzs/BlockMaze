@@ -28,7 +28,8 @@ boost::optional<r1cs_gg_ppzksnark_proof<ppzksnark_ppT>> generate_mint_proof(r1cs
                                                                     const Note& note,
                                                                     uint256 cmtA_old,
                                                                     uint256 cmtA,
-                                                                    uint64_t value_s
+                                                                    uint64_t value_s,
+                                                                    uint256 sk_data
                                                                    )
 {
     typedef Fr<ppzksnark_ppT> FieldT;
@@ -37,7 +38,7 @@ boost::optional<r1cs_gg_ppzksnark_proof<ppzksnark_ppT>> generate_mint_proof(r1cs
     mint_gadget<FieldT> g(pb); // 构造新模型
     g.generate_r1cs_constraints(); // 生成约束
 
-    g.generate_r1cs_witness(note_old, note, cmtA_old, cmtA, value_s); // 为新模型的参数生成证明
+    g.generate_r1cs_witness(note_old, note, cmtA_old, cmtA, value_s, sk_data); // 为新模型的参数生成证明
 
     cout << "pb.is_satisfied() is " << pb.is_satisfied() << endl;
 
@@ -116,14 +117,17 @@ bool test_mint_gadget_with_instance(
 
     // uint256 sn_test = random_uint256();
     // uint256 r_test = random_uint256();
-   
-    uint256 sn_old = uint256S("123456");//random_uint256();
-    uint256 r_old = uint256S("123456");//random_uint256();
+
+    uint256 sk = uint256S("1");//random_uint256();
+    uint256 wrong_sk = uint256S("2");//random_uint256();
+
+    uint256 r_old = uint256S("123456");//random_uint256();   
+    uint256 sn_old = Compute_PRF(sk, r_old);//random_uint256();
     Note note_old = Note(value_old, sn_old, r_old);
     uint256 cmtA_old = note_old.cm();
 
-    uint256 sn = uint256S("123");//random_uint256();
     uint256 r = uint256S("123");//random_uint256();
+    uint256 sn = Compute_PRF(sk, r);//random_uint256();
     Note note = Note(value, sn, r);
     uint256 cmtA = note.cm();
 
@@ -155,7 +159,8 @@ bool test_mint_gadget_with_instance(
                                                             note,
                                                             cmtA_old,
                                                             cmtA,
-                                                            value_s
+                                                            value_s,
+                                                            sk
                                                             );
 
     gettimeofday(&gen_end, NULL);
@@ -234,7 +239,7 @@ int main () {
 
     gettimeofday(&t2,NULL);
     timeuse = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
-    printf("\n\nMint Use Time:%fs\n\n",timeuse);
+    printf("\n\nMint Setup Time Usage:%fs\n\n",timeuse);
     //test_r1cs_gg_ppzksnark<dsefault_r1cs_gg_ppzksnark_pp>(1000, 100);
    
     //r1cs_gg_ppzksnark_keypair<default_r1cs_gg_ppzksnark_pp> keypair = Setup<default_r1cs_gg_ppzksnark_pp>();

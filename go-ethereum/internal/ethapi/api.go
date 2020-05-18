@@ -1383,11 +1383,6 @@ func (s *PublicTransactionPoolAPI) SendPublicTransaction(ctx context.Context, ar
 	return submitTransaction(ctx, s.b, signed)
 }
 
-func GenZKProof() []byte {
-	return []byte{}
-
-}
-
 func (s *PublicTransactionPoolAPI) StateDB(ctx context.Context) (*state.StateDB, error) {
 	currentBlock := s.b.CurrentBlock()
 	state, _, err := s.b.StateAndHeaderByNumber(ctx, rpc.BlockNumber(currentBlock.NumberU64()))
@@ -1464,8 +1459,15 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 	SN := zktx.SequenceNumberAfter
 	tx.SetZKSN(SN.SN) //SN
 
-	newSN := zktx.NewRandomHash()
+	// Obtaining SK should be done as follows:
+	// key, err := s.GetKey(ctx, address, passwd)
+	// SK := key.PrivateKey
+	
+	// For large-scale test, we suppose that SK = CRH(addr), there is impossible in pratical.
+	SK_addr := zktx.ZKTxAddress.Hash()
+    SK := &SK_addr
 	newRandom := zktx.NewRandomHash()
+	newSN := zktx.ComputePRF(SK.Bytes(), newRandom.Bytes()) // sn = PRF(sk, r)
 	newValue := SN.Value + args.Value.ToInt().Uint64()
 
 	newCMT := zktx.GenCMT(newValue, newSN.Bytes(), newRandom.Bytes()) //tbd
@@ -1477,7 +1479,7 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 	}
 
 	//genProofStart := time.Now()
-	zkProof := zktx.GenMintProof(SN.Value, SN.Random, newSN, newRandom, SN.CMT, SN.SN, newCMT, newValue)
+	zkProof := zktx.GenMintProof(SN.Value, SN.Random, newSN, newRandom, SN.CMT, SN.SN, newCMT, newValue, SK)
 	//genProofEnd := time.Now()
 	// fmt.Println("***** GenMintProof Cost Time (ms): ", genProofEnd.Sub(genProofStart).Nanoseconds() / 1000000)
 	
@@ -1657,32 +1659,43 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 	randomPK := R.PublicKey
 	tx.SetPubKey(randomPK.X, randomPK.Y)
 
-	SNs := zktx.NewRandomHash()
-	newRs := zktx.NewRandomHash()
+	newRandomA := zktx.NewRandomHash() //A 新 r
 
-	CMTs := zktx.GenCMTS(args.Value.ToInt().Uint64(), randomReceiverPK, SNs.Bytes(), newRs.Bytes(), SN.SN.Bytes()) //生成cmts
+	//SNs := zktx.NewRandomHash()
+	newRs := zktx.ComputeCRH(account.Address, newRandomA.Bytes()) // A 新 r_s = CRH(pk, r)
+
+	CMTs := zktx.GenCMTS(args.Value.ToInt().Uint64(), randomReceiverPK, newRs.Bytes(), SN.SN.Bytes()) //生成cmts
 	tx.SetZKCMTS(CMTs)
-	//add by zy
-	newSNA := zktx.NewRandomHash()                                        //A新sn
-	newRandomA := zktx.NewRandomHash()                                    //A 新 r
+
+	// Obtaining SK should be done as follows:
+	// key, err := s.GetKey(ctx, address, passwd)
+	// SK := key.PrivateKey
+	
+	// For large-scale test, we suppose that SK = CRH(addr), there is impossible in pratical.
+	PK_sender := account.Address
+	SK_addr := zktx.ZKTxAddress.Hash()
+    SK := &SK_addr
+	
+	newSNA := zktx.ComputePRF(SK.Bytes(), newRandomA.Bytes()) // A新sn = PRF(sk, r)
+
 	newValueA := SN.Value - args.Value.ToInt().Uint64()                   //update后 A新value
 	newCMTA := zktx.GenCMT(newValueA, newSNA.Bytes(), newRandomA.Bytes()) //A 新 cmt
 	tx.SetZKCMT(newCMTA)
 	//tx.SetZKAddress(&args.From)
 	//end
 	//genProofStart := time.Now()
-	zkProof := zktx.GenSendProof(SN.CMT, SN.Value, SN.Random, args.Value.ToInt().Uint64(), randomReceiverPK, SNs, newRs, SN.SN, CMTs, newValueA, newSNA, newRandomA, newCMTA)
+	zkProof := zktx.GenSendProof(SN.CMT, SN.Value, SN.Random, args.Value.ToInt().Uint64(), randomReceiverPK, newRs, SN.SN, CMTs, newValueA, newSNA, newRandomA, newCMTA, SK, PK_sender)
 	//genProofEnd := time.Now()
 	// fmt.Println("***** GenSendProof Cost Time (ms): ", genProofEnd.Sub(genProofStart).Nanoseconds() / 1000000)
 	if string(zkProof[0:10]) == "0000000000" {
 		return common.Hash{}, errors.New("can't generate proof")
 	}
 	tx.SetZKProof(zkProof) //proof tbd
-	AUX := zktx.ComputeAUX(randomReceiverPK, args.Value.ToInt().Uint64(), SNs, newRs, SN.SN)
+	AUX := zktx.ComputeAUX(randomReceiverPK, args.Value.ToInt().Uint64(), newRs, SN.SN)
 	//fmt.Println("***** Compute AUX size: ", len(AUX))
 
 	tx.SetAUX(AUX)
-	zktx.SNS = &zktx.Sequence{SN: SNs, CMT: CMTs, Random: newRs, Value: args.Value.ToInt().Uint64()}
+	zktx.SNS = &zktx.Sequence{SN: &common.Hash{}, CMT: CMTs, Random: newRs, Value: args.Value.ToInt().Uint64()}
 
 	var chainID *big.Int
 	if config := s.b.ChainConfig(); config.IsEIP155(s.b.CurrentBlock().Number()) {
@@ -1720,6 +1733,12 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 	return hash, err
 
 }
+
+/* 05.16
+init cmtA for zk_balance
+deposit and send
+*/
+
 
 // SendUpdateTransaction creates a Deposit transaction for the given argument, sign it and submit it to the
 // transaction pool.
@@ -1865,7 +1884,7 @@ loop:
 
 
 	AUXA := txSend.AUX()
-	valueS, sns, rs, sna := zktx.DecAUX(&randomKeyB.PublicKey, AUXA) //--zy
+	valueS, rs, sna := zktx.DecAUX(&randomKeyB.PublicKey, AUXA) //--zy
 	if valueS <= 0 {
 		return common.Hash{}, errors.New("transfer amount must be larger than 0")
 	}
@@ -1873,15 +1892,25 @@ loop:
 	SNb := zktx.SequenceNumberAfter
 	tx.SetZKSN(SNb.SN)
 
-	newSN := zktx.NewRandomHash()
+	// Obtaining SK should be done as follows:
+	// key, err := s.GetKey(ctx, address, passwd)
+	// SK := key.PrivateKey
+	
+	// For large-scale test, we suppose that SK = CRH(addr), there is impossible in pratical.
+	SK_addr := zktx.ZKTxAddress.Hash()
+    SK := &SK_addr
 	newRandom := zktx.NewRandomHash()
+	newSN := zktx.ComputePRF(SK.Bytes(), newRandom.Bytes()) // sn = PRF(sk, r)
+	sns := zktx.ComputePRF(SK.Bytes(), rs.Bytes())  // sn_s = PRF(sk, r_s)
+	tx.SetZKSNS(sns)
+
 	newValue := SNb.Value + valueS
 	newCMTB := zktx.GenCMT(newValue, newSN.Bytes(), newRandom.Bytes())
 	tx.SetZKCMT(newCMTB)
 	tx.SetPubKey(randomKeyB.X, randomKeyB.Y)
 
 	//genProofStart := time.Now()
-	zkProof := zktx.GenDepositProof(txSend.ZKCMTS(), valueS, sns, rs, sna, SNb.Value, SNb.Random, newSN, newRandom, &randomKeyB.PublicKey, RTcmt.Bytes(), SNb.CMT, SNb.SN, newCMTB, CMTSForMerkle)
+	zkProof := zktx.GenDepositProof(txSend.ZKCMTS(), valueS, sns, rs, sna, SNb.Value, SNb.Random, newSN, newRandom, &randomKeyB.PublicKey, RTcmt.Bytes(), SNb.CMT, SNb.SN, newCMTB, CMTSForMerkle, SK)
 	//genProofEnd := time.Now()
 	// fmt.Println("***** GenDepositProof Cost Time (ms): ", genProofEnd.Sub(genProofStart).Nanoseconds() / 1000000)
 
@@ -1999,15 +2028,23 @@ func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, ar
 
 	tx.SetZKProof([]byte{}) //proof tbd
 
-	newSN := zktx.NewRandomHash()
+	// Obtaining SK should be done as follows:
+	// key, err := s.GetKey(ctx, address, passwd)
+	// SK := key.PrivateKey
+	
+	// For large-scale test, we suppose that SK = CRH(addr), there is impossible in pratical.
+	//SK := account.Address.Hash()
+	SK_addr := zktx.ZKTxAddress.Hash()
+    SK := &SK_addr  
 	newRandom := zktx.NewRandomHash()
+	newSN := zktx.ComputePRF(SK.Bytes(), newRandom.Bytes()) // sn = PRF(sk, r)
 	newValue := SN.Value - args.Value.ToInt().Uint64()
 
 	newCMT := zktx.GenCMT(newValue, newSN.Bytes(), newRandom.Bytes()) //tbd
 	tx.SetZKCMT(newCMT)                                               //cmt
 
 	//genProofStart := time.Now()
-	zkProof := zktx.GenRedeemProof(SN.Value, SN.Random, newSN, newRandom, SN.CMT, SN.SN, newCMT, newValue)
+	zkProof := zktx.GenRedeemProof(SN.Value, SN.Random, newSN, newRandom, SN.CMT, SN.SN, newCMT, newValue, SK)
 	//genProofEnd := time.Now()
 	// fmt.Println("***** GenRedeemProof Cost Time (ms): ", genProofEnd.Sub(genProofStart).Nanoseconds() / 1000000)
 

@@ -7,6 +7,7 @@ extern "C"
 #include <stdint.h>
 
    char *genCMT(uint64_t value, char *sn_string, char *r_string);
+   char* computePRF(char* sk_string, char* r_string);
 
    char *genRedeemproof(uint64_t value,
                         uint64_t value_old,
@@ -16,7 +17,9 @@ extern "C"
                         char *r_string,
                         char *cmtA_old_string, 
                         char *cmtA_string, 
-                        uint64_t value_s);
+                        uint64_t value_s,
+                        char *sk_string
+                      );
 
    bool verifyRedeemproof(char *data, char *cmtA_old_string, char *sn_old_string, char *cmtA_string, uint64_t value_s);
 
