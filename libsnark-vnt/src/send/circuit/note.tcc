@@ -14,7 +14,6 @@ public:
     pb_variable<FieldT> value_s_packed;
 
     std::shared_ptr<digest_variable<FieldT>> pk_recv; // a random 160bits receiver's address
-    std::shared_ptr<digest_variable<FieldT>> sn_s; // 256位的随机数serial number
     std::shared_ptr<digest_variable<FieldT>> r_s; // 256位的随机数r
 
     note_gadget_with_packing(
@@ -24,7 +23,6 @@ public:
         std::shared_ptr<digest_variable<FieldT>> &r_old,
         pb_variable_array<FieldT> &value_s,
         std::shared_ptr<digest_variable<FieldT>> &pk_recv,
-        std::shared_ptr<digest_variable<FieldT>> &sn_s,
         std::shared_ptr<digest_variable<FieldT>> &r_s
     ) : gadget<FieldT>(pb), 
         value_old(value_old), 
@@ -32,7 +30,6 @@ public:
         r_old(r_old),
         value_s(value_s), 
         pk_recv(pk_recv),
-        sn_s(sn_s),
         r_s(r_s)
     {        
         value_old_packed.allocate(pb, "value_old_packed");
@@ -60,7 +57,6 @@ public:
         sn_old->generate_r1cs_constraints(); // 随机数的约束
         r_old->generate_r1cs_constraints(); // 随机数的约束
         pk_recv->generate_r1cs_constraints(); // 随机数的约束
-        sn_s->generate_r1cs_constraints(); // 随机数的约束
         r_s->generate_r1cs_constraints(); // 随机数的约束
     }
 
@@ -75,7 +71,6 @@ public:
         this->pb.lc_val(value_s_packed) = value_s.get_field_element_from_bits_by_order(this->pb);
 
         pk_recv->bits.fill_with_bits(this->pb, uint160_to_bool_vector(notes.pk));
-        sn_s->bits.fill_with_bits(this->pb, uint256_to_bool_vector(notes.sn_s));
         r_s->bits.fill_with_bits(this->pb, uint256_to_bool_vector(notes.r));
     }
 };
@@ -95,22 +90,28 @@ public:
     std::shared_ptr<digest_variable<FieldT>> sn; // 256位的随机数serial number    
     std::shared_ptr<digest_variable<FieldT>> r; // 256位的随机数r
 
+    std::shared_ptr<digest_variable<FieldT>> sk; // 256位的sk
+    std::shared_ptr<digest_variable<FieldT>> pk_sender; // 160位的pk
+
     note_gadget_with_packing_and_SUB(
         protoboard<FieldT> &pb,
         pb_variable_array<FieldT> &value_s,
         std::shared_ptr<digest_variable<FieldT>> &pk_recv,
-        std::shared_ptr<digest_variable<FieldT>> &sn_s,
         std::shared_ptr<digest_variable<FieldT>> &r_s,
         pb_variable_array<FieldT> &value_old,
         std::shared_ptr<digest_variable<FieldT>> &sn_old,
         std::shared_ptr<digest_variable<FieldT>> &r_old,
         pb_variable_array<FieldT> &value,
         std::shared_ptr<digest_variable<FieldT>> &sn,
-        std::shared_ptr<digest_variable<FieldT>> &r
-    ) : note_gadget_with_packing<FieldT>(pb, value_old, sn_old, r_old, value_s, pk_recv, sn_s, r_s),
+        std::shared_ptr<digest_variable<FieldT>> &r,
+        std::shared_ptr<digest_variable<FieldT>> &sk,
+        std::shared_ptr<digest_variable<FieldT>> &pk        
+    ) : note_gadget_with_packing<FieldT>(pb, value_old, sn_old, r_old, value_s, pk_recv, r_s),
         value(value), 
         sn(sn),
-        r(r)
+        r(r),
+        sk(sk),
+        pk_sender(pk)
     {
         value_packed.allocate(pb, "value_packed");
     }
@@ -129,13 +130,15 @@ public:
 
         sn->generate_r1cs_constraints(); // 随机数的约束
         r->generate_r1cs_constraints(); // 随机数的约束
+        sk->generate_r1cs_constraints(); // 随机数的约束
+        pk_sender->generate_r1cs_constraints(); // 随机数的约束
 
         // 1 * (value_old - value_s) = this->value 
         this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(1, (this->value_old_packed - this->value_s_packed), this->value_packed),
                                  FMT(this->annotation_prefix, " equal"));
     }
 
-    void generate_r1cs_witness(const NoteS& note_s, const Note& note_old, const Note& note) { // 为变量生成约束
+    void generate_r1cs_witness(const NoteS& note_s, const Note& note_old, const Note& note, uint256 sk_data, uint160 pk_data) { // 为变量生成约束
         note_gadget_with_packing<FieldT>::generate_r1cs_witness(note_old, note_s);
 
         value.fill_with_bits(this->pb, uint64_to_bool_vector(note.value));
@@ -143,5 +146,8 @@ public:
         
         sn->bits.fill_with_bits(this->pb, uint256_to_bool_vector(note.sn));
         r->bits.fill_with_bits(this->pb, uint256_to_bool_vector(note.r));
+
+        sk->bits.fill_with_bits(this->pb, uint256_to_bool_vector(sk_data));
+        pk_sender->bits.fill_with_bits(this->pb, uint160_to_bool_vector(pk_data));
     }
 };

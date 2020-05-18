@@ -226,3 +226,17 @@ std::vector<unsigned char> vectorSlice(const std::vector<unsigned char>& vec, si
     }
     return slice;
 }
+
+// sn = PRF(sk, r)
+uint256 Compute_PRF(uint256 sk, uint256 r) {
+
+     CSHA256 hasher;
+
+     hasher.Write(sk.begin(), 32);
+    hasher.Write(r.begin(), 32);
+
+     uint256 sn;
+    hasher.Finalize(sn.begin());
+
+     return sn;
+} 

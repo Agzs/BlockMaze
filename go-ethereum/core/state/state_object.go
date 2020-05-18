@@ -110,8 +110,11 @@ func newObject(db *StateDB, address common.Address, data Account) *stateObject {
 		data.Balance = new(big.Int)
 	}
 	if data.CMT == (common.Hash{}) {
-		h := &common.Hash{}
-		cmt := zktx.GenCMT(0, h.Bytes(), h.Bytes())
+		// For large-scale test, we suppose that SK = CRH(addr), there is impossible in pratical.
+		SK := zktx.ZKTxAddress.Hash()
+		r := common.Hash{}
+		sn := zktx.ComputePRF(SK.Bytes(), r.Bytes()) // sn = PRF(sk, r)
+		cmt := zktx.GenCMT(0, sn.Bytes(), r.Bytes())
 		data.CMT = *cmt
 	}
 	if data.CodeHash == nil {
