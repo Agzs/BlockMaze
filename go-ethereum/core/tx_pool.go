@@ -17,7 +17,6 @@
 package core
 
 import (
-	"crypto/ecdsa"
 	"errors"
 	"fmt"
 	"math"
@@ -29,7 +28,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/metrics"
@@ -575,15 +573,15 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	}
 	// Make sure the transaction is signed properly
 	from, err := types.Sender(pool.signer, tx)
-	if txCode == types.DepositTx {
-		PKBAddress, _ := types.ExtractPKBAddress(types.HomesteadSigner{}, tx)
-		x, y := tx.PubKey()
-		pub := ecdsa.PublicKey{Curve: crypto.S256(), X: x, Y: y}
-		address := crypto.PubkeyToAddress(pub)
-		if address != PKBAddress {
-			return errors.New("invalid publickey for deposit tx")
-		}
-	}
+	// if txCode == types.DepositTx {
+	// 	PKBAddress, _ := types.ExtractPKBAddress(types.HomesteadSigner{}, tx)
+	// 	x, y := tx.PubKey()
+	// 	pub := ecdsa.PublicKey{Curve: crypto.S256(), X: x, Y: y}
+	// 	address := crypto.PubkeyToAddress(pub)
+	// 	if address != PKBAddress {
+	// 		return errors.New("invalid publickey for deposit tx")
+	// 	}
+	// }
 	if err != nil {
 		return ErrInvalidSender
 	}
@@ -637,8 +635,8 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	}
 	if txCode == types.DepositTx {
 		cmtbalance := pool.currentState.GetCMTBalance(from)
-		ppp := &ecdsa.PublicKey{crypto.S256(), tx.X(), tx.Y()}
-		err = zktx.VerifyDepositProof(ppp, tx.RTcmt(), &cmtbalance, tx.ZKSN(), tx.ZKCMT(), tx.ZKSNS(), tx.ZKProof())
+		//ppp := &ecdsa.PublicKey{crypto.S256(), tx.X(), tx.Y()}
+		err = zktx.VerifyDepositProof(zktx.RandomReceiverPK, tx.RTcmt(), &cmtbalance, tx.ZKSN(), tx.ZKCMT(), tx.ZKSN(), tx.ZKProof())
 		if err != nil {
 			return err
 		}

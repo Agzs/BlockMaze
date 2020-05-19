@@ -33,6 +33,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/ethereum/go-ethereum/merkle"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/zktx"
@@ -232,19 +233,32 @@ func (g *Genesis) ToBlock(db ethdb.Database) *types.Block {
 		for key, value := range account.Storage {
 			statedb.SetState(addr, key, value)
 		}
-
+		
 		// Obtaining SK should be done as follows:
 		// key, err := s.GetKey(ctx, address, passwd)
 		// SK := key.PrivateKey
 		
 		// For large-scale test, we suppose that SK = CRH(addr), there is impossible in pratical.
 		SK := zktx.ZKTxAddress.Hash()
-		r := common.Hash{}
+		rr := common.HexToHash("2345") //--zy
+		r := &rr
 		sn := zktx.ComputePRF(SK.Bytes(), r.Bytes()) // sn = PRF(sk, r)
-
-		statedb.SetCMT(addr, zktx.GenCMT(0, sn.Bytes(), r.Bytes()))
+		statedb.SetCMT(addr, zktx.GenCMT(1000, sn.Bytes(), r.Bytes()))
+		//statedb.SetCMT(addr, zktx.GenCMT(0, common.Hash{}.Bytes(), common.Hash{}.Bytes()))
 	}
 	root := statedb.IntermediateRoot(false)
+
+	/** 
+	 * The cmts.hex: 0xd57a3b5044475ead08a702848ad20dfc2899c88a63b3b3583ff28e166db5fe36
+	 * The cmts.string: 0xd57a3b5044475ead08a702848ad20dfc2899c88a63b3b3583ff28e166db5fe36
+	 * The cmts.bytes: [213 122 59 80 68 71 94 173 8 167 2 132 138 210 13 252 40 153 200 138 99 179 179 88 63 242 142 22 109 181 254 54]
+     * The cmts: [213 122 59 80 68 71 94 173 8 167 2 132 138 210 13 252 40 153 200 138 99 179 179 88 63 242 142 22 109 181 254 54]
+	 */
+	var CMTS []*common.Hash = make([]*common.Hash, 0)
+	ZKCMTS := common.HexToHash("0xd57a3b5044475ead08a702848ad20dfc2899c88a63b3b3583ff28e166db5fe36")
+	fixCMTS := & ZKCMTS
+	CMTS = append(CMTS, fixCMTS)
+	
 	head := &types.Header{
 		Number:     new(big.Int).SetUint64(g.Number),
 		Nonce:      types.EncodeNonce(g.Nonce),
@@ -257,6 +271,8 @@ func (g *Genesis) ToBlock(db ethdb.Database) *types.Block {
 		MixDigest:  g.Mixhash,
 		Coinbase:   g.Coinbase,
 		Root:       root,
+		RTCMT:      merkle.CMTRoot(CMTS),
+		CMT:        CMTS,
 	}
 	if g.GasLimit == 0 {
 		head.GasLimit = params.GenesisGasLimit
