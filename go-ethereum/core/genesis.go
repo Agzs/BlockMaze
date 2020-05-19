@@ -249,13 +249,13 @@ func (g *Genesis) ToBlock(db ethdb.Database) *types.Block {
 	root := statedb.IntermediateRoot(false)
 
 	/** 
-	 * The cmts.hex: 0xd57a3b5044475ead08a702848ad20dfc2899c88a63b3b3583ff28e166db5fe36
-	 * The cmts.string: 0xd57a3b5044475ead08a702848ad20dfc2899c88a63b3b3583ff28e166db5fe36
-	 * The cmts.bytes: [213 122 59 80 68 71 94 173 8 167 2 132 138 210 13 252 40 153 200 138 99 179 179 88 63 242 142 22 109 181 254 54]
-     * The cmts: [213 122 59 80 68 71 94 173 8 167 2 132 138 210 13 252 40 153 200 138 99 179 179 88 63 242 142 22 109 181 254 54]
+	 * The cmts.hex: 0xe29fb10327b43e97fb0aeaf32c18081b0cd91b767c3cb950b059f475606636a6
+	 * The cmts.string: 0xe29fb10327b43e97fb0aeaf32c18081b0cd91b767c3cb950b059f475606636a6
+	 * The cmts.bytes: [226 159 177 3 39 180 62 151 251 10 234 243 44 24 8 27 12 217 27 118 124 60 185 80 176 89 244 117 96 102 54 166]
+	 * The cmts: [226 159 177 3 39 180 62 151 251 10 234 243 44 24 8 27 12 217 27 118 124 60 185 80 176 89 244 117 96 102 54 166]
 	 */
 	var CMTS []*common.Hash = make([]*common.Hash, 0)
-	ZKCMTS := common.HexToHash("0xd57a3b5044475ead08a702848ad20dfc2899c88a63b3b3583ff28e166db5fe36")
+	ZKCMTS := common.HexToHash("0xe29fb10327b43e97fb0aeaf32c18081b0cd91b767c3cb950b059f475606636a6")
 	fixCMTS := & ZKCMTS
 	CMTS = append(CMTS, fixCMTS)
 	

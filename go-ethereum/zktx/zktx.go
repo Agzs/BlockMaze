@@ -200,7 +200,7 @@ func VerifyDepositProof(pk *ecdsa.PublicKey, rtcmt common.Hash, cmtb *common.Has
 	
 	var pubKey pub
 	
-	pubKeyStr := "0xf842a0eaf9c33ab6b7e9d1b074c10b5d6b08c4a22d1fe91ef1aff4fbf0dd0008180c5ea01fedd675f7e2b559dfd34c3e92dc94a36a47a7bd477929e1db5e67eb13379979"
+	pubKeyStr := "0xf842a0c5654baa3a34bf61a100241cee2818eeb879a69b2259f4dfa0b2b34c659bf258a01929364a35048d5921158d9f298d68ebad15291d9f36a909d4726f59c9b8441a"
 	PubKey := common.FromHex(pubKeyStr)
 	
 	rlp.DecodeBytes(PubKey, &pubKey) //--zy
@@ -277,7 +277,7 @@ func GenCMTS(values uint64, pk *ecdsa.PublicKey, rs []byte, sna []byte) *common.
 	
 	var pubKey pub
 	
-	pubKeyStr := "0xf842a0eaf9c33ab6b7e9d1b074c10b5d6b08c4a22d1fe91ef1aff4fbf0dd0008180c5ea01fedd675f7e2b559dfd34c3e92dc94a36a47a7bd477929e1db5e67eb13379979"
+	pubKeyStr := "0xf842a0c5654baa3a34bf61a100241cee2818eeb879a69b2259f4dfa0b2b34c659bf258a01929364a35048d5921158d9f298d68ebad15291d9f36a909d4726f59c9b8441a"
 	PubKey := common.FromHex(pubKeyStr)
 	
 	rlp.DecodeBytes(PubKey, &pubKey) //--zy

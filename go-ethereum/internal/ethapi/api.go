@@ -1493,7 +1493,7 @@ func (s *PublicTransactionPoolAPI) SendMintTransaction(ctx context.Context, args
 	// fmt.Println("The SK:", SK)
 	// zkProof := zktx.GenMintProof(SN.Value, SN.Random, newSN, newRandom, SN.CMT, SN.SN, newCMT, newValue, SK)
 	// fmt.Println("The zkProof:", zkProof) 
-	zkProof := []byte{49,54,49,56,54,52,99,56,54,53,100,53,100,51,50,98,101,56,101,48,99,48,53,98,49,57,48,101,50,97,101,102,54,50,50,100,52,99,53,50,55,101,99,57,100,99,50,98,54,100,99,52,53,56,54,49,49,51,49,52,50,97,54,102,48,100,56,97,55,51,56,97,55,57,54,101,57,98,102,100,50,99,55,48,53,54,50,49,54,101,97,99,100,49,49,54,51,52,56,51,52,99,98,54,55,49,53,55,54,102,51,52,52,52,49,97,99,57,55,102,49,55,52,51,98,100,49,98,50,53,48,54,52,98,98,102,56,49,101,48,52,55,52,97,55,57,55,52,52,52,101,99,50,49,101,98,101,51,99,100,56,50,56,55,99,101,53,49,48,98,100,100,53,101,49,101,98,55,100,55,101,102,57,50,52,97,48,100,52,57,57,50,50,55,54,52,51,97,51,48,99,56,51,97,56,56,98,53,48,57,97,52,101,51,98,99,52,53,50,52,51,49,49,57,98,57,97,49,98,49,53,52,101,102,53,57,99,53,99,99,57,97,53,57,54,54,52,98,50,49,50,55,97,101,50,57,48,53,98,49,97,98,50,54,97,97,56,57,53,50,51,99,97,98,50,57,50,49,50,100,50,56,102,48,99,49,56,54,51,48,97,52,53,100,54,49,49,54,97,52,100,102,52,51,102,49,52,97,51,99,52,51,98,98,57,48,99,101,99,99,48,53,99,54,51,48,99,51,102,101,99,97,54,54,56,97,101,54,51,52,48,102,49,101,55,102,100,57,98,57,57,102,53,102,53,99,102,53,100,98,51,54,99,98,48,52,57,57,57,53,102,50,48,101,50,56,55,99,98,49,52,51,100,99,50,51,98,57,50,53,56,49,52,52,98,49,100,50,57,101,102,51,50,53,50,102,48,100,53,99,52,101,97,101,54,55,53,48,49,48,53,53,54,57,55,52,49,97,50,55,99,57,53,51,52,98,101,57,57,51,49,53,50,97,55,52,97,49,48,49,54,54,55,98,97,98,49,55,99,56,52,102,54,100,100,98,52,50,101,56,99,53,102,49,51,100,53,101,54,52,99,57,101,98,49,49,56,56,102,50,98,54,57,53,57,99,48,48,51,102,52,99,55,55,49,49,102,51,57,56,102,53,250,55,121,187,173,124,236,144,248,190,215,215,202,80,98,46,63}
+	zkProof := []byte{49,49,48,101,97,102,97,48,102,54,101,51,54,54,55,97,101,55,99,48,99,51,102,57,100,100,54,97,56,102,100,55,52,57,49,52,50,48,49,48,101,53,98,55,54,100,53,101,56,53,51,99,98,54,51,57,51,102,57,56,51,49,53,102,50,57,97,50,98,102,55,50,57,53,99,102,54,100,48,102,56,55,56,54,49,56,55,56,97,53,57,54,98,97,55,49,97,101,50,101,100,50,51,99,56,49,98,55,48,97,52,101,97,57,55,102,51,102,49,55,54,100,98,99,55,99,54,54,49,54,50,52,54,55,101,53,56,53,101,53,57,56,100,53,97,99,51,50,99,97,50,53,50,54,54,100,57,101,51,56,55,53,49,100,100,97,50,56,102,98,98,100,50,52,101,54,101,98,97,48,48,49,48,98,50,56,54,48,52,99,100,57,49,98,51,51,100,56,99,55,52,51,53,57,53,100,97,56,97,51,49,56,57,55,57,102,51,100,54,55,55,100,54,49,49,50,53,101,55,98,98,49,100,48,100,100,97,53,98,98,51,99,49,48,51,100,56,54,51,48,51,50,52,97,53,52,48,102,98,56,51,51,98,50,100,101,101,50,49,49,57,99,102,97,57,100,50,55,48,50,54,54,53,56,57,97,97,52,102,55,101,102,51,98,99,100,57,53,99,98,100,48,50,101,100,55,102,54,52,101,100,97,49,57,56,48,48,101,48,99,48,56,53,49,51,51,99,57,55,56,52,99,98,51,100,97,102,99,54,57,98,56,100,101,53,100,54,57,49,101,99,98,54,53,48,53,101,57,51,48,49,99,51,98,52,100,52,55,53,48,50,97,50,102,50,48,51,57,54,49,100,97,49,98,48,97,48,53,97,51,52,49,99,52,98,102,52,100,55,52,102,55,55,97,97,51,55,100,100,57,55,53,51,50,53,48,56,51,54,102,98,100,55,48,53,54,50,49,98,50,55,50,48,48,53,56,50,49,100,102,53,50,102,56,49,57,50,97,49,98,49,53,48,50,97,54,55,48,100,57,57,98,97,50,54,98,49,97,51,57,102,48,51,53,51,97,51,52,49,57,50,101,100,98,53,101,50,101,50,48,57,55,57,50,100,50,51,52,97,99,57,50,48,54,100,99,54,48,49,51,55,54,211,214,96,105,147,33,193,26,101,27,202,187,210,87,92,40,65}
 	//genProofEnd := time.Now()
     // fmt.Println("***** GenMintProof Cost Time (s): ", genProofEnd.Sub(genProofStart).Nanoseconds() / 1000000000.0)
 	
@@ -1655,7 +1655,7 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 	
 	var pubKey pub
 	
-	pubKeyStr := "0xf842a0eaf9c33ab6b7e9d1b074c10b5d6b08c4a22d1fe91ef1aff4fbf0dd0008180c5ea01fedd675f7e2b559dfd34c3e92dc94a36a47a7bd477929e1db5e67eb13379979"
+	pubKeyStr := "0xf842a0c5654baa3a34bf61a100241cee2818eeb879a69b2259f4dfa0b2b34c659bf258a01929364a35048d5921158d9f298d68ebad15291d9f36a909d4726f59c9b8441a"
 	PubKey := common.FromHex(pubKeyStr)
 	
 	rlp.DecodeBytes(PubKey, &pubKey) //--zy
@@ -1673,12 +1673,17 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 	tx.SetPubKey(randomPK.X, randomPK.Y)
 
 	newRandomA := SN.Random //A 新 r
-	newRs := zktx.ComputeCRH(zktx.ZKTxAddress, newRandomA.Bytes()) // A 新 r_s = CRH(pk, r)
+	// newRs := zktx.ComputeCRH(zktx.ZKTxAddress, newRandomA.Bytes()) // A 新 r_s = CRH(pk, r)
+	// fmt.Println("The CMTs.newRs:", newRs.String())
+	inter_newRs_Hash := common.HexToHash("0xda0bd9b92061eb2cd1c3503cf2bcdd272a88f56f60aef27a82d8e92cb3d3f1df")
+	newRs := &inter_newRs_Hash
 
-	CMTs := zktx.GenCMTS(uint64(0), zktx.RandomReceiverPK, newRs.Bytes(), SN.SN.Bytes()) //生成cmts
-	fmt.Println("The CMTs:", CMTs.String())
-	// interHash := common.HexToHash("0xd57a3b5044475ead08a702848ad20dfc2899c88a63b3b3583ff28e166db5fe36")
-	// CMTs := &interHash
+	// CMTs := zktx.GenCMTS(uint64(0), zktx.RandomReceiverPK, newRs.Bytes(), SN.SN.Bytes()) //生成cmts
+	// fmt.Println("The CMTs.value:", uint64(0))
+	// fmt.Println("The CMTs.SNA:", SN.SN.String())
+	// fmt.Println("The CMTs:", CMTs.String())
+	inter_CMTs_Hash := common.HexToHash("0xe29fb10327b43e97fb0aeaf32c18081b0cd91b767c3cb950b059f475606636a6")
+	CMTs := &inter_CMTs_Hash
 	tx.SetZKCMTS(CMTs)
 	//add by zy
 	PK_sender := zktx.ZKTxAddress
@@ -1688,35 +1693,35 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 	newSNA := zktx.ComputePRF(SK.Bytes(), newRandomA.Bytes()) // A新sn = PRF(sk, r)
 
 	newValueA := SN.Value - uint64(0)                   //update后 A新value
-	newCMTA := zktx.GenCMT(newValueA, newSNA.Bytes(), newRandomA.Bytes()) //A 新 cmt
-	fmt.Println("The newCMTA:", newCMTA.String())
-	// interHash2 := common.HexToHash("0x9b04453969b957c0d52fc116e87c4c87be3e8aab1048fdf366cdde10e96858a1")
-	// newCMTA := &interHash2
+	// newCMTA := zktx.GenCMT(newValueA, newSNA.Bytes(), newRandomA.Bytes()) //A 新 cmt
+	// fmt.Println("The newCMTA:", newCMTA.String())
+	interHash2 := common.HexToHash("0x9b04453969b957c0d52fc116e87c4c87be3e8aab1048fdf366cdde10e96858a1")
+	newCMTA := &interHash2
 	tx.SetZKCMT(newCMTA)
 
-	fmt.Println("The cmts.hex:", CMTs.Hex())
-	fmt.Println("The cmts.string:", CMTs.String())
-	fmt.Println("The cmts.bytes:", CMTs.Bytes())
-	fmt.Println("The cmts:", CMTs)
+	// fmt.Println("The cmts.hex:", CMTs.Hex())
+	// fmt.Println("The cmts.string:", CMTs.String())
+	// fmt.Println("The cmts.bytes:", CMTs.Bytes())
+	// fmt.Println("The cmts:", CMTs)
 	//tx.SetZKAddress(&args.From)
 	//end
 	//genProofStart := time.Now()
-	fmt.Println("The sna:", SN.SN)
-	fmt.Println("The cmts:", CMTs)
-	fmt.Println("The cmtAold:", SN.CMT)
-	fmt.Println("The cmtAnew:", newCMTA)
-	zkProof := zktx.GenSendProof(SN.CMT, SN.Value, SN.Random, uint64(0), zktx.RandomReceiverPK, newRs, SN.SN, CMTs, newValueA, newSNA, newRandomA, newCMTA, SK, PK_sender)
-	fmt.Println("The zkProof:", zkProof) 
-	// zkProof := []byte{}
+	// fmt.Println("The sna:", SN.SN)
+	// fmt.Println("The cmts:", CMTs)
+	// fmt.Println("The cmtAold:", SN.CMT)
+	// fmt.Println("The cmtAnew:", newCMTA)
+	// zkProof := zktx.GenSendProof(SN.CMT, SN.Value, SN.Random, uint64(0), zktx.RandomReceiverPK, newRs, SN.SN, CMTs, newValueA, newSNA, newRandomA, newCMTA, SK, PK_sender)
+	// fmt.Println("The zkProof:", zkProof) 
+	zkProof := []byte{49,100,50,102,53,53,56,57,50,51,102,55,100,56,57,52,56,55,53,53,54,100,53,101,57,99,56,52,99,51,52,52,101,54,51,100,51,102,56,99,50,100,98,98,100,97,57,54,100,97,100,48,101,101,51,57,49,49,49,55,54,56,52,51,50,48,52,49,101,54,57,54,102,54,57,100,52,56,52,97,97,48,48,98,55,100,102,99,50,50,98,52,48,101,52,97,100,48,53,102,54,97,54,101,99,55,50,98,102,57,99,54,56,50,98,100,97,98,55,52,99,57,57,101,101,55,51,57,49,55,102,54,102,54,97,101,50,57,57,57,56,102,51,52,99,98,56,99,101,54,49,98,54,51,57,55,49,101,54,54,49,98,100,98,99,97,48,50,56,54,50,101,51,102,101,98,49,51,55,102,54,57,99,49,51,54,49,97,49,55,97,50,48,53,101,57,52,53,49,98,56,102,56,97,48,53,52,99,55,98,51,53,98,53,100,53,101,102,57,52,49,52,98,97,52,48,56,102,56,101,102,52,102,51,55,57,99,49,49,49,101,56,49,53,99,56,49,51,99,48,55,54,49,53,56,97,50,57,97,50,98,98,55,99,99,55,50,98,99,101,101,49,51,55,56,100,51,49,98,50,100,56,100,55,48,54,50,50,49,51,50,98,52,100,55,53,52,51,53,49,48,101,54,51,102,57,98,99,98,51,97,57,102,102,101,57,55,56,102,98,49,98,51,97,48,101,55,54,98,102,50,54,101,54,99,54,54,57,102,99,97,101,100,100,53,53,56,51,53,97,102,102,52,98,100,98,102,57,98,57,51,50,54,51,97,102,57,99,97,49,49,99,97,55,97,51,57,48,49,52,99,51,49,53,48,99,48,52,48,102,50,52,54,102,55,55,49,99,98,100,101,52,100,54,56,56,54,56,51,100,54,49,56,55,56,51,53,101,51,50,99,48,49,56,102,52,98,52,55,56,50,102,55,50,50,101,54,48,101,56,98,56,53,52,53,51,100,56,50,57,48,52,56,51,52,55,55,101,100,100,54,48,100,57,49,98,48,53,102,57,52,50,100,101,97,102,98,51,56,57,56,102,49,102,57,55,97,98,50,53,97,53,57,55,55,101,52,53,57,98,52,55,56,97,57,54,57,53,57,100,53,50,48,1}
 	//genProofEnd := time.Now()
 	//fmt.Println("***** GenSendProof Cost Time (s): ", genProofEnd.Sub(genProofStart).Nanoseconds() / 1000000000.0)
 	if string(zkProof[0:10]) == "0000000000" {
 		return common.Hash{}, errors.New("can't generate proof")
 	}
 	tx.SetZKProof(zkProof) //proof tbd
-	AUX := zktx.ComputeAUX(zktx.RandomReceiverPK, uint64(0), newRs, SN.SN)
-	fmt.Println("AUX content: ", AUX)
-	// AUX := []byte{}
+	// AUX := zktx.ComputeAUX(zktx.RandomReceiverPK, uint64(0), newRs, SN.SN)
+	// fmt.Println("AUX content: ", AUX)
+	AUX := []byte{1,131,187,160,214,242,183,118,131,159,15,223,8,254,130,71,129,210,147,242,103,44,140,7,124,158,86,55,117,164,153,246,60,238,215,8,84,168,49,37,64,210,34,134,156,187,140,34,242,97,69,60,90,109,150,182,230,67,236,153,122,215,163,141,13,197,207,98,29,26,156,62,76,127,167,243,86,216,59,112,185,81,144,41,231}
 	//fmt.Println("***** Compute AUX size: ", len(AUX))
 
 	tx.SetAUX(AUX)
@@ -1759,7 +1764,9 @@ func (s *PublicTransactionPoolAPI) SendSendTransaction(ctx context.Context, args
 
 }
 
-// SendUpdateTransaction creates a Deposit transaction for the given argument, sign it and submit it to the
+
+
+// SendDepositTransaction creates a Deposit transaction for the given argument, sign it and submit it to the
 // transaction pool.
 func (s *PublicTransactionPoolAPI) SendDepositTransaction(ctx context.Context, args SendTxArgs) (common.Hash, error) {
 	// if zktx.Stage == zktx.Send {
@@ -1825,19 +1832,19 @@ func (s *PublicTransactionPoolAPI) SendDepositTransaction(ctx context.Context, a
 	tx.SetValue(big.NewInt(0))
 	tx.SetZKAddress(&args.From)
 
-	txSend := s.GetTransactionByHash2(ctx, args.TxHash)
-	if txSend == nil {
-		return common.Hash{}, errors.New("there does not exist a transaction" + args.TxHash.String())
-	}
+	// txSend := s.GetTransactionByHash2(ctx, args.TxHash)
+	// if txSend == nil {
+	// 	return common.Hash{}, errors.New("there does not exist a transaction" + args.TxHash.String())
+	// }
 
-	RPCtx := s.GetTransactionByHash(ctx, args.TxHash)
-	if RPCtx == nil {
-		return common.Hash{}, errors.New("there does not exist a transaction" + args.TxHash.String())
-	}
+	// RPCtx := s.GetTransactionByHash(ctx, args.TxHash)
+	// if RPCtx == nil {
+	// 	return common.Hash{}, errors.New("there does not exist a transaction" + args.TxHash.String())
+	// }
 
 	cmtBlockNumber := (new(big.Int).SetUint64(0))
 	var cmtBlockNumbers []uint64
-	var CMTSForMerkle []*common.Hash
+	// var CMTSForMerkle []*common.Hash
 	BlockToCmt := make(map[uint64][]*common.Hash)
 
 	block, err := s.b.BlockByNumber(ctx, rpc.LatestBlockNumber)
@@ -1869,21 +1876,21 @@ loop:
 		}
 		cmts := block.CMTS()
 		BlockToCmt[blockNum] = cmts
-		//	CMTSForMerkle = append(CMTSForMerkle, cmts...)
+		// CMTSForMerkle = append(CMTSForMerkle, cmts...)
 		cmtBlockNumbers = append(cmtBlockNumbers, blockNum)
 		count += len(cmts)
 	}
 
 	merkle.QuickSortUint64(cmtBlockNumbers)
 
-	for i, _ := range cmtBlockNumbers {
-		index := cmtBlockNumbers[i]
-		CMTSForMerkle = append(CMTSForMerkle, BlockToCmt[index]...)
-	}
+	// for i, _ := range cmtBlockNumbers {
+	// 	index := cmtBlockNumbers[i]
+	// 	CMTSForMerkle = append(CMTSForMerkle, BlockToCmt[index]...)
+	// }
 
-	RTcmt := zktx.GenRT(CMTSForMerkle)
-	fmt.Println("The RTcmt:", RTcmt.String())
-	// RTcmt := common.HexToHash("")
+	// RTcmt := zktx.GenRT(CMTSForMerkle)
+	// fmt.Println("The RTcmt:", RTcmt.String())
+	RTcmt := common.HexToHash("0x67dc64d9095ad4719b2ea7a3b551368b254b182704b615a20468f4085210f212")
 	tx.SetRTcmt(RTcmt)
 
 	tx.SetCMTBlocks(cmtBlockNumbers)
@@ -1906,8 +1913,14 @@ loop:
 	//randomKeyEnd := time.Now()
 	//fmt.Println("***** randomKey Cost Time (ms): ", randomKeyEnd.Sub(randomKeyStart).Nanoseconds() / 1000000)
 
-	AUXA := txSend.AUX()
-	valueS, rs, sna := zktx.DecAUX(&randomKeyB.PublicKey, AUXA) //--zy
+	// AUXA := txSend.AUX()
+	// valueS, rs, sna := zktx.DecAUX(&randomKeyB.PublicKey, AUXA) //--zy
+	valueS := uint64(0)
+	inter_rs_Hash := common.HexToHash("0xda0bd9b92061eb2cd1c3503cf2bcdd272a88f56f60aef27a82d8e92cb3d3f1df")
+	rs := &inter_rs_Hash
+	// inter_sna_Hash := common.HexToHash("0xa1d4c45e32b03a042b314ea6e9cbd31e7ec5476efb6e5379c3b7c9c27791e0a8")
+	// sna := &inter_sna_Hash
+	
 	// if valueS < 0 {
 	// 	return common.Hash{}, errors.New("transfer amount must be larger than 0")
 	// }
@@ -1926,14 +1939,18 @@ loop:
 	
 	var pubKey pub
 	
-	pubKeyStr := "0xf842a0eaf9c33ab6b7e9d1b074c10b5d6b08c4a22d1fe91ef1aff4fbf0dd0008180c5ea01fedd675f7e2b559dfd34c3e92dc94a36a47a7bd477929e1db5e67eb13379979"
+	pubKeyStr := "0xf842a0c5654baa3a34bf61a100241cee2818eeb879a69b2259f4dfa0b2b34c659bf258a01929364a35048d5921158d9f298d68ebad15291d9f36a909d4726f59c9b8441a"
 	PubKey := common.FromHex(pubKeyStr)
 	
 	rlp.DecodeBytes(PubKey, &pubKey) //--zy
 
 	zktx.RandomReceiverPK = &ecdsa.PublicKey{crypto.S256(), pubKey.X, pubKey.Y}
 
-	CMTs := zktx.GenCMTS(uint64(0), zktx.RandomReceiverPK, rs.Bytes(), sna.Bytes()) //生成cmts
+	// CMTs := zktx.GenCMTS(uint64(0), zktx.RandomReceiverPK, rs.Bytes(), sna.Bytes()) //生成cmts
+
+	// inter_CMTs_Hash := common.HexToHash("0xe29fb10327b43e97fb0aeaf32c18081b0cd91b767c3cb950b059f475606636a6")
+	// CMTs := &inter_CMTs_Hash
+
     // For large-scale test, we suppose that SK = CRH(addr), there is impossible in pratical.
 	SK_addr := zktx.ZKTxAddress.Hash()
     SK := &SK_addr
@@ -1943,34 +1960,34 @@ loop:
 	tx.SetZKSNS(sns)
 
 	newValue := SNb.Value + valueS
-	newCMTB := zktx.GenCMT(newValue, newSN.Bytes(), newRandom.Bytes())
-	fmt.Println("The newCMTB:", newCMTB.String())
-	// hashNewCMTB := common.HexToHash("0x9b04453969b957c0d52fc116e87c4c87be3e8aab1048fdf366cdde10e96858a1")
-	// newCMTB := &hashNewCMTB
+	// newCMTB := zktx.GenCMT(newValue, newSN.Bytes(), newRandom.Bytes())
+	// fmt.Println("The newCMTB:", newCMTB.String())
+	hashNewCMTB := common.HexToHash("0x9b04453969b957c0d52fc116e87c4c87be3e8aab1048fdf366cdde10e96858a1")
+	newCMTB := &hashNewCMTB
 	tx.SetZKCMT(newCMTB)
 	tx.SetPubKey(randomKeyB.X, randomKeyB.Y)
 
 	//genProofStart := time.Now()
-	fmt.Println("The pk:", zktx.RandomReceiverPK)
-	fmt.Println("The rtcmt:", RTcmt.Bytes())
-	fmt.Println("The cmtb:", SNb.CMT)
-	fmt.Println("The snb:", SNb.SN)
-	fmt.Println("The cmtbnew:", newCMTB)
+	// fmt.Println("The pk:", zktx.RandomReceiverPK)
+	// fmt.Println("The rtcmt:", RTcmt.Bytes())
+	// fmt.Println("The cmtb:", SNb.CMT.String())
+	// fmt.Println("The snb:", SNb.SN.String())
+	// fmt.Println("The cmtbnew:", newCMTB.String())
 
-	fmt.Println("The CMTs:", CMTs)
-	fmt.Println("The valueS:", valueS )
-	fmt.Println("The sns:", sns)
-	fmt.Println("The rs:", rs)
-	fmt.Println("The sna:", sna)
-	fmt.Println("The SNb.Value:", SNb.Value)
-	fmt.Println("The SNb.Random:", SNb.Random)
-	fmt.Println("The newSN:", newSN)
-	fmt.Println("The newRandom:", newRandom)
-	fmt.Println("The CMTSForMerkle:", CMTSForMerkle)
+	// fmt.Println("The CMTs:", CMTs.String())
+	// fmt.Println("The valueS:", valueS )
+	// fmt.Println("The sns:", sns.String())
+	// fmt.Println("The rs:", rs.String())
+	// fmt.Println("The sna:", sna.String())
+	// fmt.Println("The SNb.Value:", SNb.Value)
+	// fmt.Println("The SNb.Random:", SNb.Random.String())
+	// fmt.Println("The newSN:", newSN.String())
+	// fmt.Println("The newRandom:", newRandom.String())
+	// fmt.Println("The CMTSForMerkle:", CMTSForMerkle)
 	
-	zkProof := zktx.GenDepositProof(txSend.ZKCMTS(), valueS, sns, rs, sna, SNb.Value, SNb.Random, newSN, newRandom, &randomKeyB.PublicKey, RTcmt.Bytes(), SNb.CMT, SNb.SN, newCMTB, CMTSForMerkle, SK)
-	fmt.Println("The zkProof:", zkProof) 
-	// zkProof := []byte{}
+	// zkProof := zktx.GenDepositProof(CMTs, valueS, sns, rs, sna, SNb.Value, SNb.Random, newSN, newRandom, zktx.RandomReceiverPK, RTcmt.Bytes(), SNb.CMT, SNb.SN, newCMTB, CMTSForMerkle, SK)
+	// fmt.Println("The zkProof:", zkProof) 
+	zkProof := []byte{48,56,102,51,98,98,57,53,55,97,51,54,100,49,48,49,102,49,49,48,52,100,53,102,53,57,100,102,98,56,54,53,57,50,55,50,56,54,50,101,56,99,101,49,55,98,98,101,57,99,97,53,102,48,52,101,57,53,101,48,57,52,98,98,48,98,49,55,57,51,56,50,99,57,56,100,53,51,56,100,56,52,98,50,57,101,97,57,97,55,98,55,49,100,56,57,97,54,51,52,57,99,54,54,101,48,49,55,53,56,49,57,100,102,102,55,98,102,102,56,53,50,50,102,100,99,97,100,48,51,101,57,52,55,55,54,51,55,99,102,49,53,51,55,102,98,98,50,57,49,53,57,55,51,97,53,100,57,102,55,49,101,97,98,97,99,100,55,48,101,57,53,51,50,52,97,98,50,51,101,56,102,102,101,50,100,49,102,53,55,99,57,49,101,50,49,97,57,48,99,56,49,53,48,50,102,102,98,54,102,100,48,56,98,98,53,56,101,50,48,48,54,50,99,56,57,50,53,98,102,100,53,50,102,50,57,99,52,98,56,48,55,48,57,48,100,54,50,48,50,50,50,100,52,49,100,50,48,54,53,98,97,48,56,49,99,55,99,50,48,97,52,97,49,98,53,56,57,98,99,51,102,50,51,48,97,49,55,101,99,53,102,57,100,100,53,101,100,51,56,98,57,102,53,54,55,55,97,53,54,97,51,57,48,100,97,50,48,55,56,49,57,98,55,55,49,52,56,101,98,50,100,98,57,99,102,48,101,54,50,51,50,48,52,97,49,98,50,52,49,49,49,53,98,102,50,55,48,101,56,101,53,55,50,49,101,53,48,99,50,102,99,100,98,98,102,54,49,48,48,49,99,51,98,51,48,48,52,56,102,98,54,50,97,48,48,53,54,51,97,98,55,51,50,97,52,55,57,100,52,54,100,99,54,57,99,100,56,98,52,49,48,50,49,102,97,48,51,50,57,51,54,49,56,49,98,48,56,102,55,97,53,49,53,51,54,98,52,48,102,48,57,57,48,99,102,49,52,100,49,50,53,49,51,50,52,102,52,97,55,57,51,48,98,56,57,54,100,101,97,100,57,98,55,100,56,55,98,56,100,100,51,53,53,97,52,53,102,50,99,102,48,51,50,49,55,50,99,50,97,54,99,203,180,167,115,131,12}
 	//genProofEnd := time.Now()
 	//fmt.Println("***** GenDepositProof Cost Time (s): ", genProofEnd.Sub(genProofStart).Nanoseconds() / 1000000000.0)
 
@@ -2104,7 +2121,7 @@ func (s *PublicTransactionPoolAPI) SendRedeemTransaction(ctx context.Context, ar
 	//genProofStart := time.Now()
 	// zkProof := zktx.GenRedeemProof(SN.Value, SN.Random, newSN, newRandom, SN.CMT, SN.SN, newCMT, newValue, SK)
 	// fmt.Println("The zkProof:", zkProof) 
-	zkProof := []byte{50,51,48,57,54,49,99,98,48,98,48,102,51,51,101,52,99,56,50,97,101,49,54,50,101,50,101,55,102,56,98,55,102,51,57,97,55,102,101,51,52,50,53,99,55,101,57,50,57,102,48,51,53,54,57,99,49,97,54,50,55,57,55,57,49,99,54,97,52,48,49,100,97,54,98,51,53,54,55,50,57,97,56,51,49,102,99,54,97,57,50,48,49,101,102,55,97,48,50,52,100,49,99,54,50,48,99,57,56,57,101,102,97,50,54,52,53,99,49,97,97,53,102,52,48,53,53,101,49,53,99,55,51,49,98,51,56,54,102,50,50,49,102,53,57,52,50,102,101,57,98,49,102,99,97,55,56,52,102,57,48,48,48,101,102,57,100,101,48,52,97,100,54,98,49,102,48,98,102,51,50,101,54,100,98,50,98,98,56,56,53,56,50,56,55,48,49,102,48,48,51,101,50,55,48,102,98,48,98,52,99,56,102,97,100,55,99,52,55,57,49,54,98,97,55,55,49,49,97,52,98,102,102,49,56,98,101,53,56,100,54,98,51,49,99,99,102,52,101,99,49,56,54,97,52,53,50,51,56,49,102,97,97,52,48,49,99,55,97,56,99,102,97,56,56,100,97,101,102,57,57,54,98,51,54,52,57,48,53,57,50,51,54,101,51,98,48,97,54,102,48,52,51,101,101,100,48,100,97,50,99,99,100,97,50,98,102,52,53,98,49,52,55,99,100,50,54,100,49,49,52,55,50,100,55,100,97,56,100,97,97,97,51,57,102,101,97,48,57,98,48,99,51,54,99,52,97,98,50,100,101,100,50,49,52,49,49,97,53,49,55,97,53,55,55,57,48,54,54,97,54,98,53,99,49,53,98,101,100,57,54,101,55,97,54,54,54,101,49,52,55,50,102,53,54,56,50,102,57,100,48,48,51,98,48,101,51,98,98,49,51,49,48,57,53,53,101,102,55,51,50,53,100,100,54,48,57,57,101,99,97,55,48,53,102,97,51,99,48,102,55,49,48,99,49,99,102,102,54,52,99,102,101,50,52,99,57,56,101,49,101,57,48,97,99,49,99,54,99,102,54,57,100,98,102,57,56,52,57,99,53,48,52,56,54,52,52,56,55,57,51,48,100,52,48,48,98,51,57,55,48,102,224}
+	zkProof := []byte{50,98,54,49,102,100,51,52,48,49,50,53,56,53,98,101,100,101,50,48,99,51,51,102,57,52,54,99,54,52,56,97,55,56,55,57,50,55,56,98,49,55,100,97,55,48,98,102,102,98,55,53,56,53,49,98,57,100,50,48,51,53,55,51,49,52,101,54,100,49,56,52,57,102,100,99,55,54,97,97,51,100,56,55,53,52,51,50,50,52,97,102,98,101,54,49,54,99,55,99,101,50,49,55,51,55,98,52,100,52,97,97,48,50,101,57,101,53,101,50,55,55,57,100,51,57,57,51,49,97,102,51,57,48,50,56,97,99,57,97,56,53,48,101,48,49,56,100,48,51,102,100,53,102,51,102,101,57,49,54,99,52,56,54,56,53,54,49,48,100,51,102,97,98,56,55,53,49,99,52,55,54,97,52,48,101,101,54,51,100,97,97,49,52,57,97,52,49,101,49,49,102,55,49,99,48,98,98,54,55,102,55,51,102,100,54,102,57,48,50,100,98,48,53,51,97,52,100,100,51,50,51,57,98,55,52,56,51,49,100,102,57,51,49,102,54,51,55,50,53,97,98,55,52,97,98,49,51,56,101,50,57,98,56,51,53,100,49,101,52,57,102,99,100,56,52,55,56,97,99,97,53,102,57,98,97,99,51,56,102,57,49,100,54,98,57,100,48,100,56,50,49,56,57,98,54,99,97,98,100,49,100,98,98,48,97,101,99,102,102,49,53,55,101,102,57,55,101,56,101,48,55,98,102,100,97,100,48,57,54,49,102,57,98,99,99,99,51,50,99,97,97,57,102,55,48,56,100,98,53,50,98,101,51,99,50,102,51,50,56,98,49,48,52,99,51,101,50,57,100,49,57,50,48,49,101,54,102,50,51,97,54,51,100,97,56,52,50,99,48,55,55,51,49,101,51,97,57,102,102,98,102,51,53,102,53,101,101,101,55,54,97,53,50,98,97,57,48,101,49,101,100,49,98,99,54,98,56,99,57,99,51,100,48,55,53,50,53,48,52,102,51,57,100,49,98,101,98,51,100,50,99,50,97,102,100,49,51,51,102,48,50,99,98,52,97,55,100,49,101,57,50,99,98,102,52,56,53,54,53,53,98,98,57,49,57,97,101,100,56,51,55,57,54,54,54,50,50,102,101,57,50,144}
 	//genProofEnd := time.Now()
 	//fmt.Println("***** GenRedeemProof Cost Time (ms): ", genProofEnd.Sub(genProofStart).Nanoseconds() / 1000000000.0)
 
