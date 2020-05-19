@@ -246,9 +246,9 @@ int main () {
 
     libff::print_header("#             testing mint gadget");
 
-    uint64_t value = uint64_t(13); 
+    uint64_t value = uint64_t(6); 
     uint64_t value_old = uint64_t(6); 
-    uint64_t value_s = uint64_t(7);
+    uint64_t value_s = uint64_t(0);
 
     test_mint_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(value, value_old, value_s, keypair);
 

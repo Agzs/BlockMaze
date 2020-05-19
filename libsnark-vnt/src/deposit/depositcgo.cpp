@@ -416,7 +416,7 @@ char *genDepositproof(uint64_t value,
 
     gettimeofday(&t2,NULL);
     timeuse = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
-    // printf("\n\n reading deposit pk Use Time:%fs\n\n",timeuse);
+    printf("\n\n reading deposit pk Use Time:%fs\n\n",timeuse);
 
     // 生成proof
     cout << "Trying to generate deposit proof..." << endl;
@@ -463,7 +463,7 @@ bool verifyDepositproof(char *data, char *RT, char *pk, char *cmtb_old, char *sn
 
     gettimeofday(&t2,NULL);
     timeuse = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
-    // printf("\n\n reading deposit vk Use Time:%fs\n\n",timeuse);
+    printf("\n\n reading deposit vk Use Time:%fs\n\n",timeuse);
 
     libsnark::r1cs_gg_ppzksnark_proof<libff::alt_bn128_pp> proof;
 

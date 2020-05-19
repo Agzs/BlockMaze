@@ -247,7 +247,7 @@ public:
         noteADD->generate_r1cs_witness(note_s, note_old, note, sk_data);
 
         // Set enforce flag for nonzero input value
-        this->pb.val(value_enforce) = (note_s.value != 0) ? FieldT::one() : FieldT::zero();
+        this->pb.val(value_enforce) = (note_s.value == 0) ? FieldT::one() : FieldT::zero();
 
         // Witness `zero`
         this->pb.val(ZERO) = FieldT::zero();

@@ -328,9 +328,9 @@ int main () {
 
     libff::print_header("#             testing deposit gadget");
 
-    uint64_t value = uint64_t(264); 
-    uint64_t value_old = uint64_t(255); 
-    uint64_t value_s = uint64_t(9);
+    uint64_t value = uint64_t(20); 
+    uint64_t value_old = uint64_t(20); 
+    uint64_t value_s = uint64_t(0);
 
     test_deposit_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(value, value_old, value_s, keypair);
 

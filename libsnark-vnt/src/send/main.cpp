@@ -259,8 +259,8 @@ int main () {
     libff::print_header("#             testing send gadget");
 
     uint64_t value = uint64_t(14); 
-    uint64_t value_old = uint64_t(22); 
-    uint64_t value_s = uint64_t(8);
+    uint64_t value_old = uint64_t(14); 
+    uint64_t value_s = uint64_t(0);
 
     test_send_gadget_with_instance<default_r1cs_gg_ppzksnark_pp>(value_old, value_s, value, keypair);
 
