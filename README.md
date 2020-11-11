@@ -22,8 +22,6 @@
 go version >= 1.10
 ```
 
-> Note: move "prfKey" to "/usr/local"
-
 ### 2. Build
 
 2.1 obtain source code
@@ -36,7 +34,7 @@ git clone https://github.com/Agzs/BlockMaze.git ethereum
 2.2 directory 
 ```
    ethereum
-   -- prfKey        save the pk and vk from libsnark
+   -- prfKey        save the pk and vk from libsnark(Due to file size limitation on Github, please build later)
    -- test          test files
    -- go-ethereum   based on 040dd5bd5d9ecf05cce666eeb395bc18e5e91342 branch
    -- libsnark-vnt  our own gadgets
@@ -44,14 +42,14 @@ git clone https://github.com/Agzs/BlockMaze.git ethereum
 
 > Note: all geth must utilize the same "prfKey"
 
-2.3 setup keys
-```   
-   sudo cp -r prfKey /usr/local
-```
 
-2.4 build `libsnark`
+2.3 build `libsnark`
 ```
-   cd ethereum/libsnark-vnt
+   cd ethereum
+   
+   mkdir prfKey
+
+   cd libsnark-vnt
    
    mkdir build && cd build
 
@@ -59,12 +57,28 @@ git clone https://github.com/Agzs/BlockMaze.git ethereum
 
    make
 
+   //generate vk and pk
+   ./src/mint_key
+
+   ./src/send_key
+
+   ./src/deposit_key
+
+   ./src/redeem_key
+
+   mv depositpk.txt depositvk.txt mintpk.txt mintvk.txt redeempk.txt redeemvk.txt sendpk.txt sendvk.txt -t ../../prfKey
+
    sudo cp -i ./src/libzk* ./depends/libsnark/libsnark/libsnark.so ./depends/libsnark/depends/libff/libff/libff.so /usr/local/lib
 
    sudo gedit ~/.bashrc
 
    //add the following command and save it
    export LD_LIBRARY_PATH=/usr/local/lib
+```
+
+2.4 setup keys
+```   
+   sudo cp -r prfKey /usr/local
 ```
 
 2.5 Build Ethereum
